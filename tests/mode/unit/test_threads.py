@@ -1,7 +1,6 @@
 import asyncio
 import sys
 import threading
-from asyncio.locks import Event
 from unittest.mock import ANY, Mock, patch
 
 if sys.version_info < (3, 8):
@@ -13,6 +12,7 @@ import pytest
 
 from mode.threads import MethodQueue, QueueServiceThread, ServiceThread, WorkerThread
 from mode.utils.futures import done_future
+from mode.utils.locks import Event
 
 
 class test_WorkerThread:
@@ -262,6 +262,23 @@ class test_ServiceThread:
         await thread.crash(exc)
         await asyncio.sleep(0.1)  # wait for call_soon_threadsafe
         thread._thread_running.set_exception.assert_called_with(exc)
+
+    @pytest.mark.asyncio
+    async def test__wakeup_timer_in_thread(self, *, thread, event_loop):
+        thread.add_future = Mock(name="thread.add_future")
+        thread._wakeup_timer_in_thread = AsyncMock()
+        thread._stopped.is_set = Mock(return_value=False)
+        thread._crashed.is_set = Mock(return_value=False)
+        thread.sleep = AsyncMock()
+
+        def cb():
+            thread._stopped.is_set.return_value = True
+            assert thread.should_stop
+
+        event_loop.call_soon(cb)
+        await thread._keepalive2()
+
+        thread._wakeup_timer_in_thread.assert_awaited()
 
 
 class test_MethodQueue:

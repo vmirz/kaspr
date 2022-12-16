@@ -8,7 +8,6 @@ from time import monotonic, perf_counter
 from types import TracebackType
 from typing import (
     Any,
-    AsyncContextManager,
     AsyncIterator,
     Awaitable,
     Callable,
@@ -41,6 +40,7 @@ from .utils.times import Seconds, want_seconds
 from .utils.tracebacks import format_task_stack
 from .utils.trees import Node
 from .utils.types.trees import NodeT
+from .utils.typing import AsyncContextManager
 
 __all__ = ["ServiceBase", "Service", "Diag", "task", "timer", "crontab"]
 
@@ -567,16 +567,16 @@ class Service(ServiceBase, ServiceCallbacks):
         super().__init__(loop=self._loop)
 
     def _new_started_event(self) -> Event:
-        return Event()
+        return Event(loop=self.loop)
 
     def _new_stopped_event(self) -> Event:
-        return Event()
+        return Event(loop=self.loop)
 
     def _new_shutdown_event(self) -> Event:
-        return Event()
+        return Event(loop=self.loop)
 
     def _new_crashed_event(self) -> Event:
-        return Event()
+        return Event(loop=self.loop)
 
     async def transition_with(
         self, flag: str, fut: Awaitable, *args: Any, **kwargs: Any
