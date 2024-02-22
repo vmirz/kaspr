@@ -1,4 +1,5 @@
 """Custom data structures."""
+
 import abc
 import collections.abc
 import threading
@@ -49,11 +50,9 @@ else:
         from django.utils.functional import LazyObject, LazySettings
     except ImportError:
 
-        class LazyObject:
-            ...  # noqa
+        class LazyObject: ...  # noqa
 
-        class LazySettings:
-            ...  # noqa
+        class LazySettings: ...  # noqa
 
 
 __all__ = [
@@ -149,8 +148,7 @@ class Heap(MutableSequence[T]):
         return repr(self.data)
 
     @overload
-    def __getitem__(self, i: int) -> T:
-        ...
+    def __getitem__(self, i: int) -> T: ...
 
     @overload  # noqa: F811
     def __getitem__(self, s: slice) -> MutableSequence[T]:  # noqa: F811
@@ -160,8 +158,7 @@ class Heap(MutableSequence[T]):
         return self.data.__getitem__(s)
 
     @overload
-    def __setitem__(self, i: int, o: T) -> None:
-        ...
+    def __setitem__(self, i: int, o: T) -> None: ...
 
     @overload  # noqa: F811
     def __setitem__(self, s: slice, o: Iterable[T]) -> None:  # noqa: F811
@@ -171,8 +168,7 @@ class Heap(MutableSequence[T]):
         self.data.__setitem__(index_or_slice, o)
 
     @overload
-    def __delitem__(self, i: int) -> None:
-        ...
+    def __delitem__(self, i: int) -> None: ...
 
     @overload  # noqa: F811
     def __delitem__(self, i: slice) -> None:  # noqa: F811
@@ -383,16 +379,13 @@ class FastUserList(UserList):
 
 class MappingViewProxy(Generic[KT, VT]):
     @abc.abstractmethod
-    def _keys(self) -> Iterator[KT]:
-        ...
+    def _keys(self) -> Iterator[KT]: ...
 
     @abc.abstractmethod
-    def _values(self) -> Iterator[VT]:
-        ...
+    def _values(self) -> Iterator[VT]: ...
 
     @abc.abstractmethod
-    def _items(self) -> Iterator[Tuple[KT, VT]]:
-        ...
+    def _items(self) -> Iterator[Tuple[KT, VT]]: ...
 
 
 class ProxyKeysView(KeysView[KT]):
@@ -526,17 +519,13 @@ class LRUCache(FastUserDict, MutableMapping[KT, VT], MappingViewProxy):
 class ManagedUserSet(FastUserSet[T]):
     """A MutableSet that adds callbacks for when keys are get/set/deleted."""
 
-    def on_add(self, value: T) -> None:
-        ...
+    def on_add(self, value: T) -> None: ...
 
-    def on_discard(self, value: T) -> None:
-        ...
+    def on_discard(self, value: T) -> None: ...
 
-    def on_clear(self) -> None:
-        ...
+    def on_clear(self) -> None: ...
 
-    def on_change(self, added: Set[T], removed: Set[T]) -> None:
-        ...
+    def on_change(self, added: Set[T], removed: Set[T]) -> None: ...
 
     def add(self, element: T) -> None:
         if element not in self.data:

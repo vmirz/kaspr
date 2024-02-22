@@ -17,8 +17,7 @@ class X:
         self.on_stopped = self.on_stopped.with_default_sender(self)
 
 
-class Y(X):
-    ...
+class Y(X): ...
 
 
 class SyncX:

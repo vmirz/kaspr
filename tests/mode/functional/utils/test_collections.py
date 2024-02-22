@@ -587,8 +587,7 @@ class test_LRUCache:
 class test_AttributeDictMixin:
     @pytest.fixture()
     def d(self):
-        class X(dict, AttributeDictMixin):
-            ...
+        class X(dict, AttributeDictMixin): ...
 
         return X()
 

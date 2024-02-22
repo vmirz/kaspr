@@ -1,4 +1,5 @@
 """Time, date and timezone related utilities."""
+
 import abc
 import asyncio
 import sys
@@ -121,21 +122,17 @@ class Bucket(AsyncContextManager):
         self._tokens = self.capacity
         self.__post_init__()
 
-    def __post_init__(self) -> None:
-        ...
+    def __post_init__(self) -> None: ...
 
     @abc.abstractmethod
-    def pour(self, tokens: int = 1) -> bool:
-        ...
+    def pour(self, tokens: int = 1) -> bool: ...
 
     @abc.abstractmethod
-    def expected_time(self, tokens: int = 1) -> float:
-        ...
+    def expected_time(self, tokens: int = 1) -> float: ...
 
     @property
     @abc.abstractmethod
-    def tokens(self) -> float:
-        ...
+    def tokens(self) -> float: ...
 
     @property
     def fill_rate(self) -> float:

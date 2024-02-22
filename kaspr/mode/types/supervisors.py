@@ -1,4 +1,5 @@
 """Type classes for :mod:`mode.supervisors`."""
+
 import abc
 import typing
 from typing import Any, Awaitable, Callable, Optional, Type
@@ -9,8 +10,7 @@ if typing.TYPE_CHECKING:
     from .services import ServiceT
 else:
 
-    class ServiceT:
-        ...  # noqa: E701
+    class ServiceT: ...  # noqa: E701
 
 
 __all__ = ["SupervisorStrategyT"]
@@ -38,21 +38,16 @@ class SupervisorStrategyT(ServiceT):
         self.replacement: Optional[ReplacementT] = replacement
 
     @abc.abstractmethod
-    def wakeup(self) -> None:
-        ...
+    def wakeup(self) -> None: ...
 
     @abc.abstractmethod
-    def add(self, *services: ServiceT) -> None:
-        ...
+    def add(self, *services: ServiceT) -> None: ...
 
     @abc.abstractmethod
-    def discard(self, *services: ServiceT) -> None:
-        ...
+    def discard(self, *services: ServiceT) -> None: ...
 
     @abc.abstractmethod
-    def service_operational(self, service: ServiceT) -> bool:
-        ...
+    def service_operational(self, service: ServiceT) -> bool: ...
 
     @abc.abstractmethod
-    async def restart_service(self, service: ServiceT) -> None:
-        ...
+    async def restart_service(self, service: ServiceT) -> None: ...

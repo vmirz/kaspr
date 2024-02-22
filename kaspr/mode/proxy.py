@@ -2,6 +2,7 @@
 
 Works like a service, but delegates to underlying service object.
 """
+
 import abc
 from typing import Any, ContextManager, Optional
 

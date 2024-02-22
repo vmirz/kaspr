@@ -3,6 +3,7 @@
 Workers add signal handling, logging, and other things
 required to start and manage services in a process environment.
 """
+
 import asyncio
 import logging as _logging
 import os
@@ -40,8 +41,7 @@ if typing.TYPE_CHECKING:
     from .debug import BlockingDetector
 else:
 
-    class BlockingDetector:
-        ...  # noqa
+    class BlockingDetector: ...  # noqa
 
 
 __all__ = ["Worker"]
@@ -181,8 +181,7 @@ class Worker(Service):
             await self._add_monitor()
         self.install_signal_handlers()
 
-    async def on_execute(self) -> None:
-        ...
+    async def on_execute(self) -> None: ...
 
     def _setup_logging(self) -> None:
         _loglevel: int = 0
@@ -209,8 +208,7 @@ class Worker(Service):
     def _redirect_stdouts(self) -> None:
         self.add_context(logging.redirect_stdouts(severity=self.redirect_stdouts_level))
 
-    def on_setup_root_logger(self, logger: Logger, level: int) -> None:
-        ...
+    def on_setup_root_logger(self, logger: Logger, level: int) -> None: ...
 
     async def maybe_start_blockdetection(self) -> None:
         if self.debug:
@@ -291,8 +289,7 @@ class Worker(Service):
         # for mypy NoReturn
         raise SystemExit(EX_OK)  # pragma: no cover
 
-    def on_worker_shutdown(self) -> None:
-        ...
+    def on_worker_shutdown(self) -> None: ...
 
     def stop_and_shutdown(self) -> None:
         if self._signal_stop_future and not self._signal_stop_future.done():

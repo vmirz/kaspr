@@ -1,4 +1,5 @@
 """Mocking and testing utilities."""
+
 import builtins
 import sys
 import types

@@ -1,4 +1,5 @@
 """Queue utilities - variations of :class:`asyncio.Queue`."""
+
 import asyncio
 import math
 import typing
@@ -144,11 +145,9 @@ class FlowControlQueue(asyncio.Queue):
                 return True
         return False
 
-    def on_pressure_high(self) -> None:
-        ...
+    def on_pressure_high(self) -> None: ...
 
-    def on_pressure_drop(self) -> None:
-        ...
+    def on_pressure_drop(self) -> None: ...
 
     def maybe_endorse_pressure_drop(self) -> None:
         pending = self._pending_pressure_drop_callbacks

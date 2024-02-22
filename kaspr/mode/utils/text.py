@@ -1,4 +1,5 @@
 """Text and string manipulation utilities."""
+
 from difflib import SequenceMatcher
 from typing import IO, AnyStr, Iterable, Iterator, NamedTuple, Optional
 

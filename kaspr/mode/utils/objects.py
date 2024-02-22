@@ -1,4 +1,5 @@
 """Object utilities."""
+
 import abc
 import collections.abc
 import sys
@@ -69,8 +70,7 @@ if typing.TYPE_CHECKING:
         __forward_value__: Type
         __forward_code__: Any
 
-        def __init__(self, arg: str, is_argument: bool = True) -> None:
-            ...
+        def __init__(self, arg: str, is_argument: bool = True) -> None: ...
 
 else:
     try:
@@ -114,8 +114,7 @@ try:
             super().__init__(*args, **kwargs)
 
     @typing.no_type_check  # type: ignore
-    class _UsingKwargsInNew(_InitSubclassCheck, ident=909):
-        ...
+    class _UsingKwargsInNew(_InitSubclassCheck, ident=909): ...
 
 except TypeError:
     abc_compatible_with_init_subclass = False

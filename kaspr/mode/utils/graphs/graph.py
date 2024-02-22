@@ -1,4 +1,5 @@
 """Data structure: Dependency graph."""
+
 from functools import partial
 from typing import (
     IO,

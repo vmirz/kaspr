@@ -1,4 +1,5 @@
 """Formatting graphs."""
+
 from typing import Any, Mapping
 
 from mode.utils.objects import label

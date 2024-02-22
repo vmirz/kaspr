@@ -530,8 +530,7 @@ class test_Service:
         assert service.loop is m
 
     def test__get_tasks__no_tasks(self, *, service):
-        class X(type(service)):
-            ...
+        class X(type(service)): ...
 
         X._tasks = []
         assert list(X()._get_tasks()) == []

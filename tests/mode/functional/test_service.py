@@ -9,8 +9,7 @@ import mode
 from mode.utils.locks import Event
 
 
-class X(mode.Service):
-    ...
+class X(mode.Service): ...
 
 
 class Context(ContextManager):
@@ -276,8 +275,7 @@ async def test_wait__multiple_events():
             fut1.cancel()
 
 
-class MundaneLogsDefault(mode.Service):
-    ...
+class MundaneLogsDefault(mode.Service): ...
 
 
 class MundaneLogsDebug(mode.Service):

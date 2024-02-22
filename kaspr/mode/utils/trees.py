@@ -1,4 +1,5 @@
 """Data structure: Trees."""
+
 from contextlib import suppress
 from typing import Any, Iterator, List, Optional, TypeVar, Union, cast
 

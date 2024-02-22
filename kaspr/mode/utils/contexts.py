@@ -1,4 +1,5 @@
 """Context manager utilities."""
+
 import typing
 from types import TracebackType
 from typing import Any, Type
@@ -73,5 +74,4 @@ class asyncnullcontext(AbstractAsyncContextManager):
         exc_type: Type[BaseException] = None,
         exc_val: BaseException = None,
         exc_tb: TracebackType = None,
-    ) -> None:
-        ...
+    ) -> None: ...

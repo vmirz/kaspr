@@ -56,20 +56,16 @@ if PY37:
     EXTRA_GENERIC_INHERITS_FROM = [abc.ABC]
 
 
-class D(Service):
-    ...
+class D(Service): ...
 
 
-class C(D):
-    ...
+class C(D): ...
 
 
-class B(C):
-    ...
+class B(C): ...
 
 
-class A(B):
-    ...
+class A(B): ...
 
 
 @pytest.mark.parametrize(
@@ -132,8 +128,7 @@ def test_KeywordReduce():
 
 
 def test_qualname_object():
-    class X:
-        ...
+    class X: ...
 
     assert qualname("foo") == "builtins.str"
     assert qualname(str) == "builtins.str"
@@ -143,8 +138,7 @@ def test_qualname_object():
 
 
 def test_shortname_object():
-    class X:
-        ...
+    class X: ...
 
     assert shortname("foo") == "builtins.str"
     assert shortname(str) == "builtins.str"
@@ -154,14 +148,12 @@ def test_shortname_object():
 
 
 def test_canoname():
-    class X:
-        ...
+    class X: ...
 
     X.__module__ = "__main__"
     x = X()
 
-    class Y:
-        ...
+    class Y: ...
 
     y = Y()
 
@@ -182,14 +174,12 @@ def test_canoname():
 
 
 def test_canonshortname():
-    class X:
-        ...
+    class X: ...
 
     X.__module__ = "__main__"
     x = X()
 
-    class Y:
-        ...
+    class Y: ...
 
     y = Y()
 
@@ -272,8 +262,7 @@ def test_annotations__invalid_type():
 
 
 def test_annotations__no_local_ns_raises():
-    class Bar:
-        ...
+    class Bar: ...
 
     class X:
         bar: "Bar"
@@ -407,8 +396,7 @@ def test_guess_polymorphic_type(input, expected):
 
 
 def test_guess_polymorphic_type__not_generic():
-    class X:
-        ...
+    class X: ...
 
     with pytest.raises(TypeError):
         guess_polymorphic_type(str)

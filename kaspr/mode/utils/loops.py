@@ -1,4 +1,5 @@
 """Event loop utilities."""
+
 import asyncio
 from typing import Any, Callable
 

@@ -1,4 +1,5 @@
 """Compatibility utilities."""
+
 from typing import IO, AnyStr
 
 from .contexts import asyncnullcontext, nullcontext

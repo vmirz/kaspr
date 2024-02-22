@@ -1,4 +1,5 @@
 """Type classes for :mod:`mode.signals`."""
+
 import abc
 import asyncio
 import typing
@@ -71,67 +72,54 @@ class BaseSignalT(Generic[T]):
         default_sender: Any = None,
         receivers: MutableSet[SignalHandlerRefT] = None,
         filter_receivers: FilterReceiverMapping = None
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @abc.abstractmethod
-    def clone(self, **kwargs: Any) -> "BaseSignalT":
-        ...
+    def clone(self, **kwargs: Any) -> "BaseSignalT": ...
 
     @abc.abstractmethod
-    def with_default_sender(self, sender: Any = None) -> "BaseSignalT":
-        ...
+    def with_default_sender(self, sender: Any = None) -> "BaseSignalT": ...
 
     @abc.abstractmethod
-    def connect(self, fun: SignalHandlerT, **kwargs: Any) -> Callable:
-        ...
+    def connect(self, fun: SignalHandlerT, **kwargs: Any) -> Callable: ...
 
     @abc.abstractmethod
     def disconnect(
         self, fun: SignalHandlerT, *, sender: Any = None, weak: bool = True
-    ) -> None:
-        ...
+    ) -> None: ...
 
 
 class SignalT(BaseSignalT[T]):
     """Base class for all async signals (using ``async def``)."""
 
     @abc.abstractmethod
-    async def __call__(self, sender: T_contra, *args: Any, **kwargs: Any) -> None:
-        ...
+    async def __call__(self, sender: T_contra, *args: Any, **kwargs: Any) -> None: ...
 
     @abc.abstractmethod
-    async def send(self, sender: T_contra, *args: Any, **kwargs: Any) -> None:
-        ...
+    async def send(self, sender: T_contra, *args: Any, **kwargs: Any) -> None: ...
 
     @typing.no_type_check
     @abc.abstractmethod
-    def clone(self, **kwargs: Any) -> "SignalT":
-        ...
+    def clone(self, **kwargs: Any) -> "SignalT": ...
 
     @typing.no_type_check
     @abc.abstractmethod
-    def with_default_sender(self, sender: Any = None) -> "SignalT":
-        ...
+    def with_default_sender(self, sender: Any = None) -> "SignalT": ...
 
 
 class SyncSignalT(BaseSignalT[T]):
     """Base class for all synchronous signals (using regular ``def``)."""
 
     @abc.abstractmethod
-    def __call__(self, sender: T_contra, *args: Any, **kwargs: Any) -> None:
-        ...
+    def __call__(self, sender: T_contra, *args: Any, **kwargs: Any) -> None: ...
 
     @abc.abstractmethod
-    def send(self, sender: T_contra, *args: Any, **kwargs: Any) -> None:
-        ...
+    def send(self, sender: T_contra, *args: Any, **kwargs: Any) -> None: ...
 
     @typing.no_type_check
     @abc.abstractmethod
-    def clone(self, **kwargs: Any) -> "SyncSignalT":
-        ...
+    def clone(self, **kwargs: Any) -> "SyncSignalT": ...
 
     @typing.no_type_check
     @abc.abstractmethod
-    def with_default_sender(self, sender: Any = None) -> "SyncSignalT":
-        ...
+    def with_default_sender(self, sender: Any = None) -> "SyncSignalT": ...

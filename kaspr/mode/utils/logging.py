@@ -1,4 +1,5 @@
 """Logging utilities."""
+
 import abc
 import asyncio
 import logging
@@ -71,9 +72,11 @@ __all__ = [
 HAS_STACKLEVEL = sys.version_info >= (3, 8)
 
 DEVLOG: bool = bool(os.environ.get("DEVLOG", ""))
-DEFAULT_FORMAT: str = """
+DEFAULT_FORMAT: str = (
+    """
 [%(asctime)s] [%(process)s] [%(levelname)s]: %(message)s %(extra)s
 """.strip()
+)
 
 DEFAULT_COLOR_FORMAT = """
 [%(asctime)s] [%(process)s] [%(levelname)s] %(log_color)s%(message)s %(extra)s
@@ -158,8 +161,7 @@ redirect_logger = get_logger("mode.redirect")
 
 class HasLog(Protocol):
     @abc.abstractmethod
-    def log(self, severity: int, message: str, *args: Any, **kwargs: Any) -> None:
-        ...
+    def log(self, severity: int, message: str, *args: Any, **kwargs: Any) -> None: ...
 
 
 if typing.TYPE_CHECKING:
@@ -870,8 +872,7 @@ class FileLogProxy(TextIO):
     def newlines(self) -> bool:
         return False
 
-    def flush(self) -> None:
-        ...
+    def flush(self) -> None: ...
 
     @property
     def mode(self) -> str:
@@ -935,8 +936,7 @@ class FileLogProxy(TextIO):
         exc_type: Type[BaseException] = None,
         exc_val: BaseException = None,
         exc_tb: TracebackType = None,
-    ) -> Optional[bool]:
-        ...
+    ) -> Optional[bool]: ...
 
 
 @contextmanager

@@ -1,4 +1,5 @@
 """Backport implementation of Python 3.7 contextlib."""
+
 import abc
 import sys
 import types
