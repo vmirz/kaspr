@@ -4,12 +4,11 @@ import asyncio
 import math
 import typing
 from collections import deque
-from typing import Any, Callable, List, Set, TypeVar, cast, no_type_check
+from typing import Any, Callable, Deque, List, Set, TypeVar, cast, no_type_check
 from weakref import WeakSet
 
 from .locks import Event
 from .objects import cached_property
-from .typing import Deque
 
 _T = TypeVar("_T")
 

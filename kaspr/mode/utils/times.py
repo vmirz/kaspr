@@ -7,10 +7,18 @@ import time
 from datetime import timedelta
 from functools import singledispatch
 from types import TracebackType
-from typing import Callable, List, Mapping, NamedTuple, Optional, Type, Union
+from typing import (
+    AsyncContextManager,
+    Callable,
+    List,
+    Mapping,
+    NamedTuple,
+    Optional,
+    Type,
+    Union,
+)
 
 from .text import pluralize
-from .typing import AsyncContextManager
 
 __all__ = [
     "Bucket",

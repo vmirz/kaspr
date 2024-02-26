@@ -74,13 +74,14 @@ when first needed), you can pass the `cache=True` argument to :class:`Proxy`:
 """
 
 import sys
-import typing
 from collections import deque
 from functools import wraps
 from types import GetSetDescriptorType, TracebackType
 from typing import (
     AbstractSet,
     Any,
+    AsyncContextManager,
+    AsyncGenerator,
     AsyncIterable,
     AsyncIterator,
     Awaitable,
@@ -111,11 +112,6 @@ from typing import (
 )
 
 from .utils.locals import LocalStack  # XXX compat
-
-if typing.TYPE_CHECKING:  # pragma: no cover
-    from typing import AsyncContextManager, AsyncGenerator
-else:
-    from .utils.typing import AsyncContextManager, AsyncGenerator  # noqa
 
 __all__ = [
     "LocalStack",

@@ -2,11 +2,10 @@
 
 import asyncio
 from inspect import isawaitable
-from typing import Any, Callable, Optional, Set, Type
+from typing import Any, Callable, NoReturn, Optional, Set, Type
 
 # These used to be here, now moved to .queues
 from .queues import FlowControlEvent, FlowControlQueue  # noqa: F401
-from .typing import NoReturn
 
 try:  # pragma: no cover
     from asyncio import all_tasks  # type: ignore

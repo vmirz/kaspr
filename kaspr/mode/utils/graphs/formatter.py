@@ -7,12 +7,12 @@ from mode.utils.types.graphs import _T, GraphFormatterT
 
 
 def dedent_initial(s: str, n: int = 4) -> str:
-    """Remove identation from first line of text."""
+    """Remove indentation from first line of text."""
     return s[n:] if s[:n] == " " * n else s
 
 
 def dedent(s: str, n: int = 4, sep: str = "\n") -> str:
-    """Remove identation."""
+    """Remove indentation."""
     return sep.join(dedent_initial(line) for line in s.splitlines())
 
 

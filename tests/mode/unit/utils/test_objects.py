@@ -1,7 +1,6 @@
 import abc
 import collections.abc
 import pickle
-import sys
 import typing
 from typing import (
     AbstractSet,
@@ -27,11 +26,9 @@ from mode import Service, ServiceT
 from mode.services import ServiceBase, ServiceCallbacks
 from mode.utils.mocks import IN
 from mode.utils.objects import (
-    ForwardRef,
     InvalidAnnotation,
     KeywordReduce,
     Unordered,
-    _ForwardRef_safe_eval,
     _remove_optional,
     _restore_from_keywords,
     annotations,
@@ -47,13 +44,7 @@ from mode.utils.objects import (
     shortname,
 )
 
-PY37 = sys.version_info >= (3, 7)
-
-EXTRA_GENERIC_INHERITS_FROM = []
-if PY37:
-    # typing.Generic started inheriting from abc.ABC in Python 3.7.0,
-    # so this is needed for iter_mro_reversed test below.
-    EXTRA_GENERIC_INHERITS_FROM = [abc.ABC]
+EXTRA_GENERIC_INHERITS_FROM = [abc.ABC]
 
 
 class D(Service): ...
@@ -273,18 +264,6 @@ def test_annotations__no_local_ns_raises():
             globalns=None,
             localns=None,
         )
-
-
-def test__ForwardRef_safe_eval():
-    ref1 = ForwardRef("int")
-    assert _ForwardRef_safe_eval(ref1) == int
-    assert _ForwardRef_safe_eval(ref1) == int
-    assert ref1.__forward_evaluated__
-    assert ref1.__forward_value__ == int
-    assert _ForwardRef_safe_eval(ForwardRef("foo"), localns={"foo": str}) == str
-    assert _ForwardRef_safe_eval(
-        ForwardRef("ClassVar[int]"), globalns=globals(), localns=locals()
-    )
 
 
 # Union[type(None)] actually returns None

@@ -56,7 +56,6 @@ __all__ = [
 ]
 
 _T = TypeVar("_T")
-_T_contra = TypeVar("_T_contra", contravariant=True)
 SymbolArg = Union[_T, str]
 
 

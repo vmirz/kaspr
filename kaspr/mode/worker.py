@@ -11,7 +11,6 @@ import reprlib
 import signal
 import sys
 import traceback
-import typing
 from contextlib import contextmanager, suppress
 from logging import Handler, Logger
 from typing import (
@@ -23,26 +22,20 @@ from typing import (
     Iterable,
     Iterator,
     List,
+    NoReturn,
     Optional,
     Tuple,
     Union,
     cast,
 )
 
+from .debug import BlockingDetector
 from .services import Service
 from .types import ServiceT
 from .utils import logging
 from .utils.futures import all_tasks, maybe_cancel
 from .utils.imports import symbol_by_name
 from .utils.times import Seconds
-from .utils.typing import NoReturn
-
-if typing.TYPE_CHECKING:
-    from .debug import BlockingDetector
-else:
-
-    class BlockingDetector: ...  # noqa
-
 
 __all__ = ["Worker"]
 

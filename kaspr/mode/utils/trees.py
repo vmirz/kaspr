@@ -1,13 +1,12 @@
 """Data structure: Trees."""
 
 from contextlib import suppress
-from typing import Any, Iterator, List, Optional, TypeVar, Union, cast
+from typing import Any, Deque, Iterator, List, Optional, TypeVar, Union, cast
 
 from .graphs import DependencyGraph
 from .objects import shortlabel
 from .types.graphs import DependencyGraphT
 from .types.trees import NodeT
-from .typing import Deque
 
 __all__ = [
     "Node",

@@ -8,8 +8,7 @@ import os
 import sys
 import threading
 import traceback
-import typing
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from functools import singledispatch, wraps
 from itertools import count
 from logging import Logger
@@ -31,6 +30,7 @@ from typing import (
     Mapping,
     NamedTuple,
     Optional,
+    Protocol,
     Set,
     TextIO,
     Tuple,
@@ -41,13 +41,11 @@ from typing import (
 
 import colorlog
 
-from .contexts import ExitStack
 from .futures import all_tasks, current_task
 from .locals import LocalStack
 from .text import title
 from .times import Seconds, want_seconds
 from .tracebacks import format_task_stack, print_task_stack
-from .typing import Protocol
 
 __all__ = [
     "CompositeLogger",
@@ -164,10 +162,7 @@ class HasLog(Protocol):
     def log(self, severity: int, message: str, *args: Any, **kwargs: Any) -> None: ...
 
 
-if typing.TYPE_CHECKING:
-    LogSeverityMixinBase = HasLog
-else:
-    LogSeverityMixinBase = object
+LogSeverityMixinBase = HasLog
 
 
 class LogSeverityMixin(LogSeverityMixinBase):

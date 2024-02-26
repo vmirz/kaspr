@@ -5,6 +5,7 @@ import collections.abc
 import threading
 import typing
 from collections import OrderedDict, UserList
+from contextlib import nullcontext
 from heapq import (
     heapify,
     heappop,
@@ -40,8 +41,6 @@ from typing import (
     cast,
     overload,
 )
-
-from .contexts import nullcontext
 
 if typing.TYPE_CHECKING:
     from django.utils.functional import LazyObject, LazySettings

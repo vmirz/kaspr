@@ -5,6 +5,7 @@ from typing import (
     IO,
     Any,
     Callable,
+    Counter,
     ItemsView,
     Iterable,
     Iterator,
@@ -16,7 +17,6 @@ from typing import (
 )
 
 from mode.utils.types.graphs import _T, DependencyGraphT, GraphFormatterT
-from mode.utils.typing import Counter
 
 from .formatter import GraphFormatter
 

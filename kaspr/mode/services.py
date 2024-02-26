@@ -3,12 +3,14 @@
 import asyncio
 import logging
 import sys
+from contextlib import AsyncExitStack, ExitStack
 from datetime import tzinfo
 from functools import wraps
 from time import monotonic, perf_counter
 from types import TracebackType
 from typing import (
     Any,
+    AsyncContextManager,
     AsyncIterator,
     Awaitable,
     Callable,
@@ -31,7 +33,6 @@ from typing import (
 
 from .timers import Timer
 from .types import DiagT, ServiceT
-from .utils.contexts import AsyncExitStack, ExitStack
 from .utils.cron import secs_for_next
 from .utils.locks import Event
 from .utils.logging import CompositeLogger, get_logger, level_number
@@ -41,7 +42,6 @@ from .utils.times import Seconds, want_seconds
 from .utils.tracebacks import format_task_stack
 from .utils.trees import Node
 from .utils.types.trees import NodeT
-from .utils.typing import AsyncContextManager
 
 __all__ = ["ServiceBase", "Service", "Diag", "task", "timer", "crontab"]
 

@@ -7,16 +7,12 @@
 import re
 import sys
 import typing
+from importlib.metadata import version
 
 # Lazy loading.
 # - See werkzeug/__init__.py for the rationale behind this.
 from types import ModuleType  # noqa
 from typing import Any, Mapping, NamedTuple, Sequence
-
-if sys.version_info < (3, 8):
-    from importlib_metadata import version
-else:
-    from importlib.metadata import version
 
 __version__ = version("mode-streaming")
 __author__ = "Faust Streaming"
@@ -48,8 +44,6 @@ del _match
 del _temp
 del re
 
-if sys.version_info <= (3, 7):  # pragma: no cover
-    import aiocontextvars  # noqa
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     from .services import Service, task, timer  # noqa: E402

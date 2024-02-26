@@ -15,7 +15,6 @@ from typing import (
     TypeVar,
     Union,
 )
-from weakref import ReferenceType
 
 from mypy_extensions import KwArg, NamedArg, VarArg
 
@@ -46,13 +45,7 @@ SignalHandlerT = Union[
     ],
 ]
 
-if typing.TYPE_CHECKING:
-    SignalHandlerRefT = Union[
-        Callable[[], SignalHandlerT], ReferenceType[SignalHandlerT]
-    ]
-else:
-    SignalHandlerRefT = Any
-
+SignalHandlerRefT = Union[Callable[[], SignalHandlerT], SignalHandlerT]
 FilterReceiverMapping = MutableMapping[Any, MutableSet[SignalHandlerRefT]]
 
 

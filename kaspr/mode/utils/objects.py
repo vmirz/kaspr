@@ -14,6 +14,7 @@ from typing import (
     Callable,
     ClassVar,
     Dict,
+    ForwardRef,
     FrozenSet,
     Generic,
     Iterable,
@@ -28,24 +29,9 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
+    _eval_type,
     cast,
 )
-
-try:
-    from typing import _eval_type  # type: ignore
-except ImportError:
-
-    def _eval_type(t, globalns, localns, recursive_guard=frozenset()):  # type: ignore
-        return t
-
-
-try:
-    from typing import _type_check  # type: ignore
-except ImportError:
-
-    def _type_check(arg, msg, is_argument=True, module=None):  # type: ignore
-        return arg
-
 
 try:
     from typing import _ClassVar  # type: ignore
@@ -61,24 +47,6 @@ else:  # pragma: no cover
     def _is_class_var(x: Any) -> bool:
         return type(x) is _ClassVar
 
-
-if typing.TYPE_CHECKING:
-
-    class ForwardRef:  # noqa
-        __forward_arg__: str
-        __forward_evaluated__: bool
-        __forward_value__: Type
-        __forward_code__: Any
-
-        def __init__(self, arg: str, is_argument: bool = True) -> None: ...
-
-else:
-    try:
-        # CPython 3.7
-        from typing import ForwardRef
-    except ImportError:  # pragma: no cover
-        # CPython 3.6
-        from typing import _ForwardRef as ForwardRef
 
 __all__ = [
     "FieldMapping",
@@ -183,7 +151,7 @@ def _restore_from_keywords(typ: Type, kwargs: Dict) -> Any:
 class KeywordReduce:
     """Mixin class for objects that can be "pickled".
 
-    "Pickled" means the object can be serialiazed using the Python binary
+    "Pickled" means the object can be serialized using the Python binary
     serializer -- the :mod:`pickle` module.
 
     Python objects are made pickleable through defining the ``__reduce__``
@@ -200,7 +168,7 @@ class KeywordReduce:
                 return type(self), (self.arg1, self.kw1)
 
     This is *tedious* since this means you cannot accept ``**kwargs`` in the
-    constructur, so what we do is define a ``__reduce_keywords__``
+    constructor, so what we do is define a ``__reduce_keywords__``
     argument that returns a dict instead::
 
         class X:
@@ -398,31 +366,14 @@ def eval_type(
     if isinstance(typ, str):
         typ = ForwardRef(typ)
     if isinstance(typ, ForwardRef):
-        # On 3.6/3.7 _eval_type crashes if str references ClassVar
-        typ = _ForwardRef_safe_eval(typ, globalns, localns)
+        if sys.version_info < (3, 9):
+            typ = typ._evaluate(globalns, localns)
+        else:
+            typ = typ._evaluate(globalns, localns, frozenset())
     typ = _eval_type(typ, globalns, localns)
     if typ in invalid_types:
         raise InvalidAnnotation(typ)
     return alias_types.get(typ, typ)
-
-
-def _ForwardRef_safe_eval(
-    ref: ForwardRef, globalns: Dict[str, Any] = None, localns: Dict[str, Any] = None
-) -> Type:
-    # On 3.6/3.7 ForwardRef._evaluate crashes if str references ClassVar
-    if not ref.__forward_evaluated__:
-        if globalns is None and localns is None:
-            globalns = localns = {}
-        elif globalns is None:
-            globalns = localns
-        elif localns is None:
-            localns = globalns
-        val = eval(ref.__forward_code__, globalns, localns)  # noqa: S307
-        if not _is_class_var(val):
-            val = _type_check(val, "Forward references must evaluate to types.")
-        ref.__forward_value__ = val
-        ref.__forward_evaluated__ = True
-    return ref.__forward_value__
 
 
 def _get_globalns(typ: Type) -> Dict[str, Any]:
@@ -484,21 +435,20 @@ def is_union(typ: Type) -> bool:
 def is_optional(typ: Type) -> bool:
     if is_union(typ):
         args = getattr(typ, "__args__", ())
-        return any([True for arg in args if arg is None or arg is type(None)])  # noqa
+        return any([True for arg in args if arg is None or arg is type(None)])
     return False
 
 
 def _remove_optional(typ: Type, *, find_origin: bool = False) -> Tuple[List[Any], Type]:
     args = getattr(typ, "__args__", ())
     if is_union(typ):
-        # 3.7+: Optional[List[int]] -> Union[List[int], NoneType]
-        # 3.6:  Optional[List[int]] -> Union[List[int], type(None)]
+        # Optional[List[int]] -> Union[List[int], NoneType]
         # returns: ((int,), list)
         found_None = False
         union_type_args: Optional[List] = None
         union_type: Optional[Type] = None
         for arg in args:
-            if arg is None or arg is type(None):  # noqa
+            if arg is None or arg is type(None):
                 found_None = True
             else:
                 union_type_args = getattr(arg, "__args__", ())
