@@ -18,11 +18,7 @@ from typing import (
     cast,
 )
 
-__all__ = [
-    "Traceback",
-    "format_task_stack",
-    "print_task_stack",
-]
+__all__ = ["Traceback", "format_task_stack", "print_task_stack"]
 
 DEFAULT_MAX_FRAMES = sys.getrecursionlimit() // 8
 
@@ -88,7 +84,10 @@ def print_agen_stack(
 
 
 def format_task_stack(
-    task: asyncio.Task, *, limit: int = DEFAULT_MAX_FRAMES, capture_locals: bool = False
+    task: asyncio.Task,
+    *,
+    limit: int = DEFAULT_MAX_FRAMES,
+    capture_locals: bool = False,
 ) -> str:
     """Format :class:`asyncio.Task` stack trace as a string."""
     f = io.StringIO()
@@ -97,7 +96,10 @@ def format_task_stack(
 
 
 def format_coro_stack(
-    coro: Coroutine, *, limit: int = DEFAULT_MAX_FRAMES, capture_locals: bool = False
+    coro: Coroutine,
+    *,
+    limit: int = DEFAULT_MAX_FRAMES,
+    capture_locals: bool = False,
 ) -> str:
     """Format coroutine stack trace as a string."""
     f = io.StringIO()
@@ -149,22 +151,17 @@ class _BaseTraceback:
 
 class _Truncated(_BaseTraceback):
     def __init__(
-        self, filename: str = "...", name: str = "[rest of traceback truncated]"
+        self,
+        filename: str = "...",
+        name: str = "[rest of traceback truncated]",
     ) -> None:
         self.tb_lineno = -1
         self.tb_frame = cast(
             FrameType,
             _CustomFrame(
-                globals={
-                    "__file__": "",
-                    "__name__": "",
-                    "__loader__": None,
-                },
+                globals={"__file__": "", "__name__": "", "__loader__": None},
                 fileno=-1,
-                code=_CustomCode(
-                    filename=filename,
-                    name=name,
-                ),
+                code=_CustomCode(filename=filename, name=name),
             ),
         )
         self.tb_next = None
@@ -174,7 +171,12 @@ class _Truncated(_BaseTraceback):
 class Traceback(_BaseTraceback):
     """Traceback object with truncated frames."""
 
-    def __init__(self, frame: FrameType, lineno: int = None, lasti: int = None) -> None:
+    def __init__(
+        self,
+        frame: FrameType,
+        lineno: Optional[int] = None,
+        lasti: Optional[int] = None,
+    ) -> None:
         self.tb_frame = frame
         self.tb_lineno = lineno if lineno is not None else frame.f_lineno
         self.tb_lasti = lasti if lasti is not None else frame.f_lasti
@@ -194,7 +196,7 @@ class Traceback(_BaseTraceback):
         return cls.from_coroutine(agen, limit=limit)
 
     @classmethod
-    def from_coroutine(
+    def from_coroutine(  # noqa: C901
         cls,
         coro: Union[AsyncGenerator, Coroutine, Generator],
         *,
@@ -237,7 +239,9 @@ class Traceback(_BaseTraceback):
             if limit is not None and depth > limit:
                 next_node = _Truncated()
             else:
-                next_node = cls.from_coroutine(cr_await, limit=limit, depth=depth + 1)
+                next_node = cls.from_coroutine(
+                    cr_await, limit=limit, depth=depth + 1
+                )
             if root is not None:
                 root.tb_next = next_node
             else:
@@ -253,7 +257,9 @@ class Traceback(_BaseTraceback):
         return cls._get_coroutine_frame(obj)
 
     @classmethod
-    def _get_coroutine_frame(cls, coro: Union[Coroutine, Generator]) -> FrameType:
+    def _get_coroutine_frame(
+        cls, coro: Union[Coroutine, Generator]
+    ) -> FrameType:
         try:
             if inspect.isgenerator(coro):
                 # is a @asyncio.coroutine wrapped generator
@@ -267,7 +273,7 @@ class Traceback(_BaseTraceback):
     @classmethod
     def _what_is_this(cls, obj: Any) -> AttributeError:
         return AttributeError(
-            "WHAT IS THIS? str={0} repr={1!r} typ={2!r} dir={3}".format(
+            "WHAT IS THIS? str={} repr={!r} typ={!r} dir={}".format(
                 obj, obj, type(obj), dir(obj)
             )
         )
@@ -280,7 +286,9 @@ class Traceback(_BaseTraceback):
             raise cls._what_is_this(agen) from exc
 
     @staticmethod
-    def _get_coroutine_next(coro: Union[AsyncGenerator, Coroutine, Generator]) -> Any:
+    def _get_coroutine_next(
+        coro: Union[AsyncGenerator, Coroutine, Generator],
+    ) -> Any:
         if inspect.isasyncgen(coro):
             # is a async def async-generator
             return cast(AsyncGenerator, coro).ag_await

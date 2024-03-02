@@ -23,7 +23,9 @@ class Event:
     _value: bool
     _loop: Optional[asyncio.AbstractEventLoop]
 
-    def __init__(self, *, loop: asyncio.AbstractEventLoop = None) -> None:
+    def __init__(
+        self, *, loop: Optional[asyncio.AbstractEventLoop] = None
+    ) -> None:
         self._waiters = deque()
         self._value = False
         self._loop = loop

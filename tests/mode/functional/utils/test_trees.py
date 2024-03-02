@@ -62,7 +62,7 @@ def test_Node():
      909(0)"""
     )
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError):  # noqa: PT011
         node.root = node  # root node cannot be itself
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError):  # noqa: PT011
         node.parent = node  # parent node cannot be itself

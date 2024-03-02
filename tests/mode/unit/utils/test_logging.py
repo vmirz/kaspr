@@ -4,12 +4,7 @@ import logging
 import sys
 from copy import deepcopy
 from typing import IO
-from unittest.mock import ANY, Mock, call, patch
-
-if sys.version_info < (3, 8):
-    from mock.mock import AsyncMock
-else:
-    from unittest.mock import AsyncMock
+from unittest.mock import ANY, AsyncMock, Mock, call, patch
 
 import pytest
 
@@ -17,7 +12,6 @@ from mode.utils.logging import (
     HAS_STACKLEVEL,
     CompositeLogger,
     DefaultFormatter,
-    ExtensionFormatter,
     FileLogProxy,
     LogMessage,
     Logwrapped,
@@ -39,14 +33,18 @@ from mode.utils.logging import (
 
 def log_called_with(logger, *args, stacklevel, **kwargs):
     if HAS_STACKLEVEL:
-        logger.log.assert_called_once_with(*args, stacklevel=stacklevel, **kwargs)
+        logger.log.assert_called_once_with(
+            *args, stacklevel=stacklevel, **kwargs
+        )
     else:
         logger.log.assert_called_once_with(*args, **kwargs)
 
 
 def formatter_called_with(formatter, *args, stacklevel, **kwargs):
     if HAS_STACKLEVEL:
-        formatter.assert_called_once_with(*args, stacklevel=stacklevel, **kwargs)
+        formatter.assert_called_once_with(
+            *args, stacklevel=stacklevel, **kwargs
+        )
     else:
         formatter.assert_called_once_with(*args, **kwargs)
 
@@ -67,26 +65,16 @@ class test_CompositeLogger:
     def test_log(self, *, log, logger, formatter):
         log.log(logging.INFO, "msg", 1, kw=2)
         log_called_with(
-            logger,
-            logging.INFO,
-            formatter.return_value,
-            1,
-            stacklevel=2,
-            kw=2,
+            logger, logging.INFO, formatter.return_value, 1, stacklevel=2, kw=2
         )
-        formatter_called_with(formatter, logging.INFO, "msg", 1, kw=2, stacklevel=2)
+        formatter_called_with(
+            formatter, logging.INFO, "msg", 1, kw=2, stacklevel=2
+        )
 
     def test_log__no_formatter(self, *, log, logger):
         log.formatter = None
         log.log(logging.INFO, "msg", 1, kw=2)
-        log_called_with(
-            logger,
-            logging.INFO,
-            "msg",
-            1,
-            kw=2,
-            stacklevel=2,
-        )
+        log_called_with(logger, logging.INFO, "msg", 1, kw=2, stacklevel=2)
 
     @pytest.mark.parametrize(
         "method,severity,extra",
@@ -105,7 +93,14 @@ class test_CompositeLogger:
         log.formatter = None
         getattr(log, method)("msg", "arg1", kw1=3, kw2=5)
         log_called_with(
-            logger, severity, "msg", "arg1", kw1=3, kw2=5, stacklevel=3, **extra
+            logger,
+            severity,
+            "msg",
+            "arg1",
+            kw1=3,
+            kw2=5,
+            stacklevel=3,
+            **extra,
         )
 
     def test_dev__enabled(self, log):
@@ -148,7 +143,6 @@ def test_DefaultFormatter():
     [
         ("DEBUG", logging.DEBUG),
         ("INFO", logging.INFO),
-        ("WARNING", logging.WARNING),
         ("WARNING", logging.WARNING),
         ("ERROR", logging.ERROR),
         ("CRITICAL", logging.CRITICAL),
@@ -230,7 +224,9 @@ class test_setup_logging:
 
 class test__setup_logging:
     def setup_method(self, method):
-        self.extension_formatter_patch = patch("mode.utils.logging.ExtensionFormatter")
+        self.extension_formatter_patch = patch(
+            "mode.utils.logging.ExtensionFormatter"
+        )
         self.extension_formatter = self.extension_formatter_patch.start()
         self.colorlog_patch = patch("mode.utils.logging.colorlog")
         self.colorlog = self.colorlog_patch.start()
@@ -261,12 +257,12 @@ class test__setup_logging:
     def test_setup_logging_helper_with_stream(self):
         mock_handler = Mock()
         _setup_logging(
-            filename=None,
-            stream=Mock(),
-            loghandlers=[mock_handler],
+            filename=None, stream=Mock(), loghandlers=[mock_handler]
         )
         self.logging.config.dictConfig.assert_called_once_with(ANY)
-        self.logging.root.handlers.extend.assert_called_once_with([mock_handler])
+        self.logging.root.handlers.extend.assert_called_once_with(
+            [mock_handler]
+        )
 
     def test_setup_logging_helper_with_merge_config(self):
         _setup_logging(
@@ -277,9 +273,7 @@ class test__setup_logging:
         self.logging.config.dictConfig.assert_called_once_with(ANY)
 
     def test_setup_logging_helper_no_merge_config(self):
-        _setup_logging(
-            logging_config={"merge": False, "foo": 1},
-        )
+        _setup_logging(logging_config={"merge": False, "foo": 1})
         self.logging.config.dictConfig.assert_called_once_with(ANY)
 
 
@@ -385,9 +379,7 @@ class test_flight_recorder:
             ret = bb.wrap(logging.ERROR, obj)
             assert ret is Logwrapped.return_value
             Logwrapped.assert_called_once_with(
-                logger=bb,
-                severity=logging.ERROR,
-                obj=obj,
+                logger=bb, severity=logging.ERROR, obj=obj
             )
 
     def test_activate(self, bb):
@@ -399,8 +391,7 @@ class test_flight_recorder:
                 assert bb.started_at_date
                 assert bb.enabled_by is current_task.return_value
                 ensure_future.assert_called_once_with(
-                    bb._waiting.return_value,
-                    loop=bb.loop,
+                    bb._waiting.return_value, loop=bb.loop
                 )
                 assert bb._fut is ensure_future.return_value
 
@@ -426,10 +417,7 @@ class test_flight_recorder:
         bb._buffer_log = Mock()
         bb.log(logging.DEBUG, "msg %r %(foo)s", 1, foo="bar")
         bb._buffer_log.assert_called_once_with(
-            logging.DEBUG,
-            "msg %r %(foo)s",
-            (1,),
-            {"foo": "bar"},
+            logging.DEBUG, "msg %r %(foo)s", (1,), {"foo": "bar"}
         )
 
     def test_log__inactive(self, bb, logger):
@@ -437,17 +425,14 @@ class test_flight_recorder:
         bb._buffer_log = Mock()
         bb.log(logging.DEBUG, "msg %r %(foo)s", 1, foo="bar")
         log_called_with(
-            logger,
-            logging.DEBUG,
-            "msg %r %(foo)s",
-            1,
-            foo="bar",
-            stacklevel=2,
+            logger, logging.DEBUG, "msg %r %(foo)s", 1, foo="bar", stacklevel=2
         )
 
     def test__buffer_log(self, bb):
         with patch("mode.utils.logging.asctime") as asctime:
-            bb._buffer_log(logging.ERROR, "msg %r %(foo)s", (1,), {"foo": "bar"})
+            bb._buffer_log(
+                logging.ERROR, "msg %r %(foo)s", (1,), {"foo": "bar"}
+            )
             assert bb._logs[-1] == LogMessage(
                 logging.ERROR,
                 "msg %r %(foo)s",
@@ -537,7 +522,7 @@ class test_FileLogProxy:
             record = Mock()
             handler.handleError(record)
             print_exc.assert_called_once_with(None, sys.__stderr__)
-            print_exc.side_effect = IOError()
+            print_exc.side_effect = OSError()
             handler.handleError(record)
 
     def test_write(self):
@@ -598,13 +583,7 @@ def test_redirect_stdouts():
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "extra_context",
-    [
-        {},
-        {"foo": "bar"},
-    ],
-)
+@pytest.mark.parametrize("extra_context", [{}, {"foo": "bar"}])
 async def test_on_timeout(extra_context):
     logger = Mock()
     assert isinstance(on_timeout, _FlightRecorderProxy)
@@ -648,14 +627,28 @@ def _log_kwargs(kwargs):
 
 
 EXPECTED_LOG_MESSAGES = [
-    LogMessage(logging.DEBUG, "DEBUG %d %(a)s", "TIME", (1,), _log_kwargs({"a": "A"})),
-    LogMessage(logging.INFO, "INFO %d %(b)s", "TIME", (2,), _log_kwargs({"b": "B"})),
     LogMessage(
-        logging.WARNING, "WARNING %d %(c)s", "TIME", (3,), _log_kwargs({"c": "C"})
+        logging.DEBUG, "DEBUG %d %(a)s", "TIME", (1,), _log_kwargs({"a": "A"})
     ),
-    LogMessage(logging.ERROR, "ERROR %d %(d)s", "TIME", (4,), _log_kwargs({"d": "D"})),
     LogMessage(
-        logging.CRITICAL, "CRITICAL %d %(e)s", "TIME", (5,), _log_kwargs({"e": "E"})
+        logging.INFO, "INFO %d %(b)s", "TIME", (2,), _log_kwargs({"b": "B"})
+    ),
+    LogMessage(
+        logging.WARNING,
+        "WARNING %d %(c)s",
+        "TIME",
+        (3,),
+        _log_kwargs({"c": "C"}),
+    ),
+    LogMessage(
+        logging.ERROR, "ERROR %d %(d)s", "TIME", (4,), _log_kwargs({"d": "D"})
+    ),
+    LogMessage(
+        logging.CRITICAL,
+        "CRITICAL %d %(e)s",
+        "TIME",
+        (5,),
+        _log_kwargs({"e": "E"}),
     ),
 ]
 

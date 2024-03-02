@@ -8,9 +8,7 @@ from .objects import shortlabel
 from .types.graphs import DependencyGraphT
 from .types.trees import NodeT
 
-__all__ = [
-    "Node",
-]
+__all__ = ["Node"]
 
 T = TypeVar("T")
 
@@ -50,7 +48,7 @@ class Node(NodeT[T]):
         *,
         root: NodeT = None,
         parent: NodeT = None,
-        children: List[NodeT[T]] = None,
+        children: Optional[List[NodeT[T]]] = None,
     ) -> None:
         self.data = data
         if root is not None:
@@ -147,7 +145,9 @@ class Node(NodeT[T]):
 
     @property
     def path(self) -> str:
-        return "/".join(reversed([shortlabel(node.data) for node in self.walk()]))
+        return "/".join(
+            reversed([shortlabel(node.data) for node in self.walk()])
+        )
 
     @property
     def parent(self) -> Optional[NodeT]:

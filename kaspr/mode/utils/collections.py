@@ -49,9 +49,9 @@ else:
         from django.utils.functional import LazyObject, LazySettings
     except ImportError:
 
-        class LazyObject: ...  # noqa
+        class LazyObject: ...
 
-        class LazySettings: ...  # noqa
+        class LazySettings: ...
 
 
 __all__ = [
@@ -80,7 +80,7 @@ _Setlike = Union[AbstractSet[T], Iterable[T]]
 class Heap(MutableSequence[T]):
     """Generic interface to :mod:`heapq`."""
 
-    def __init__(self, data: Sequence[T] = None) -> None:
+    def __init__(self, data: Optional[Sequence[T]] = None) -> None:
         self.data = list(data or [])
         heapify(self.data)
 
@@ -123,14 +123,14 @@ class Heap(MutableSequence[T]):
         """
         return heapreplace(self.data, item)
 
-    def nlargest(self, n: int, key: Callable = None) -> List[T]:
+    def nlargest(self, n: int, key: Optional[Callable] = None) -> List[T]:
         """Find the n largest elements in the dataset."""
         if key is not None:
             return nlargest(n, self.data, key=key)
         else:
             return nlargest(n, self.data)
 
-    def nsmallest(self, n: int, key: Callable = None) -> List[T]:
+    def nsmallest(self, n: int, key: Optional[Callable] = None) -> List[T]:
         """Find the n smallest elements in the dataset."""
         if key is not None:
             return nsmallest(n, self.data, key=key)
@@ -149,31 +149,28 @@ class Heap(MutableSequence[T]):
     @overload
     def __getitem__(self, i: int) -> T: ...
 
-    @overload  # noqa: F811
-    def __getitem__(self, s: slice) -> MutableSequence[T]:  # noqa: F811
-        ...
+    @overload
+    def __getitem__(self, s: slice) -> MutableSequence[T]: ...
 
-    def __getitem__(self, s: Any) -> Any:  # noqa: F811
+    def __getitem__(self, s: Any) -> Any:
         return self.data.__getitem__(s)
 
     @overload
     def __setitem__(self, i: int, o: T) -> None: ...
 
-    @overload  # noqa: F811
-    def __setitem__(self, s: slice, o: Iterable[T]) -> None:  # noqa: F811
-        ...
+    @overload
+    def __setitem__(self, s: slice, o: Iterable[T]) -> None: ...
 
-    def __setitem__(self, index_or_slice: Any, o: Any) -> None:  # noqa: F811
+    def __setitem__(self, index_or_slice: Any, o: Any) -> None:
         self.data.__setitem__(index_or_slice, o)
 
     @overload
     def __delitem__(self, i: int) -> None: ...
 
-    @overload  # noqa: F811
-    def __delitem__(self, i: slice) -> None:  # noqa: F811
-        ...
+    @overload
+    def __delitem__(self, i: slice) -> None: ...
 
-    def __delitem__(self, i: Any) -> None:  # noqa: F811
+    def __delitem__(self, i: Any) -> None:
         self.data.__delitem__(i)
 
     def __len__(self) -> int:
@@ -190,7 +187,9 @@ class FastUserDict(MutableMapping[KT, VT]):
     data: MutableMapping[KT, VT]
 
     @classmethod
-    def fromkeys(cls, iterable: Iterable[KT], value: VT = None) -> "FastUserDict":
+    def fromkeys(
+        cls, iterable: Iterable[KT], value: VT = None
+    ) -> "FastUserDict":
         d = cls()
         d.update({k: value for k in iterable})
         return d
@@ -428,7 +427,9 @@ class LRUCache(FastUserDict, MutableMapping[KT, VT], MappingViewProxy):
     _mutex: ContextManager
     data: OrderedDict
 
-    def __init__(self, limit: int = None, *, thread_safety: bool = False) -> None:
+    def __init__(
+        self, limit: Optional[int] = None, *, thread_safety: bool = False
+    ) -> None:
         self.limit = limit
         self.thread_safety = thread_safety
         self._mutex = self._new_lock()
@@ -549,25 +550,18 @@ class ManagedUserSet(FastUserSet[T]):
         self.data.update(*args, **kwargs)  # type: ignore
 
     def __iand__(self, other: AbstractSet[Any]) -> "FastUserSet":
-        self.on_change(
-            added=set(),
-            removed=cast(Set, self).difference(other),
-        )
+        self.on_change(added=set(), removed=cast(Set, self).difference(other))
         self.data.__iand__(other)
         return self
 
     def __ior__(self, other: AbstractSet[_S]) -> "FastUserSet":
-        self.on_change(
-            added=cast(Set, other).difference(self),
-            removed=set(),
-        )
+        self.on_change(added=cast(Set, other).difference(self), removed=set())
         self.data.__ior__(other)
         return self
 
     def __isub__(self, other: AbstractSet[Any]) -> "FastUserSet":
         self.on_change(
-            added=set(),
-            removed=cast(Set, self.data).intersection(other),
+            added=set(), removed=cast(Set, self.data).intersection(other)
         )
         self.data.__isub__(other)
         return self
@@ -582,18 +576,12 @@ class ManagedUserSet(FastUserSet[T]):
 
     def difference_update(self, other: _Setlike[T]) -> None:
         data = cast(Set, self.data)
-        self.on_change(
-            added=set(),
-            removed=data.intersection(other),
-        )
+        self.on_change(added=set(), removed=data.intersection(other))
         data.difference_update(other)
 
     def intersection_update(self, other: _Setlike[T]) -> None:
         data = cast(Set, self.data)
-        self.on_change(
-            added=set(),
-            removed=cast(Set, self).difference(other),
-        )
+        self.on_change(added=set(), removed=cast(Set, self).difference(other))
         data.intersection_update(other)
 
     def symmetric_difference_update(self, other: _Setlike[T]) -> None:
@@ -606,10 +594,7 @@ class ManagedUserSet(FastUserSet[T]):
 
     def update(self, other: _Setlike[T]) -> None:
         # union update
-        self.on_change(
-            added=cast(Set, other).difference(self),
-            removed=set(),
-        )
+        self.on_change(added=cast(Set, other).difference(self), removed=set())
         cast(Set, self.data).update(other)
 
 
@@ -670,10 +655,10 @@ class AttributeDictMixin:
         """`d.key -> d[key]`."""
         try:
             return cast(Mapping, self)[k]
-        except KeyError:
+        except KeyError as err:
             raise AttributeError(
                 f"{type(self).__name__!r} object has no attribute {k!r}"
-            )
+            ) from err
 
     def __setattr__(self, key: str, value: Any) -> None:
         """`d[key] = value -> d.key = value`."""
@@ -717,8 +702,8 @@ class DictAttribute(MutableMapping[str, VT], MappingViewProxy):
     def __getitem__(self, key: Any) -> Any:
         try:
             return getattr(self.obj, key)
-        except AttributeError:
-            raise KeyError(key)
+        except AttributeError as err:
+            raise KeyError(key) from err
 
     def __setitem__(self, key: Any, value: Any) -> None:
         setattr(self.obj, key, value)
@@ -736,8 +721,7 @@ class DictAttribute(MutableMapping[str, VT], MappingViewProxy):
         return self._keys()
 
     def _keys(self) -> Iterator[str]:
-        for key in dir(self.obj):
-            yield key
+        yield from dir(self.obj)
 
     def _values(self) -> Iterator[str]:
         obj = self.obj
@@ -750,7 +734,7 @@ class DictAttribute(MutableMapping[str, VT], MappingViewProxy):
             yield key, getattr(obj, key)
 
 
-collections.abc.MutableMapping.register(DictAttribute)  # noqa: E305
+collections.abc.MutableMapping.register(DictAttribute)
 
 
 def force_mapping(m: Any) -> Mapping:

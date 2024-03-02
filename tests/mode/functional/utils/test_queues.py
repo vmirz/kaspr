@@ -5,7 +5,11 @@ from unittest.mock import Mock
 import pytest
 
 from mode.utils.futures import done_future
-from mode.utils.queues import FlowControlEvent, FlowControlQueue, ThrowableQueue
+from mode.utils.queues import (
+    FlowControlEvent,
+    FlowControlQueue,
+    ThrowableQueue,
+)
 
 
 class test_FlowControlEvent:
@@ -29,7 +33,7 @@ class test_FlowControlQueue:
         flow_control.resume()
         await queue.put(1)
         flow_control.suspend()
-        asyncio.ensure_future(self._resume_soon(0.2, flow_control))
+        asyncio.ensure_future(self._resume_soon(0.2, flow_control))  # noqa: RUF006
         time_now = monotonic()
         await queue.put(2)
         assert monotonic() - time_now > 0.1
@@ -40,14 +44,13 @@ class test_FlowControlQueue:
     async def test_suspend_resume__clear_on_resume(self):
         flow_control = FlowControlEvent()
         queue = FlowControlQueue(
-            clear_on_resume=True,
-            flow_control=flow_control,
+            clear_on_resume=True, flow_control=flow_control
         )
         assert queue in flow_control._queues
         flow_control.resume()
         await queue.put(1)
         flow_control.suspend()
-        asyncio.ensure_future(self._resume_soon(0.2, flow_control))
+        asyncio.ensure_future(self._resume_soon(0.2, flow_control))  # noqa: RUF006
         time_now = monotonic()
         await queue.put(2)
         assert monotonic() - time_now > 0.1
@@ -57,7 +60,7 @@ class test_FlowControlQueue:
     async def test_suspend_resume__initially_suspended(self):
         flow_control = FlowControlEvent(initially_suspended=True)
         queue = FlowControlQueue(flow_control=flow_control)
-        asyncio.ensure_future(self._resume_soon(0.2, flow_control))
+        asyncio.ensure_future(self._resume_soon(0.2, flow_control))  # noqa: RUF006
         time_now = monotonic()
         await queue.put(1)
         assert await queue.get() == 1
@@ -93,7 +96,7 @@ class test_ThrowableQueue:
         assert await queue.get() == 3
         assert await queue.get() == 4
         await queue.throw(ValueError("bar"))
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError):  # noqa: PT011
             await queue.get()
         queue.clear()
 
@@ -114,7 +117,7 @@ class test_ThrowableQueue:
         assert queue.get_nowait() == 3
         assert queue.get_nowait() == 4
         await queue.throw(ValueError("bar"))
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError):  # noqa: PT011
             queue.get_nowait()
         queue.clear()
 
@@ -128,7 +131,7 @@ class test_ThrowableQueue:
         async def clear_queue():
             queue.clear()
 
-        asyncio.ensure_future(clear_queue())
+        asyncio.ensure_future(clear_queue())  # noqa: RUF006
         with pytest.raises(asyncio.CancelledError):
             await queue.put(1)
 

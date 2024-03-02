@@ -54,7 +54,10 @@ class BlockingDetector(Service):
     logger = logger
 
     def __init__(
-        self, timeout: Seconds, raises: Type[BaseException] = Blocking, **kwargs: Any
+        self,
+        timeout: Seconds,
+        raises: Type[BaseException] = Blocking,
+        **kwargs: Any,
     ) -> None:
         self.timeout: float = want_seconds(timeout)
         self.raises: Type[BaseException] = raises
@@ -82,6 +85,8 @@ class BlockingDetector(Service):
     def _on_alarm(self, signum: int, frame: FrameType) -> None:
         msg = f"Blocking detected (timeout={self.timeout})"
         stack = "".join(traceback.format_stack(frame))
-        self.log.warning("Blocking detected (timeout=%r) %s", self.timeout, stack)
+        self.log.warning(
+            "Blocking detected (timeout=%r) %s", self.timeout, stack
+        )
         self._reset_signal()
         raise self.raises(msg)

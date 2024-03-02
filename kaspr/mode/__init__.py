@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 """AsyncIO Service-based programming."""
+
 # :copyright: (c) 2017-2020, Robinhood Markets
 #             (c) 2020-2022, faust-streaming Org
 #             All rights reserved.
@@ -11,7 +11,7 @@ from importlib.metadata import version
 
 # Lazy loading.
 # - See werkzeug/__init__.py for the rationale behind this.
-from types import ModuleType  # noqa
+from types import ModuleType
 from typing import Any, Mapping, NamedTuple, Sequence
 
 __version__ = version("mode-streaming")
@@ -46,23 +46,23 @@ del re
 
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from .services import Service, task, timer  # noqa: E402
-    from .signals import BaseSignal, Signal, SyncSignal  # noqa: E402
-    from .supervisors import CrashingSupervisor  # noqa: E402
+    from .services import Service, task, timer
+    from .signals import BaseSignal, Signal, SyncSignal
     from .supervisors import (
+        CrashingSupervisor,
         ForfeitOneForAllSupervisor,
         ForfeitOneForOneSupervisor,
         OneForAllSupervisor,
         OneForOneSupervisor,
         SupervisorStrategy,
     )
-    from .types.services import ServiceT  # noqa: E402
-    from .types.signals import BaseSignalT, SignalT, SyncSignalT  # noqa: E402
-    from .types.supervisors import SupervisorStrategyT  # noqa: E402
-    from .utils.logging import flight_recorder, get_logger, setup_logging  # noqa: E402
-    from .utils.objects import label, shortlabel  # noqa: E402
-    from .utils.times import Seconds, want_seconds  # noqa: E402
-    from .worker import Worker  # noqa: E402
+    from .types.services import ServiceT
+    from .types.signals import BaseSignalT, SignalT, SyncSignalT
+    from .types.supervisors import SupervisorStrategyT
+    from .utils.logging import flight_recorder, get_logger, setup_logging
+    from .utils.objects import label, shortlabel
+    from .utils.times import Seconds, want_seconds
+    from .worker import Worker
 
 __all__ = [
     "BaseSignal",

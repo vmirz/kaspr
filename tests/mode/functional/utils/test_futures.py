@@ -33,11 +33,13 @@ async def call_commit(x):
 async def test_stampede():
     x = X()
     assert all(
-        r == 1 for r in await asyncio.gather(*[call_commit(x) for _ in range(100)])
+        r == 1
+        for r in await asyncio.gather(*[call_commit(x) for _ in range(100)])
     )
     assert x.commit_count == 1
     assert all(
-        r == 2 for r in await asyncio.gather(*[call_commit(x) for _ in range(100)])
+        r == 2
+        for r in await asyncio.gather(*[call_commit(x) for _ in range(100)])
     )
     assert x.commit_count == 2
     assert await x.commit() == 3
@@ -68,11 +70,7 @@ async def async_callable():
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "input,expected",
-    [
-        (callable, "sync"),
-        (async_callable, "async"),
-    ],
+    ("input", "expected"), [(callable, "sync"), (async_callable, "async")]
 )
 async def test_maybe_async(input, expected):
     assert await maybe_async(input()) == expected

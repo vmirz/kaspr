@@ -1,7 +1,7 @@
 """Text and string manipulation utilities."""
 
 from difflib import SequenceMatcher
-from typing import IO, AnyStr, Iterable, Iterator, NamedTuple, Optional
+from typing import IO, AnyStr, Iterable, Iterator, NamedTuple, Optional, Union
 
 __all__ = [
     "FuzzyMatch",
@@ -23,7 +23,7 @@ __all__ = [
 
 
 class FuzzyMatch(NamedTuple):
-    """Fuzzy match resut."""
+    """Fuzzy match result."""
 
     ratio: float
     value: str
@@ -146,9 +146,7 @@ def fuzzymatch_choices(
     alt = list(fuzzymatch(haystack, needle, min_ratio=min_ratio))
     if not alt:
         return fmt_none
-    return (fmt_many if len(alt) > 1 else fmt_one).format(
-        alt=", ".join(alt),
-    )
+    return (fmt_many if len(alt) > 1 else fmt_one).format(alt=", ".join(alt))
 
 
 def fuzzymatch(
@@ -248,11 +246,12 @@ def pluralize(n: int, text: str, suffix: str = "s") -> str:
 
 
 def maybecat(
-    s: Optional[AnyStr], suffix: str = "", *, prefix: str = ""
+    s: Union[AnyStr, None], suffix: str = "", *, prefix: str = ""
 ) -> Optional[str]:
     """Concatenate string only if existing string s' is defined.
 
     Keyword Arguments:
+        s: Main string
         suffix: add suffix if string s' is defined.
         prefix: add prefix is string s' is defined.
     """

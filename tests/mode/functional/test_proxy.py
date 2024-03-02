@@ -1,10 +1,4 @@
-import sys
-from unittest.mock import MagicMock, Mock
-
-if sys.version_info < (3, 8):
-    from mock.mock import AsyncMock
-else:
-    from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock, Mock
 
 import pytest
 
@@ -23,7 +17,7 @@ class Proxy(ServiceProxy):
 
 
 class test_Proxy:
-    @pytest.fixture
+    @pytest.fixture()
     def service(self):
         s = Mock(
             name="service",
@@ -39,11 +33,11 @@ class test_Proxy:
         )
         return s
 
-    @pytest.fixture
+    @pytest.fixture()
     def subservice(self):
         return Mock(name="subservice")
 
-    @pytest.fixture
+    @pytest.fixture()
     def proxy(self, *, service):
         return Proxy(service)
 

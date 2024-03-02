@@ -284,11 +284,8 @@ class MundaneLogsDebug(mode.Service):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "service_cls,expected_level",
-    [
-        (MundaneLogsDefault, logging.INFO),
-        (MundaneLogsDebug, logging.DEBUG),
-    ],
+    ("service_cls", "expected_level"),
+    [(MundaneLogsDefault, logging.INFO), (MundaneLogsDebug, logging.DEBUG)],
 )
 async def test_mundane_level__default(service_cls, expected_level):
     service = service_cls()

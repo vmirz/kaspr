@@ -1,7 +1,7 @@
 """Event loop utilities."""
 
 import asyncio
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 __all__ = ["clone_loop", "call_asap"]
 
@@ -43,7 +43,7 @@ def call_asap(
     callback: Callable,
     *args: Any,
     context: Any = None,
-    loop: asyncio.AbstractEventLoop = None
+    loop: Optional[asyncio.AbstractEventLoop] = None,
 ) -> asyncio.Handle:
     """Call function asap by pushing at the front of the line."""
     assert loop

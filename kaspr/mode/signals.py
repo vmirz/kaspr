@@ -43,11 +43,11 @@ class BaseSignal(BaseSignalT[T]):
     def __init__(
         self,
         *,
-        name: str = None,
-        owner: Type = None,
-        loop: asyncio.AbstractEventLoop = None,
+        name: Optional[str] = None,
+        owner: Optional[Type] = None,
+        loop: Optional[asyncio.AbstractEventLoop] = None,
         default_sender: Any = None,
-        receivers: MutableSet[SignalHandlerRefT] = None,
+        receivers: Optional[MutableSet[SignalHandlerRefT]] = None,
         filter_receivers: FilterReceiverMapping = None,
     ) -> None:
         self.name = name or ""
@@ -146,9 +146,10 @@ class BaseSignal(BaseSignalT[T]):
             r = self._update_receivers(self._receivers)
             if sender is not None:
                 sender_id = self._create_id(sender)
-                r.update(self._update_receivers(self._filter_receivers[sender_id]))
-            for receiver in r:
-                yield receiver
+                r.update(
+                    self._update_receivers(self._filter_receivers[sender_id])
+                )
+            yield from r
 
     def _update_receivers(
         self, r: MutableSet[SignalHandlerRefT]

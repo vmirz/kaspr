@@ -1,13 +1,7 @@
 import asyncio
-import sys
 from functools import partial
-from typing import AsyncContextManager, ContextManager
-from unittest.mock import ANY, MagicMock, Mock, call, patch
-
-if sys.version_info < (3, 8):
-    from mock.mock import AsyncMock
-else:
-    from unittest.mock import AsyncMock
+from typing import AsyncContextManager, ClassVar, ContextManager, Dict
+from unittest.mock import ANY, AsyncMock, MagicMock, Mock, call, patch
 
 import pytest
 
@@ -116,7 +110,7 @@ def test_repr():
 @pytest.mark.asyncio
 async def test_subclass_can_override_Service_task():
     class ATaskService(Service):
-        values = []
+        values: ClassVar[Dict] = []
 
         def __post_init__(self):
             self.event = asyncio.Event()
@@ -162,7 +156,7 @@ class test_Service:
 
         async def mywait():
             foo()
-            asyncio.ensure_future(s.stop())
+            asyncio.ensure_future(s.stop())  # noqa: RUF006
             await asyncio.sleep(10.0)
 
         s = service.from_awaitable(mywait())
@@ -222,7 +216,7 @@ class test_Service:
                     self._stopped.set()
 
         async def itertimer(self, t, *args, **kwargs):
-            for i in range(4):
+            for _i in range(4):
                 await self.sleep(t)
                 yield
 
@@ -388,8 +382,12 @@ class test_Service:
 
             ensure_future.assert_has_calls(
                 [
-                    call(service._stopped.wait.return_value, loop=service.loop),
-                    call(service._crashed.wait.return_value, loop=service.loop),
+                    call(
+                        service._stopped.wait.return_value, loop=service.loop
+                    ),
+                    call(
+                        service._crashed.wait.return_value, loop=service.loop
+                    ),
                 ]
             )
 
@@ -421,9 +419,7 @@ class test_Service:
     async def test__actually_start__second_stop(self, *, service):
         s1 = Mock()
         self._mock_for_start(
-            service,
-            init_deps=[s1],
-            on_async_enter=service._stopped.set,
+            service, init_deps=[s1], on_async_enter=service._stopped.set
         )
         service.restart_count = 1
         await service._actually_start()
@@ -431,10 +427,7 @@ class test_Service:
     @pytest.mark.asyncio
     async def test__actually_start__third_stop(self, *, service):
         s1 = Mock()
-        self._mock_for_start(
-            service,
-            init_deps=[s1],
-        )
+        self._mock_for_start(service, init_deps=[s1])
         service.on_start.side_effect = service._stopped.set
         service.restart_count = 1
         await service._actually_start()
@@ -442,10 +435,7 @@ class test_Service:
     @pytest.mark.asyncio
     async def test__actually_start__rasies_exc(self, *, service):
         s1 = Mock()
-        self._mock_for_start(
-            service,
-            init_deps=[s1],
-        )
+        self._mock_for_start(service, init_deps=[s1])
         service.on_start.side_effect = KeyError("foo")
         service.restart_count = 1
         with pytest.raises(KeyError):
@@ -454,9 +444,7 @@ class test_Service:
     @pytest.mark.asyncio
     async def test__actually_start__fourth_stop(self, *, service):
         s1 = Mock(maybe_start=AsyncMock())
-        self._mock_for_start(
-            service,
-        )
+        self._mock_for_start(service)
         service._children = [s1]
         s1.maybe_start.side_effect = service._stopped.set
         service.restart_count = 1
@@ -465,24 +453,25 @@ class test_Service:
     @pytest.mark.asyncio
     async def test__actually_start__child_is_None(self, *, service):
         s1 = Mock(maybe_start=AsyncMock())
-        self._mock_for_start(
-            service,
-        )
+        self._mock_for_start(service)
         service._children = [None, s1]
         s1.maybe_start.side_effect = service._stopped.set
         service.restart_count = 1
         await service._actually_start()
 
     def _mock_for_start(
-        self, service, init_deps=None, tasks=None, children=None, on_async_enter=None
+        self,
+        service,
+        init_deps=None,
+        tasks=None,
+        children=None,
+        on_async_enter=None,
     ):
         service.on_init_dependencies = Mock(return_value=init_deps or [])
         service.add_dependency = Mock()
         service.on_first_start = AsyncMock()
         service.exit_stack = MagicMock()
-        service.async_exit_stack = AsyncMock(
-            side_effect=on_async_enter,
-        )
+        service.async_exit_stack = AsyncMock(side_effect=on_async_enter)
         service.on_start = AsyncMock()
         service._get_tasks = Mock(return_value=tasks or [])
         service._children = children or []
@@ -698,10 +687,7 @@ class test_Service:
         service.log.warning = Mock()
         service.supervisor = None
         obj = Mock(data="foo", children=[Mock(), Mock(), Mock()])
-        service.beacon = Mock(
-            depth=3,
-            walk=Mock(return_value=[obj, obj]),
-        )
+        service.beacon = Mock(depth=3, walk=Mock(return_value=[obj, obj]))
         await service.crash(KeyError())
         service.log.warning.assert_called_once()
 
@@ -711,10 +697,7 @@ class test_Service:
         service.log.warning = Mock()
         service.supervisor = None
         obj = Mock(data="foo", children=[Mock(), Mock(), Mock()])
-        service.beacon = Mock(
-            depth=3,
-            walk=Mock(return_value=[obj, obj]),
-        )
+        service.beacon = Mock(depth=3, walk=Mock(return_value=[obj, obj]))
         service.beacon.root = None
         await service.crash(KeyError())
         service.log.warning.assert_called_once()
@@ -748,7 +731,7 @@ class test_Service:
                     raise ValueError()
 
                 shield.side_effect = on_shield
-                with pytest.raises(ValueError):
+                with pytest.raises(ValueError):  # noqa: PT011
                     await service._maybe_wait_for_futures()
 
     @pytest.mark.asyncio

@@ -21,10 +21,7 @@ from mode.utils.types.trees import NodeT
 
 from .supervisors import SupervisorStrategyT
 
-__all__ = [
-    "DiagT",
-    "ServiceT",
-]
+__all__ = ["DiagT", "ServiceT"]
 
 T = TypeVar("T")
 
@@ -67,14 +64,19 @@ class ServiceT(AsyncContextManager):
 
     @abc.abstractmethod
     def __init__(
-        self, *, beacon: NodeT = None, loop: asyncio.AbstractEventLoop = None
+        self,
+        *,
+        beacon: NodeT = None,
+        loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None: ...
 
     @abc.abstractmethod
     def add_dependency(self, service: "ServiceT") -> "ServiceT": ...
 
     @abc.abstractmethod
-    async def add_runtime_dependency(self, service: "ServiceT") -> "ServiceT": ...
+    async def add_runtime_dependency(
+        self, service: "ServiceT"
+    ) -> "ServiceT": ...
 
     @abc.abstractmethod
     async def add_async_context(self, context: AsyncContextManager) -> Any: ...

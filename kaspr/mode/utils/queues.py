@@ -4,7 +4,17 @@ import asyncio
 import math
 import typing
 from collections import deque
-from typing import Any, Callable, Deque, List, Set, TypeVar, cast, no_type_check
+from typing import (
+    Any,
+    Callable,
+    Deque,
+    List,
+    Optional,
+    Set,
+    TypeVar,
+    cast,
+    no_type_check,
+)
 from weakref import WeakSet
 
 from .locks import Event
@@ -57,7 +67,7 @@ class FlowControlEvent:
         self,
         *,
         initially_suspended: bool = True,
-        loop: asyncio.AbstractEventLoop = None
+        loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
         self.loop = loop
         self._resume = Event(loop=self.loop)
@@ -112,7 +122,7 @@ class FlowControlQueue(asyncio.Queue):
         *,
         flow_control: FlowControlEvent,
         clear_on_resume: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         self._flow_control: FlowControlEvent = flow_control
         self._clear_on_resume: bool = clear_on_resume
@@ -125,7 +135,11 @@ class FlowControlQueue(asyncio.Queue):
         self._queue.clear()  # type: ignore
 
     def put_nowait_enhanced(
-        self, value: _T, *, on_pressure_high: Callable, on_pressure_drop: Callable
+        self,
+        value: _T,
+        *,
+        on_pressure_high: Callable,
+        on_pressure_drop: Callable,
     ) -> bool:
         in_pressure_high_state = self.in_pressure_high_state(on_pressure_drop)
         if in_pressure_high_state:

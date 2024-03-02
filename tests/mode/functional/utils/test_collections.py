@@ -337,7 +337,7 @@ class test_ManagedUserDict:
     def test_interface_on_clear(self):
         ManagedUserDict().on_clear()
 
-    @pytest.fixture
+    @pytest.fixture()
     def d(self):
         class X(ManagedUserDict):
             def __init__(self):
@@ -378,23 +378,11 @@ class test_ManagedUserDict:
 
     def test_update__args(self, d):
         d.update({"a": 1, "b": 2, "c": 3})
-        d.key_set.assert_has_calls(
-            [
-                call("a", 1),
-                call("b", 2),
-                call("c", 3),
-            ]
-        )
+        d.key_set.assert_has_calls([call("a", 1), call("b", 2), call("c", 3)])
 
     def test_update__kwargs(self, d):
         d.update(a=1, b=2, c=3)
-        d.key_set.assert_has_calls(
-            [
-                call("a", 1),
-                call("b", 2),
-                call("c", 3),
-            ]
-        )
+        d.key_set.assert_has_calls([call("a", 1), call("b", 2), call("c", 3)])
 
     def test_clear(self, d):
         d.update(a=1, b=2, c=3)
@@ -487,8 +475,7 @@ class test_ManagedUserSet:
         assert s == {1, 2, 3, 4, 5, 6}
         assert isinstance(s, self.ManagedSet)
         s.on_change_mock.assert_called_once_with(
-            added={4, 5, 6},
-            removed=set(),
+            added={4, 5, 6}, removed=set()
         )
 
     def test__isub__(self, *, s):
@@ -531,8 +518,7 @@ class test_ManagedUserSet:
         assert s == {1, 2, 3, 4, 5, 6}
         assert isinstance(s, self.ManagedSet)
         s.on_change_mock.assert_called_once_with(
-            added={4, 5, 6},
-            removed=set(),
+            added={4, 5, 6}, removed=set()
         )
 
 
@@ -593,7 +579,7 @@ class test_AttributeDictMixin:
 
     def test_set_get(self, *, d):
         with pytest.raises(AttributeError):
-            d.foo
+            d.foo  # noqa: B018
         d.foo = 1
         assert d.foo == 1
         assert d["foo"] == 1

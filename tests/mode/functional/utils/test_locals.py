@@ -105,7 +105,9 @@ async def test_threads(retry):
         for _ in range(2):
             loop.run_until_complete(assert_stack(stack))
 
-    threads = [threading.Thread(target=thread_enter, daemon=False) for _ in range(10)]
+    threads = [
+        threading.Thread(target=thread_enter, daemon=False) for _ in range(10)
+    ]
     for thread in threads:
         thread.start()
     for thread in threads:

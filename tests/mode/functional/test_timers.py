@@ -1,15 +1,9 @@
 import asyncio
-import sys
 from contextlib import asynccontextmanager
 from functools import reduce
 from itertools import chain
-from typing import List, NamedTuple, Tuple
-from unittest.mock import ANY, Mock, patch
-
-if sys.version_info < (3, 8):
-    from mock.mock import AsyncMock
-else:
-    from unittest.mock import AsyncMock
+from typing import List, NamedTuple, Optional, Tuple
+from unittest.mock import ANY, AsyncMock, Mock, patch
 
 import pytest
 
@@ -64,12 +58,7 @@ class test_Timer:
 
     @pytest.fixture()
     def timer(self, *, clock, sleep) -> Timer:
-        return Timer(
-            self.interval,
-            name="test",
-            clock=clock,
-            sleep=sleep,
-        )
+        return Timer(self.interval, name="test", clock=clock, sleep=sleep)
 
     @pytest.fixture()
     def first_interval(self):
@@ -139,10 +128,10 @@ class test_Timer:
 
     def new_interval(
         self,
-        interval: float = None,
-        wakeup_time: float = None,
-        yield_time: float = None,
-        expected_new_interval: float = None,
+        interval: Optional[float] = None,
+        wakeup_time: Optional[float] = None,
+        yield_time: Optional[float] = None,
+        expected_new_interval: Optional[float] = None,
     ) -> Interval:
         if interval is None:
             interval = self.interval
@@ -153,19 +142,16 @@ class test_Timer:
         if expected_new_interval is None:
             expected_new_interval = interval
         return Interval(
-            interval,
-            wakeup_time,
-            yield_time,
-            expected_new_interval,
+            interval, wakeup_time, yield_time, expected_new_interval
         )
 
     def to_next_interval(
         self,
         timer: Timer,
         interval: Interval,
-        sleep_time: float = None,
+        sleep_time: Optional[float] = None,
         yield_time: float = 0.1,
-        expected_new_interval: float = None,
+        expected_new_interval: Optional[float] = None,
     ) -> Interval:
         if sleep_time is None:
             sleep_time = interval.interval + 0.001
@@ -194,7 +180,10 @@ class test_Timer:
         return list(chain(*map(self.interval_to_clock_sequence, intervals)))
 
     def build_intervals(
-        self, timer: Timer, first_interval: Interval, *values: Tuple[float, float]
+        self,
+        timer: Timer,
+        first_interval: Interval,
+        *values: Tuple[float, float],
     ) -> List[Interval]:
         """Build intervals from tuples of ``(sleep_time, yield_time)``.
 
@@ -220,7 +209,9 @@ class test_Timer:
         reduce(on_reduce, values, first_interval)
         return intervals
 
-    async def assert_intervals(self, timer: Timer, intervals: List[Interval]) -> None:
+    async def assert_intervals(
+        self, timer: Timer, intervals: List[Interval]
+    ) -> None:
         assert await self.consume_timer(timer, limit=len(intervals)) == [
             interval.expected_new_interval for interval in intervals
         ]

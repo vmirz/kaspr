@@ -1,9 +1,9 @@
 """Enable :pypi:`gevent` support for :mod:`asyncio`."""
 
-import asyncio  # noqa: E402,I100,I202
+import asyncio
 import os
 import warnings
-from typing import Optional, cast  # noqa: F401,E402
+from typing import Optional, cast
 
 os.environ["GEVENT_LOOP"] = "mode.loop._gevent_loop.Loop"
 try:
@@ -23,7 +23,10 @@ else:
     try:
         import psycogreen.gevent
     except ImportError:
-        warnings.warn("psycopg2 installed, but not psycogreen: pg will be blocking")
+        warnings.warn(
+            "psycopg2 installed, but not psycogreen: pg will be blocking",
+            stacklevel=1,
+        )
     else:
         psycogreen.gevent.patch_psycopg()
 

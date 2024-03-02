@@ -1,6 +1,6 @@
 """Enable :pypi:`eventlet` support for :mod:`asyncio`."""
 
-import asyncio  # noqa: E402,I100,I202
+import asyncio
 import os
 
 os.environ["GEVENT_LOOP"] = "mode.loop._gevent_loop.Loop"
@@ -17,7 +17,8 @@ try:
 except ImportError:
     raise
     raise ImportError(
-        "Eventlet loop requires the aioeventlet library: " "pip install aioeventlet"
+        "Eventlet loop requires the aioeventlet library: "
+        "pip install aioeventlet"
     ) from None
 
 

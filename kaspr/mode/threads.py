@@ -25,7 +25,12 @@ from typing import (
 )
 
 from .services import Service
-from .utils.futures import maybe_async, maybe_set_exception, maybe_set_result, notify
+from .utils.futures import (
+    maybe_async,
+    maybe_set_exception,
+    maybe_set_result,
+    notify,
+)
 from .utils.locks import Event
 
 __all__ = [
@@ -99,16 +104,18 @@ class ServiceThread(Service):
         self,
         *,
         executor: Any = None,
-        loop: asyncio.AbstractEventLoop = None,
-        thread_loop: asyncio.AbstractEventLoop = None,
-        Worker: Type[WorkerThread] = None,
+        loop: Optional[asyncio.AbstractEventLoop] = None,
+        thread_loop: Optional[asyncio.AbstractEventLoop] = None,
+        Worker: Optional[Type[WorkerThread]] = None,
         **kwargs: Any,
     ) -> None:
         # cannot share loop between threads, so create a new one
         assert asyncio.get_event_loop_policy().get_event_loop()
         if executor is not None:
             raise NotImplementedError("executor argument no longer supported")
-        self.parent_loop = loop or asyncio.get_event_loop_policy().get_event_loop()
+        self.parent_loop = (
+            loop or asyncio.get_event_loop_policy().get_event_loop()
+        )
         self.thread_loop = (
             thread_loop or asyncio.get_event_loop_policy().new_event_loop()
         )
@@ -194,7 +201,10 @@ class ServiceThread(Service):
 
     async def crash(self, exc: BaseException) -> None:
         # <- .start() will raise
-        if asyncio.get_event_loop_policy().get_event_loop() is self.parent_loop:
+        if (
+            asyncio.get_event_loop_policy().get_event_loop()
+            is self.parent_loop
+        ):
             maybe_set_exception(self._thread_running, exc)
         else:
             self.parent_loop.call_soon_threadsafe(
@@ -225,9 +235,13 @@ class ServiceThread(Service):
     def set_shutdown(self) -> None:
         self.parent_loop.call_soon_threadsafe(self._shutdown.set)
 
-    async def _stop_children(self) -> None: ...  # called by thread instead of .stop()
+    async def _stop_children(
+        self,
+    ) -> None: ...  # called by thread instead of .stop()
 
-    async def _stop_futures(self) -> None: ...  # called by thread instead of .stop()
+    async def _stop_futures(
+        self,
+    ) -> None: ...  # called by thread instead of .stop()
 
     async def _stop_exit_stacks(
         self,
@@ -262,9 +276,8 @@ class ServiceThread(Service):
 
     @Service.task
     async def _thread_keepalive(self) -> None:
-        async for sleep_time in self.itertimer(
-            1.0,
-            name=f"_thread_keepalive-{self.label}",
+        async for _sleep_time in self.itertimer(
+            1.0, name=f"_thread_keepalive-{self.label}"
         ):  # pragma: no cover
             # The consumer thread will have a separate event loop,
             # and so we use this trick to make sure our loop is
@@ -376,9 +389,13 @@ class MethodQueue(Service):
             try:
                 result = await maybe_async(method(*args, **kwargs))
             except BaseException as exc:
-                promise._loop.call_soon_threadsafe(maybe_set_exception, promise, exc)
+                promise._loop.call_soon_threadsafe(
+                    maybe_set_exception, promise, exc
+                )
             else:
-                promise._loop.call_soon_threadsafe(maybe_set_result, promise, result)
+                promise._loop.call_soon_threadsafe(
+                    maybe_set_result, promise, result
+                )
         return promise
 
     @property
@@ -401,8 +418,7 @@ class QueueServiceThread(ServiceThread):
     def method_queue(self) -> MethodQueue:
         if self._method_queue is None:
             self._method_queue = MethodQueue(
-                loop=self.thread_loop,
-                beacon=self.beacon,
+                loop=self.thread_loop, beacon=self.beacon
             )
         return self._method_queue
 

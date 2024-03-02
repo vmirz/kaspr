@@ -11,6 +11,7 @@ from typing import (
     Iterator,
     List,
     MutableMapping,
+    Optional,
     Sequence,
     Set,
     cast,
@@ -41,7 +42,9 @@ class DependencyGraph(DependencyGraphT):
     adjacent: MutableMapping
 
     def __init__(
-        self, it: Iterable = None, formatter: GraphFormatterT[_T] = None
+        self,
+        it: Optional[Iterable] = None,
+        formatter: GraphFormatterT[_T] = None,
     ) -> None:
         self.formatter = formatter or GraphFormatter()
         self.adjacent = {}
@@ -72,7 +75,9 @@ class DependencyGraph(DependencyGraphT):
         graph = DependencyGraph()
         components = self._tarjan72()
 
-        NC = {node: component for component in components for node in component}
+        NC = {
+            node: component for component in components for node in component
+        }
         for component in components:
             graph.add_arc(component)
         for node in self:
@@ -174,7 +179,7 @@ class DependencyGraph(DependencyGraphT):
         """
         seen: Set = set()
         draw = formatter or self.formatter
-        write = partial(print, file=fh)  # noqa: T101
+        write = partial(print, file=fh)
 
         def if_not_seen(fun: Callable[[Any], str], obj: Any) -> None:
             label = draw.label(obj)
@@ -209,11 +214,15 @@ class DependencyGraph(DependencyGraphT):
     def __repr__(self) -> str:
         return "\n".join(self._repr_node(N) for N in self)
 
-    def _repr_node(self, obj: _T, level: int = 1, fmt: str = "{0}({1})") -> str:
+    def _repr_node(
+        self, obj: _T, level: int = 1, fmt: str = "{0}({1})"
+    ) -> str:
         output = [fmt.format(obj, self.valency_of(obj))]
         if obj in self:
             for other in self[obj]:
                 d = fmt.format(other, self.valency_of(other))
                 output.append("     " * level + d)
-                output.extend(self._repr_node(other, level + 1).split("\n")[1:])
+                output.extend(
+                    self._repr_node(other, level + 1).split("\n")[1:]
+                )
         return "\n".join(output)

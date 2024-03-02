@@ -40,7 +40,7 @@ class Timer:
         max_drift_correction: float = 0.1,
         name: str = "",
         clock: ClockArg = perf_counter,
-        sleep: SleepArg = asyncio.sleep
+        sleep: SleepArg = asyncio.sleep,
     ) -> None:
         self.interval = interval
         self.max_drift_correction = max_drift_correction
@@ -179,7 +179,10 @@ def timer_intervals(  # XXX deprecated
 
     """
     state = Timer(
-        interval, max_drift_correction=max_drift_correction, name=name, clock=clock
+        interval,
+        max_drift_correction=max_drift_correction,
+        name=name,
+        clock=clock,
     )
     for _ in count():
         sleep_time = state.tick()

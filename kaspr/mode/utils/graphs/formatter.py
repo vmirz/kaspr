@@ -1,6 +1,6 @@
 """Formatting graphs."""
 
-from typing import Any, Mapping
+from typing import Any, ClassVar, Dict, Mapping, Optional
 
 from mode.utils.objects import label
 from mode.utils.types.graphs import _T, GraphFormatterT
@@ -29,7 +29,7 @@ class DOT:
     NODE = '{INp}"{0}" [{attrs}]'
     EDGE = '{INp}"{0}" {dir} "{1}" [{attrs}]'
     ATTRSEP = ", "
-    DIRS = {"graph": "--", "digraph": "->"}
+    DIRS: ClassVar[Dict] = {"graph": "--", "digraph": "->"}
     TAIL = "{IN}}}"
 
 
@@ -42,7 +42,7 @@ class GraphFormatter(GraphFormatterT):
     _head = DOT.HEAD.strip()
     _tail = DOT.TAIL.strip()
     _attrsep = DOT.ATTRSEP
-    _dirs = dict(DOT.DIRS)
+    _dirs: ClassVar[Dict] = dict(DOT.DIRS)
 
     scheme: Mapping[str, Any] = {
         "shape": "box",
@@ -63,15 +63,13 @@ class GraphFormatter(GraphFormatterT):
         "fillcolor": "palegreen1",
         "color": "palegreen2",
     }
-    graph_scheme: Mapping[str, Any] = {
-        "bgcolor": "mintcream",
-    }
+    graph_scheme: Mapping[str, Any] = {"bgcolor": "mintcream"}
 
     def __init__(
         self,
         root: Any = None,
-        type: str = None,
-        id: str = None,
+        type: Optional[str] = None,
+        id: Optional[str] = None,
         indent: int = 0,
         inw: str = " " * 4,
         **scheme: Any,
@@ -88,7 +86,9 @@ class GraphFormatter(GraphFormatterT):
     def attr(self, name: str, value: Any) -> str:
         return self.FMT(self._attr, name=name, value=f'"{value}"')
 
-    def attrs(self, d: Mapping = None, scheme: Mapping = None) -> str:
+    def attrs(
+        self, d: Optional[Mapping] = None, scheme: Optional[Mapping] = None
+    ) -> str:
         scheme = {**self.scheme, **scheme} if scheme else self.scheme
         d = {**scheme, **d} if d else scheme
         return self._attrsep.join(str(self.attr(k, v)) for k, v in d.items())
@@ -120,10 +120,16 @@ class GraphFormatter(GraphFormatterT):
         return s.encode("utf-8", "ignore").decode()
 
     def FMT(self, fmt: str, *args: Any, **kwargs: Any) -> str:
-        return self._enc(fmt.format(*args, **dict(kwargs, IN=self.IN, INp=self.INp)))
+        return self._enc(
+            fmt.format(*args, **dict(kwargs, IN=self.IN, INp=self.INp))
+        )
 
     def draw_edge(
-        self, a: _T, b: _T, scheme: Mapping = None, attrs: Mapping = None
+        self,
+        a: _T,
+        b: _T,
+        scheme: Optional[Mapping] = None,
+        attrs: Optional[Mapping] = None,
     ) -> str:
         return self.FMT(
             self._edge,
@@ -133,9 +139,12 @@ class GraphFormatter(GraphFormatterT):
             attrs=self.attrs(attrs, self.edge_scheme),
         )
 
-    def draw_node(self, obj: _T, scheme: Mapping = None, attrs: Mapping = None) -> str:
+    def draw_node(
+        self,
+        obj: _T,
+        scheme: Optional[Mapping] = None,
+        attrs: Optional[Mapping] = None,
+    ) -> str:
         return self.FMT(
-            self._node,
-            self.label(obj),
-            attrs=self.attrs(attrs, scheme),
+            self._node, self.label(obj), attrs=self.attrs(attrs, scheme)
         )

@@ -114,7 +114,9 @@ class FactoryMapping(FastUserDict, Generic[_T]):
                 name_,
                 fmt_none=f'Available choices: {", ".join(self.aliases)}',
             )
-            raise ModuleNotFoundError(f"{name!r} is not a valid name. {alt}") from exc
+            raise ModuleNotFoundError(
+                f"{name!r} is not a valid name. {alt}"
+            ) from exc
 
     def get_alias(self, name: str) -> str:
         self._maybe_finalize()
@@ -130,12 +132,7 @@ class FactoryMapping(FastUserDict, Generic[_T]):
 
     def _finalize(self) -> None:
         for namespace in self.namespaces:
-            self.aliases.update(
-                {
-                    name: cls_name
-                    for name, cls_name in load_extension_class_names(namespace)
-                }
-            )
+            self.aliases.update(dict(load_extension_class_names(namespace)))
 
     @cached_property
     def data(self) -> MutableMapping:  # type: ignore
@@ -160,7 +157,7 @@ class ParsedSymbol(NamedTuple):
 def parse_symbol(
     s: str,
     *,
-    package: str = None,
+    package: Optional[str] = None,
     strict_separator: str = ":",
     relative_separator: str = ".",
 ) -> ParsedSymbol:
@@ -188,7 +185,9 @@ def parse_symbol(
     """
     module_name: Optional[str]
     attribute_name: Optional[str]
-    partition_by = strict_separator if strict_separator in s else relative_separator
+    partition_by = (
+        strict_separator if strict_separator in s else relative_separator
+    )
 
     module_name, used_separator, attribute_name = s.rpartition(partition_by)
     if not module_name:
@@ -200,10 +199,15 @@ def parse_symbol(
         elif used_separator == ".":
             # ".foo" is legal but requires a ``package`` argument.
             if not package:
-                raise ValueError(f"Relative import {s!r} but package=None (required)")
+                raise ValueError(
+                    f"Relative import {s!r} but package=None (required)"
+                )
             module_name, attribute_name = s, None
         else:
-            attribute_name, module_name = (None, package if package else attribute_name)
+            attribute_name, module_name = (
+                None,
+                package if package else attribute_name,
+            )
 
     if attribute_name:
         _ensure_identifier(attribute_name, full=s)
@@ -215,9 +219,9 @@ def parse_symbol(
 
 def symbol_by_name(
     name: SymbolArg[_T],
-    aliases: Mapping[str, str] = None,
+    aliases: Optional[Mapping[str, str]] = None,
     imp: Any = None,
-    package: str = None,
+    package: Optional[str] = None,
     sep: str = ".",
     default: _T = None,
     **kwargs: Any,
@@ -276,9 +280,9 @@ def symbol_by_name(
                 **kwargs,
             )
         except ValueError as exc:
-            raise ValueError(
-                f"Cannot import {name!r}: {exc}",
-            ).with_traceback(sys.exc_info()[2])
+            raise ValueError(f"Cannot import {name!r}: {exc}").with_traceback(
+                sys.exc_info()[2]
+            ) from exc
         if attribute_name:
             return cast(_T, getattr(module, attribute_name))
         else:
@@ -320,12 +324,17 @@ def load_extension_classes(namespace: str) -> Iterable[EntrypointExtension]:
         try:
             cls: Type = symbol_by_name(cls_name)
         except (ImportError, SyntaxError) as exc:
-            warnings.warn(f"Cannot load {namespace} extension {cls_name!r}: {exc!r}")
+            warnings.warn(
+                f"Cannot load {namespace} extension {cls_name!r}: {exc!r}",
+                stacklevel=1,
+            )
         else:
             yield EntrypointExtension(name, cls)
 
 
-def load_extension_class_names(namespace: str) -> Iterable[RawEntrypointExtension]:
+def load_extension_class_names(
+    namespace: str,
+) -> Iterable[RawEntrypointExtension]:
     """Get setuptools entrypoint extension class names.
 
     If the entrypoint is defined in ``setup.py`` as::
@@ -347,8 +356,7 @@ def load_extension_class_names(namespace: str) -> Iterable[RawEntrypointExtensio
 
     for ep in iter_entry_points(namespace):
         yield RawEntrypointExtension(
-            ep.name,
-            ":".join([ep.module_name, ep.attrs[0]]),
+            ep.name, ":".join([ep.module_name, ep.attrs[0]])
         )
 
 
@@ -368,7 +376,10 @@ def cwd_in_path() -> Generator:
 
 
 def import_from_cwd(
-    module: str, *, imp: Callable = None, package: str = None
+    module: str,
+    *,
+    imp: Optional[Callable] = None,
+    package: Optional[str] = None,
 ) -> ModuleType:
     """Import module, temporarily including modules in the current directory.
 

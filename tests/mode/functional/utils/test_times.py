@@ -91,7 +91,7 @@ async def test_rate_limit_raising():
         async with bucket:
             await asyncio.sleep(0.1)
 
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyError):  # noqa: PT012
         for _ in range(20):
             async with bucket:
                 pass
@@ -113,7 +113,6 @@ async def test_rate_limit_raising():
         (0.36, False, None, "now"),
         (0.36, False, "0 seconds", "0 seconds"),
         (0.36, True, None, "0.36 seconds"),
-        (0, False, None, "now"),
         (0, False, None, "now"),
         (0, False, "0 seconds", "0 seconds"),
     ],

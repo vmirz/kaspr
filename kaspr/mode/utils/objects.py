@@ -39,7 +39,7 @@ except ImportError:  # pragma: no cover
     # CPython 3.7
     from typing import _GenericAlias  # type: ignore
 
-    def _is_class_var(x: Any) -> bool:  # noqa
+    def _is_class_var(x: Any) -> bool:
         return isinstance(x, _GenericAlias) and x.__origin__ is ClassVar
 
 else:  # pragma: no cover
@@ -206,7 +206,7 @@ def shortname(obj: Any) -> str:
     return ".".join((obj.__module__, obj.__name__))
 
 
-def canoname(obj: Any, *, main_name: str = None) -> str:
+def canoname(obj: Any, *, main_name: Optional[str] = None) -> str:
     """Get qualname of obj, trying to resolve the real name of ``__main__``."""
     name = qualname(obj)
     parts = name.split(".")
@@ -215,7 +215,7 @@ def canoname(obj: Any, *, main_name: str = None) -> str:
     return name
 
 
-def canonshortname(obj: Any, *, main_name: str = None) -> str:
+def canonshortname(obj: Any, *, main_name: Optional[str] = None) -> str:
     """Get non-qualified name of obj, resolve real name of ``__main__``."""
     name = shortname(obj)
     parts = name.split(".")
@@ -239,18 +239,18 @@ def _detect_main_name() -> str:  # pragma: no cover
                 node = node.parent
             else:
                 break
-        return ".".join(seen + [path.stem])
+        return ".".join([*seen, path.stem])
 
 
 def annotations(
     cls: Type,
     *,
     stop: Type = object,
-    invalid_types: Set = None,
-    alias_types: Mapping = None,
+    invalid_types: Optional[Set] = None,
+    alias_types: Optional[Mapping] = None,
     skip_classvar: bool = False,
-    globalns: Dict[str, Any] = None,
-    localns: Dict[str, Any] = None,
+    globalns: Optional[Dict[str, Any]] = None,
+    localns: Optional[Dict[str, Any]] = None,
 ) -> Tuple[FieldMapping, DefaultsMapping]:
     """Get class field definition in MRO order.
 
@@ -295,7 +295,7 @@ def annotations(
             {'z': 0.0}
     """
     fields: Dict[str, Type] = {}
-    defaults: Dict[str, Any] = {}  # noqa: E704 (flake8 bug)
+    defaults: Dict[str, Any] = {}
     for subcls in iter_mro_reversed(cls, stop=stop):
         defaults.update(subcls.__dict__)
         with suppress(AttributeError):
@@ -315,11 +315,11 @@ def annotations(
 def local_annotations(
     cls: Type,
     *,
-    invalid_types: Set = None,
-    alias_types: Mapping = None,
+    invalid_types: Optional[Set] = None,
+    alias_types: Optional[Mapping] = None,
     skip_classvar: bool = False,
-    globalns: Dict[str, Any] = None,
-    localns: Dict[str, Any] = None,
+    globalns: Optional[Dict[str, Any]] = None,
+    localns: Optional[Dict[str, Any]] = None,
 ) -> Iterable[Tuple[str, Type]]:
     return _resolve_refs(
         cls.__annotations__,
@@ -333,10 +333,10 @@ def local_annotations(
 
 def _resolve_refs(
     d: Dict[str, Any],
-    globalns: Dict[str, Any] = None,
-    localns: Dict[str, Any] = None,
-    invalid_types: Set = None,
-    alias_types: Mapping = None,
+    globalns: Optional[Dict[str, Any]] = None,
+    localns: Optional[Dict[str, Any]] = None,
+    invalid_types: Optional[Set] = None,
+    alias_types: Optional[Mapping] = None,
     skip_classvar: bool = False,
 ) -> Iterable[Tuple[str, Type]]:
     invalid_types = invalid_types or set()
@@ -351,10 +351,10 @@ def _resolve_refs(
 
 def eval_type(
     typ: Any,
-    globalns: Dict[str, Any] = None,
-    localns: Dict[str, Any] = None,
-    invalid_types: Set = None,
-    alias_types: Mapping = None,
+    globalns: Optional[Dict[str, Any]] = None,
+    localns: Optional[Dict[str, Any]] = None,
+    invalid_types: Optional[Set] = None,
+    alias_types: Optional[Mapping] = None,
 ) -> Type:
     """Convert (possible) string annotation to actual type.
 
@@ -428,18 +428,20 @@ def is_union(typ: Type) -> bool:
             name == "_UnionGenericAlias",  # 3.9
             name == "_GenericAlias" and typ.__origin__ is typing.Union,  # 3.7
             name == "_Union",  # 3.6
-        ],
+        ]
     )
 
 
 def is_optional(typ: Type) -> bool:
     if is_union(typ):
         args = getattr(typ, "__args__", ())
-        return any([True for arg in args if arg is None or arg is type(None)])
+        return any(True for arg in args if arg is None or arg is type(None))
     return False
 
 
-def _remove_optional(typ: Type, *, find_origin: bool = False) -> Tuple[List[Any], Type]:
+def _remove_optional(
+    typ: Type, *, find_origin: bool = False
+) -> Tuple[List[Any], Type]:
     args = getattr(typ, "__args__", ())
     if is_union(typ):
         # Optional[List[int]] -> Union[List[int], NoneType]
@@ -581,10 +583,10 @@ class cached_property(Generic[RT]):
     def __init__(
         self,
         fget: Callable[[Any], RT],
-        fset: Callable[[Any, RT], RT] = None,
-        fdel: Callable[[Any, RT], None] = None,
-        doc: str = None,
-        class_attribute: str = None,
+        fset: Optional[Callable[[Any, RT], RT]] = None,
+        fdel: Optional[Callable[[Any, RT], None]] = None,
+        doc: Optional[str] = None,
+        class_attribute: Optional[str] = None,
     ) -> None:
         self.__get: Callable[[Any], RT] = fget
         self.__set: Optional[Callable[[Any, RT], RT]] = fset
@@ -597,7 +599,7 @@ class cached_property(Generic[RT]):
     def is_set(self, obj: Any) -> bool:
         return self.__name__ in obj.__dict__
 
-    def __get__(self, obj: Any, type: Type = None) -> RT:
+    def __get__(self, obj: Any, type: Optional[Type] = None) -> RT:
         if obj is None:
             if type is not None and self.class_attribute:
                 return cast(RT, getattr(type, self.class_attribute))
@@ -613,7 +615,7 @@ class cached_property(Generic[RT]):
             value = self.__set(obj, value)
         obj.__dict__[self.__name__] = value
 
-    def __delete__(self, obj: Any, _sentinel: Any = object()) -> None:
+    def __delete__(self, obj: Any, _sentinel: Any = object()) -> None:  # noqa: B008
         value = obj.__dict__.pop(self.__name__, _sentinel)
         if self.__del is not None and value is not _sentinel:
             self.__del(obj, value)

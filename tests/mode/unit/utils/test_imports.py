@@ -102,7 +102,7 @@ class test_FactoryMapping:
 
 
 def test__ensure_identifier():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError):  # noqa: PT011
         _ensure_identifier("foo.bar.{baz}", "full")
 
 
@@ -112,7 +112,7 @@ class test_symbol_by_name:
         return Mock(name="imp")
 
     def test_missing_module(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError):  # noqa: PT011
             symbol_by_name(":foo")
 
     def test_missing_module_but_valid_package(self):
@@ -126,7 +126,7 @@ class test_symbol_by_name:
 
     def test_when_ValueError(self, *, imp):
         imp.side_effect = ValueError
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError):  # noqa: PT011
             symbol_by_name("foo.bar:Baz", imp=imp)
 
     @pytest.mark.parametrize("exc", [AttributeError, ImportError])
@@ -179,14 +179,8 @@ def test_load_extension_classes_syntax_error():
 def test_load_extension_class_names():
     with patch_iter_entry_points():
         assert list(load_extension_class_names("foo")) == [
-            RawEntrypointExtension(
-                "ep1",
-                "foo:a",
-            ),
-            RawEntrypointExtension(
-                "ep2",
-                "bar:c",
-            ),
+            RawEntrypointExtension("ep1", "foo:a"),
+            RawEntrypointExtension("ep2", "bar:c"),
         ]
 
 
@@ -201,10 +195,7 @@ def patch_iter_entry_points():
         ep2.name = "ep2"
         ep2.module_name = "bar"
         ep2.attrs = ["c", "d"]
-        iter_entry_points.return_value = [
-            ep1,
-            ep2,
-        ]
+        iter_entry_points.return_value = [ep1, ep2]
         yield
 
 

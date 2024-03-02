@@ -32,12 +32,9 @@ __all__ = [
 T = TypeVar("T")
 T_contra = TypeVar("T_contra", contravariant=True)
 
-signal = None  # just here to fix flake8 bug
-
 SignalHandlerT = Union[
     Callable[
-        [T, VarArg(), NamedArg("BaseSignalT", name="signal"), KwArg()],
-        None,
+        [T, VarArg(), NamedArg("BaseSignalT", name="signal"), KwArg()], None
     ],
     Callable[
         [T, VarArg(), NamedArg("BaseSignalT", name="signal"), KwArg()],
@@ -59,12 +56,12 @@ class BaseSignalT(Generic[T]):
     def __init__(
         self,
         *,
-        name: str = None,
-        owner: Type = None,
-        loop: asyncio.AbstractEventLoop = None,
+        name: Optional[str] = None,
+        owner: Optional[Type] = None,
+        loop: Optional[asyncio.AbstractEventLoop] = None,
         default_sender: Any = None,
-        receivers: MutableSet[SignalHandlerRefT] = None,
-        filter_receivers: FilterReceiverMapping = None
+        receivers: Optional[MutableSet[SignalHandlerRefT]] = None,
+        filter_receivers: Optional[FilterReceiverMapping] = None,
     ) -> None: ...
 
     @abc.abstractmethod
@@ -86,10 +83,14 @@ class SignalT(BaseSignalT[T]):
     """Base class for all async signals (using ``async def``)."""
 
     @abc.abstractmethod
-    async def __call__(self, sender: T_contra, *args: Any, **kwargs: Any) -> None: ...
+    async def __call__(
+        self, sender: T_contra, *args: Any, **kwargs: Any
+    ) -> None: ...
 
     @abc.abstractmethod
-    async def send(self, sender: T_contra, *args: Any, **kwargs: Any) -> None: ...
+    async def send(
+        self, sender: T_contra, *args: Any, **kwargs: Any
+    ) -> None: ...
 
     @typing.no_type_check
     @abc.abstractmethod
@@ -104,7 +105,9 @@ class SyncSignalT(BaseSignalT[T]):
     """Base class for all synchronous signals (using regular ``def``)."""
 
     @abc.abstractmethod
-    def __call__(self, sender: T_contra, *args: Any, **kwargs: Any) -> None: ...
+    def __call__(
+        self, sender: T_contra, *args: Any, **kwargs: Any
+    ) -> None: ...
 
     @abc.abstractmethod
     def send(self, sender: T_contra, *args: Any, **kwargs: Any) -> None: ...

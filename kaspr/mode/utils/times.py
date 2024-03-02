@@ -44,7 +44,7 @@ Seconds = Union[timedelta, float, str]
 class Unit(NamedTuple):
     name: str
     value: float
-    format: Callable[[float], str]  # noqa: E701
+    format: Callable[[float], str]
 
 
 TIME_UNITS: List[Unit] = [
@@ -120,8 +120,8 @@ class Bucket(AsyncContextManager):
         *,
         fill_rate: Seconds = None,
         capacity: Seconds = None,
-        raises: Type[BaseException] = None,
-        loop: asyncio.AbstractEventLoop = None
+        raises: Optional[Type[BaseException]] = None,
+        loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
         self.rate = want_seconds(rate)
         self.capacity = want_seconds(over)
@@ -158,9 +158,9 @@ class Bucket(AsyncContextManager):
 
     async def __aexit__(
         self,
-        exc_type: Type[BaseException] = None,
-        exc_val: BaseException = None,
-        exc_tb: TracebackType = None,
+        exc_type: Optional[Type[BaseException]] = None,
+        exc_val: Optional[BaseException] = None,
+        exc_tb: Optional[TracebackType] = None,
     ) -> Optional[bool]:
         return None
 
@@ -207,17 +207,17 @@ def rate(r: float) -> float:
 
 
 @rate.register(str)
-def _rate_str(r: str) -> float:  # noqa: F811
+def _rate_str(r: str) -> float:
     ops, _, modifier = r.partition("/")
     return RATE_MODIFIER_MAP[modifier or "s"](float(ops)) or 0
 
 
-@rate.register(int)  # noqa: F811
+@rate.register(int)
 def _rate_int(r: int) -> float:
     return float(r)
 
 
-@rate.register(type(None))  # noqa: F811
+@rate.register(type(None))
 def _rate_None(r: None) -> float:
     return 0.0
 
@@ -227,8 +227,8 @@ def rate_limit(
     over: Seconds = 1.0,
     *,
     bucket_type: Type[Bucket] = TokenBucket,
-    raises: Type[BaseException] = None,
-    loop: asyncio.AbstractEventLoop = None
+    raises: Optional[Type[BaseException]] = None,
+    loop: Optional[asyncio.AbstractEventLoop] = None,
 ) -> Bucket:
     """Create rate limiting manager."""
     return bucket_type(rate, over, raises=raises, loop=loop)
@@ -240,12 +240,12 @@ def want_seconds(s: float) -> float:
     return s
 
 
-@want_seconds.register(str)  # noqa: F811
+@want_seconds.register(str)
 def _want_seconds_str(s: str) -> float:
     return rate(s)
 
 
-@want_seconds.register(timedelta)  # noqa: F811
+@want_seconds.register(timedelta)
 def _want_seconds_timedelta(s: timedelta) -> float:
     return s.total_seconds()
 
@@ -257,7 +257,7 @@ def humanize_seconds(
     suffix: str = "",
     sep: str = "",
     now: str = "now",
-    microseconds: bool = False
+    microseconds: bool = False,
 ) -> str:
     """Show seconds in human form.
 
@@ -276,13 +276,11 @@ def humanize_seconds(
     for unit, divider, formatter in TIME_UNITS:
         if secs >= divider:
             w = secs / float(divider)
-            return "{0}{1}{2} {3}{4}".format(
+            return "{}{}{} {}{}".format(
                 prefix, sep, formatter(w), pluralize(int(w), unit), suffix
             )
     if microseconds and secs > 0.0:
-        return "{prefix}{sep}{0:.2f} seconds{suffix}".format(
-            secs, sep=sep, prefix=prefix, suffix=suffix
-        )
+        return f"{prefix}{sep}{secs:.2f} seconds{suffix}"
     return now
 
 
@@ -293,7 +291,7 @@ def humanize_seconds_ago(
     suffix: str = " ago",
     sep: str = "",
     now: str = "just now",
-    microseconds: bool = False
+    microseconds: bool = False,
 ) -> str:
     """Show seconds in "3.33 seconds ago" form.
 

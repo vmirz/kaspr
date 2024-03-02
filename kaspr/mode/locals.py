@@ -175,17 +175,10 @@ def _default_cls_attr(
         instance.__getter = getter  # type: ignore
         return instance
 
-    def __get__(self: Type, obj: Any, cls: Type = None) -> Any:
+    def __get__(self: Type, obj: Any, cls: Optional[Type] = None) -> Any:
         return self.__getter(obj) if obj is not None else self
 
-    return type(
-        name,
-        (type_,),
-        {
-            "__new__": __new__,
-            "__get__": __get__,
-        },
-    )
+    return type(name, (type_,), {"__new__": __new__, "__get__": __get__})
 
 
 class Proxy(Generic[T]):
@@ -203,7 +196,7 @@ class Proxy(Generic[T]):
             "__dict__",
         )
 
-    def __init_subclass__(self, source: Type[T] = None) -> None:
+    def __init_subclass__(self, source: Optional[Type[T]] = None) -> None:
         super().__init_subclass__()
         if source is not None:
             self._init_from_source(source)
@@ -219,10 +212,16 @@ class Proxy(Generic[T]):
         if abstractmethods is None:
             raise TypeError("class is not using metaclass ABCMeta")
         for method_name in abstractmethods:
-            setattr(cls, method_name, cls._generate_proxy_method(source, method_name))
+            setattr(
+                cls,
+                method_name,
+                cls._generate_proxy_method(source, method_name),
+            )
 
     @classmethod
-    def _generate_proxy_method(cls, source: Type[T], method_name: str) -> Callable:
+    def _generate_proxy_method(
+        cls, source: Type[T], method_name: str
+    ) -> Callable:
         @wraps(getattr(source, method_name))
         def _classmethod(self: Proxy[T], *args: Any, **kwargs: Any) -> Any:
             obj = self._get_current_object()
@@ -235,11 +234,11 @@ class Proxy(Generic[T]):
     def __init__(
         self,
         local: Callable[..., T],
-        args: Tuple = None,
-        kwargs: Dict = None,
-        name: str = None,
+        args: Optional[Tuple] = None,
+        kwargs: Optional[Dict] = None,
+        name: Optional[str] = None,
         cache: bool = False,
-        __doc__: str = None,
+        __doc__: Optional[str] = None,
     ) -> None:
         object.__setattr__(self, "_Proxy__local", local)
         object.__setattr__(self, "_Proxy__args", args or ())
@@ -286,8 +285,8 @@ class Proxy(Generic[T]):
     def __class__(self) -> Any:
         return self._get_class()
 
-    @__class__.setter  # noqa: F811
-    def __class__(self, t: Type[T]) -> None:  # noqa: F811
+    @__class__.setter
+    def __class__(self, t: Type[T]) -> None:
         raise NotImplementedError()
 
     def _get_current_object(self) -> T:
@@ -304,7 +303,11 @@ class Proxy(Generic[T]):
 
     def __evaluate__(
         self,
-        _clean: Tuple[str, ...] = ("_Proxy__local", "_Proxy__args", "_Proxy__kwargs"),
+        _clean: Tuple[str, ...] = (
+            "_Proxy__local",
+            "_Proxy__args",
+            "_Proxy__kwargs",
+        ),
     ) -> T:
         thing = self._evaluate_proxy()
         cached = object.__getattribute__(self, "_Proxy__cached")
@@ -326,8 +329,8 @@ class Proxy(Generic[T]):
         try:  # pragma: no cover
             # not sure what this is about
             return cast(T, getattr(loc, self.__name__))
-        except AttributeError:  # pragma: no cover
-            raise RuntimeError("no object bound to {0.__name__}".format(self))
+        except AttributeError as err:  # pragma: no cover
+            raise RuntimeError(f"no object bound to {self.__name__}") from err
 
     def __evaluated__(self) -> bool:
         try:
@@ -343,14 +346,14 @@ class Proxy(Generic[T]):
     def __dict__(self) -> Dict[str, Any]:  # type: ignore
         try:
             return self._get_current_object().__dict__
-        except RuntimeError:  # pragma: no cover
-            raise AttributeError("__dict__")
+        except RuntimeError as err:  # pragma: no cover
+            raise AttributeError("__dict__") from err
 
     def __repr__(self) -> str:
         try:
             obj = self._get_current_object()
         except RuntimeError:  # pragma: no cover
-            return "<{0} unbound>".format(self.__class__.__name__)
+            return f"<{self.__class__.__name__} unbound>"
         return repr(obj)
 
     def __bool__(self) -> bool:
@@ -426,7 +429,7 @@ class CoroutineRole(Coroutine[T_co, T_contra, V_co]):
         self,
         typ: Type[BaseException],
         val: Optional[BaseException] = None,
-        tb: TracebackType = None,
+        tb: Optional[TracebackType] = None,
     ) -> T_co:
         return self._get_coroutine().throw(typ, val, tb)
 
@@ -490,7 +493,7 @@ class AsyncGeneratorRole(AsyncGenerator[T_co, T_contra]):
         self,
         typ: Type[BaseException],
         val: Optional[BaseException] = None,
-        tb: TracebackType = None,
+        tb: Optional[TracebackType] = None,
     ) -> Awaitable[T_co]:
         return self._get_generator().athrow(typ, val, tb)
 
@@ -517,11 +520,10 @@ class SequenceRole(Sequence[T_co]):
     @overload
     def __getitem__(self, i: int) -> T_co: ...
 
-    @overload  # noqa: F811
-    def __getitem__(self, s: slice) -> MutableSequence[T_co]:  # noqa: F811
-        ...
+    @overload
+    def __getitem__(self, s: slice) -> MutableSequence[T_co]: ...
 
-    def __getitem__(self, s: Any) -> Any:  # noqa: F811
+    def __getitem__(self, s: Any) -> Any:
         return self._get_sequence().__getitem__(s)
 
     def index(self, x: Any, *args: Any, **kwargs: Any) -> int:
@@ -560,21 +562,19 @@ class MutableSequenceRole(SequenceRole[T], MutableSequence[T]):
     @overload
     def __setitem__(self, i: int, o: T) -> None: ...
 
-    @overload  # noqa: F811
-    def __setitem__(self, s: slice, o: Iterable[T]) -> None:  # noqa: F811
-        ...
+    @overload
+    def __setitem__(self, s: slice, o: Iterable[T]) -> None: ...
 
-    def __setitem__(self, index_or_slice: Any, o: Any) -> None:  # noqa: F811
+    def __setitem__(self, index_or_slice: Any, o: Any) -> None:
         self._get_sequence().__setitem__(index_or_slice, o)
 
     @overload
     def __delitem__(self, i: int) -> None: ...
 
-    @overload  # noqa: F811
-    def __delitem__(self, i: slice) -> None:  # noqa: F811
-        ...
+    @overload
+    def __delitem__(self, i: slice) -> None: ...
 
-    def __delitem__(self, i: Any) -> None:  # noqa: F811
+    def __delitem__(self, i: Any) -> None:
         self._get_sequence().__delitem__(i)
 
     def append(self, obj: T) -> None:
@@ -596,7 +596,9 @@ class MutableSequenceRole(SequenceRole[T], MutableSequence[T]):
         return self._get_sequence().__iadd__(x)
 
 
-class MutableSequenceProxy(Proxy[MutableSequence[T_co]], MutableSequenceRole[T_co]):
+class MutableSequenceProxy(
+    Proxy[MutableSequence[T_co]], MutableSequenceRole[T_co]
+):
     """Proxy to :class:`typing.MutableSequence` object."""
 
 
@@ -742,11 +744,10 @@ class MappingRole(Mapping[KT, VT_co]):
     @overload
     def get(self, k: KT) -> Optional[VT_co]: ...
 
-    @overload  # noqa: F811
-    def get(self, k: KT, default: Union[VT_co, T]) -> Union[VT_co, T]:  # noqa: F811
-        ...
+    @overload
+    def get(self, k: KT, default: Union[VT_co, T]) -> Union[VT_co, T]: ...
 
-    def get(self, *args: Any, **kwargs: Any) -> Any:  # noqa: F811
+    def get(self, *args: Any, **kwargs: Any) -> Any:
         return self._get_mapping().get(*args, **kwargs)
 
     def items(self) -> AbstractSet[Tuple[KT, VT_co]]:
@@ -791,11 +792,10 @@ class MutableMappingRole(MappingRole[KT, VT], MutableMapping[KT, VT]):
     @overload
     def pop(self, k: KT) -> VT: ...
 
-    @overload  # noqa: F811
-    def pop(self, k: KT, default: Union[VT, T] = ...) -> Union[VT, T]:  # noqa: F811
-        ...
+    @overload
+    def pop(self, k: KT, default: Union[VT, T] = ...) -> Union[VT, T]: ...
 
-    def pop(self, *args: Any, **kwargs: Any) -> Any:  # noqa: F811
+    def pop(self, *args: Any, **kwargs: Any) -> Any:
         return self._get_mapping().pop(*args, **kwargs)
 
     def popitem(self) -> Tuple[KT, VT]:
@@ -807,19 +807,19 @@ class MutableMappingRole(MappingRole[KT, VT], MutableMapping[KT, VT]):
     @overload
     def update(self, __m: Mapping[KT, VT], **kwargs: VT) -> None: ...
 
-    @overload  # noqa: F811
-    def update(self, __m: Iterable[Tuple[KT, VT]], **kwargs: VT) -> None:  # noqa: F811
-        ...
+    @overload
+    def update(self, __m: Iterable[Tuple[KT, VT]], **kwargs: VT) -> None: ...
 
-    @overload  # noqa: F811
-    def update(self, **kwargs: VT) -> None:  # noqa: F811
-        ...
+    @overload
+    def update(self, **kwargs: VT) -> None: ...
 
-    def update(self, *args: Any, **kwargs: Any) -> None:  # noqa: F811
+    def update(self, *args: Any, **kwargs: Any) -> None:
         self._get_mapping().update(*args, **kwargs)
 
 
-class MutableMappingProxy(Proxy[MutableMapping[KT, VT]], MutableMappingRole[KT, VT]):
+class MutableMappingProxy(
+    Proxy[MutableMapping[KT, VT]], MutableMappingRole[KT, VT]
+):
     """Proxy to :class:`typing.MutableMapping` object."""
 
 

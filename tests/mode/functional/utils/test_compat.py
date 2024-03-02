@@ -6,22 +6,14 @@ from mode.utils.compat import isatty, want_bytes, want_str
 
 
 @pytest.mark.parametrize(
-    "input,expected",
-    [
-        ("foo", b"foo"),
-        (b"foo", b"foo"),
-    ],
+    ("input", "expected"), [("foo", b"foo"), (b"foo", b"foo")]
 )
 def test_want_bytes(input, expected):
     assert want_bytes(input) == expected
 
 
 @pytest.mark.parametrize(
-    "input,expected",
-    [
-        (b"foo", "foo"),
-        ("foo", "foo"),
-    ],
+    ("input", "expected"), [(b"foo", "foo"), ("foo", "foo")]
 )
 def test_want_str(input, expected):
     assert want_str(input) == expected

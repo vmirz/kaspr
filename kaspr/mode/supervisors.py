@@ -52,7 +52,9 @@ class SupervisorStrategy(Service, SupervisorStrategyT):
         max_restarts: Seconds = 100.0,
         over: Seconds = 1.0,
         raises: Type[BaseException] = MaxRestartsExceeded,
-        replacement: Callable[[ServiceT, int], Awaitable[ServiceT]] = None,
+        replacement: Optional[
+            Callable[[ServiceT, int], Awaitable[ServiceT]]
+        ] = None,
         **kwargs: Any,
     ) -> None:
         self.max_restarts = want_seconds(max_restarts)
@@ -152,7 +154,9 @@ class SupervisorStrategy(Service, SupervisorStrategyT):
                 except MemoryError:
                     raise
                 except Exception as exc:
-                    self.log.exception("Unable to stop service %r: %r", service, exc)
+                    self.log.exception(
+                        "Unable to stop service %r: %r", service, exc
+                    )
 
     async def start_services(self, services: List[ServiceT]) -> None:
         for service in services:
@@ -167,9 +171,7 @@ class SupervisorStrategy(Service, SupervisorStrategyT):
 
     async def stop_services(self, services: List[ServiceT]) -> None:
         # Stop them all simultaneously.
-        await asyncio.gather(
-            *[service.stop() for service in services],
-        )
+        await asyncio.gather(*[service.stop() for service in services])
 
     async def restart_service(self, service: ServiceT) -> None:
         self.log.info(
@@ -189,7 +191,7 @@ class SupervisorStrategy(Service, SupervisorStrategyT):
                     await service.restart()
         except MaxRestartsExceeded as exc:
             self.log.warning("Max restarts exceeded: %r", exc, exc_info=1)
-            raise SystemExit(1)
+            raise SystemExit(1) from None
 
     @property
     def label(self) -> str:

@@ -3,12 +3,7 @@ import signal
 import sys
 from contextlib import contextmanager
 from signal import Signals
-from unittest.mock import Mock, patch
-
-if sys.version_info < (3, 8):
-    from mock.mock import AsyncMock
-else:
-    from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -110,13 +105,7 @@ class test_Worker:
         await worker.on_execute()
 
     @pytest.mark.parametrize(
-        "loghandlers",
-        [
-            [],
-            [Mock(), Mock()],
-            [Mock()],
-            None,
-        ],
+        "loghandlers", [[], [Mock(), Mock()], [Mock()], None]
     )
     def test_setup_logging(self, loghandlers):
         worker_inst = Worker(
@@ -221,8 +210,7 @@ class test_Worker:
             worker._schedule_shutdown(Signals.SIGTERM)
             assert worker._signal_stop_time
             ensure_future.assert_called_once_with(
-                worker._stop_on_signal.return_value,
-                loop=worker.loop,
+                worker._stop_on_signal.return_value, loop=worker.loop
             )
             worker._stop_on_signal.assert_called_once_with(Signals.SIGTERM)
 
@@ -286,7 +274,9 @@ class test_Worker:
         worker.loop = Mock()
         worker.stop_and_shutdown()
 
-        worker.loop.run_until_complete.assert_called_with(worker.stop.return_value)
+        worker.loop.run_until_complete.assert_called_with(
+            worker.stop.return_value
+        )
 
     def test__shutdown_loop(self, worker):
         with self.patch_shutdown_loop(worker, is_running=False):
@@ -398,8 +388,7 @@ class test_Worker:
             )
 
             aiomonitor.start_monitor.assert_called_once_with(
-                port=worker.console_port,
-                loop=worker.loop,
+                port=worker.console_port, loop=worker.loop
             )
 
     @pytest.mark.asyncio

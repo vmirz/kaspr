@@ -10,7 +10,7 @@ if typing.TYPE_CHECKING:
     from .services import ServiceT
 else:
 
-    class ServiceT: ...  # noqa: E701
+    class ServiceT: ...
 
 
 __all__ = ["SupervisorStrategyT"]
@@ -31,9 +31,9 @@ class SupervisorStrategyT(ServiceT):
         *services: ServiceT,
         max_restarts: Seconds = 100.0,
         over: Seconds = 1.0,
-        raises: Type[BaseException] = None,
+        raises: Optional[Type[BaseException]] = None,
         replacement: ReplacementT = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         self.replacement: Optional[ReplacementT] = replacement
 

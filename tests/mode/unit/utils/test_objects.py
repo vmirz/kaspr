@@ -70,9 +70,19 @@ class A(B): ...
             A,
             object,
             (
-                [ServiceCallbacks, Generic]
-                + EXTRA_GENERIC_INHERITS_FROM
-                + [ANY, ServiceT, ServiceBase, Service, D, C, B, A]
+                [
+                    ServiceCallbacks,
+                    Generic,
+                    *EXTRA_GENERIC_INHERITS_FROM,
+                    ANY,
+                    ServiceT,
+                    ServiceBase,
+                    Service,
+                    D,
+                    C,
+                    B,
+                    A,
+                ]
             ),
         ),
         (A, B, [A]),
@@ -151,16 +161,10 @@ def test_canoname():
     assert canoname(X, main_name="faust") == "faust.test_canoname.<locals>.X"
     assert canoname(x, main_name="faust") == "faust.test_canoname.<locals>.X"
     assert canoname(Y, main_name="faust") == ".".join(
-        [
-            __name__,
-            "test_canoname.<locals>.Y",
-        ]
+        [__name__, "test_canoname.<locals>.Y"]
     )
     assert canoname(y, main_name="faust") == ".".join(
-        [
-            __name__,
-            "test_canoname.<locals>.Y",
-        ]
+        [__name__, "test_canoname.<locals>.Y"]
     )
 
 
@@ -176,18 +180,8 @@ def test_canonshortname():
 
     assert canonshortname(X, main_name="faust") == "faust.X"
     assert canonshortname(x, main_name="faust") == "faust.X"
-    assert canonshortname(Y, main_name="faust") == ".".join(
-        [
-            __name__,
-            "Y",
-        ]
-    )
-    assert canonshortname(y, main_name="faust") == ".".join(
-        [
-            __name__,
-            "Y",
-        ]
-    )
+    assert canonshortname(Y, main_name="faust") == ".".join([__name__, "Y"])
+    assert canonshortname(y, main_name="faust") == ".".join([__name__, "Y"])
 
 
 def test_annotations():
@@ -198,11 +192,7 @@ def test_annotations():
         baz: Union[List["X"], str]
         mas: int = 3
 
-    fields, defaults = annotations(
-        X,
-        globalns=globals(),
-        localns=locals(),
-    )
+    fields, defaults = annotations(X, globalns=globals(), localns=locals())
 
     assert fields == {
         "Foo": ClassVar[int],
@@ -223,10 +213,7 @@ def test_annotations__skip_classvar():
         mas: int = 3
 
     fields, defaults = annotations(
-        X,
-        globalns=globals(),
-        localns=locals(),
-        skip_classvar=True,
+        X, globalns=globals(), localns=locals(), skip_classvar=True
     )
 
     assert fields == {
@@ -259,11 +246,7 @@ def test_annotations__no_local_ns_raises():
         bar: "Bar"
 
     with pytest.raises(NameError):
-        annotations(
-            X,
-            globalns=None,
-            localns=None,
-        )
+        annotations(X, globalns=None, localns=None)
 
 
 # Union[type(None)] actually returns None
@@ -278,7 +261,6 @@ WeirdNoneUnion.__args__ = (type(None), type(None))
         (Optional[str], str),
         (Union[str, None], str),
         (Union[str, type(None)], str),
-        (Union[str, None], str),
         (Optional[List[str]], List[str]),
         (Optional[Mapping[int, str]], Mapping[int, str]),
         (Optional[AbstractSet[int]], AbstractSet[int]),
@@ -302,7 +284,6 @@ def test_remove_optional(input, expected):
         (Optional[str], ((), str)),
         (Union[str, None], ((), str)),
         (Union[str, type(None)], ((), str)),
-        (Union[str, None], ((), str)),
         (Optional[List[str]], ((str,), list)),
         (
             Optional[Mapping[int, str]],
@@ -343,7 +324,6 @@ def test__remove_optional_edgecase():
         (Optional[str], True),
         (Union[str, None], True),
         (Union[str, type(None)], True),
-        (Union[str, None], True),
         (str, False),
         (List[str], False),
         (Union[str, int, float], False),

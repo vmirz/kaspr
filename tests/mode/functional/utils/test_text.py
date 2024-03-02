@@ -146,24 +146,12 @@ def test_shorten_fqdn(s, expected):
     assert text.shorten_fqdn(s) == expected
 
 
-@pytest.mark.parametrize(
-    "input,expected",
-    [
-        ("foo", b"foo"),
-        (b"foo", b"foo"),
-    ],
-)
+@pytest.mark.parametrize("input,expected", [("foo", b"foo"), (b"foo", b"foo")])
 def test_want_bytes(input, expected):
     assert text.want_bytes(input) == expected
 
 
-@pytest.mark.parametrize(
-    "input,expected",
-    [
-        (b"foo", "foo"),
-        ("foo", "foo"),
-    ],
-)
+@pytest.mark.parametrize("input,expected", [(b"foo", "foo"), ("foo", "foo")])
 def test_want_str(input, expected):
     assert text.want_str(input) == expected
 

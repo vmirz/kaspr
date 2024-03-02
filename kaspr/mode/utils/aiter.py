@@ -108,7 +108,7 @@ class _ARangeIterator(AsyncIterator[int]):
         try:
             return next(self.it)
         except StopIteration:
-            raise StopAsyncIteration()
+            raise StopAsyncIteration() from None
 
 
 class arange(AsyncIterable[int]):
