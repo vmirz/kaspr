@@ -1,0 +1,43 @@
+import abc
+import typing
+from faust.types import TableT
+from faust.types.tuples import MessageSentCallback
+from typing import Any
+from mode import SignalT
+
+if typing.TYPE_CHECKING:
+    from .app import KasprAppT as _KasprAppT
+else:
+
+    class _KasprAppT:
+        ...  # noqa
+
+
+class CustomTableT(TableT):
+    """Type for custom table."""
+
+    app: _KasprAppT
+
+    on_table_recovery_completed: SignalT
+
+    @abc.abstractmethod
+    def update_for_partition(self, 
+                             *args: Any, 
+                             partition: int, 
+                             callback: MessageSentCallback = None, 
+                             **kwargs: Any) -> None:
+        """Update a specific partition of table"""
+        ...
+
+    @abc.abstractmethod
+    def get_for_partition(self, key, partition: int):
+        """Get key in specific partition of table"""
+        ...
+
+    @abc.abstractmethod
+    def del_for_partition(self, 
+                          key, 
+                          partition: int, 
+                          callback: MessageSentCallback = None):
+        """Delete key in specific partition of table"""
+        ...
