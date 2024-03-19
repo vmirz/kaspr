@@ -30,7 +30,7 @@ def print_task_stack(
     limit: int = DEFAULT_MAX_FRAMES,
     capture_locals: bool = False,
 ) -> None:
-    """Print the stack trace for an :class:`asyncio.Task`."""
+    """Print the stack trace for an `asyncio.Task`."""
     print(f"Stack for {task!r} (most recent call last):", file=file)
     tb = Traceback.from_task(task, limit=limit)
     print_list(
@@ -89,7 +89,7 @@ def format_task_stack(
     limit: int = DEFAULT_MAX_FRAMES,
     capture_locals: bool = False,
 ) -> str:
-    """Format :class:`asyncio.Task` stack trace as a string."""
+    """Format `asyncio.Task` stack trace as a string."""
     f = io.StringIO()
     print_task_stack(task, file=f, limit=limit, capture_locals=capture_locals)
     return f.getvalue()
@@ -273,9 +273,7 @@ class Traceback(_BaseTraceback):
     @classmethod
     def _what_is_this(cls, obj: Any) -> AttributeError:
         return AttributeError(
-            "WHAT IS THIS? str={} repr={!r} typ={!r} dir={}".format(
-                obj, obj, type(obj), dir(obj)
-            )
+            f"WHAT IS THIS? str={obj} repr={obj!r} typ={type(obj)!r} dir={dir(obj)}"
         )
 
     @classmethod

@@ -66,21 +66,22 @@ class FactoryMapping(FastUserDict, Generic[_T]):
     qualified Python attribute path, and also supporting the use
     of these in URLs.
 
-    Example:
-        >>> # Specifying the type enables mypy to know that
-        >>> # this factory returns Driver subclasses.
-        >>> drivers: FactoryMapping[Type[Driver]]
-        >>> drivers = FactoryMapping({
-        ...    'rabbitmq': 'my.drivers.rabbitmq:Driver',
-        ...    'kafka': 'my.drivers.kafka:Driver',
-        ...    'redis': 'my.drivers.redis:Driver',
-        ... })
+    ```sh
+    >>> # Specifying the type enables mypy to know that
+    >>> # this factory returns Driver subclasses.
+    >>> drivers: FactoryMapping[Type[Driver]]
+    >>> drivers = FactoryMapping({
+    ...    'rabbitmq': 'my.drivers.rabbitmq:Driver',
+    ...    'kafka': 'my.drivers.kafka:Driver',
+    ...    'redis': 'my.drivers.redis:Driver',
+    ... })
 
-        >>> drivers.by_url('rabbitmq://localhost:9090')
-        <class 'my.drivers.rabbitmq.Driver'>
+    >>> drivers.by_url('rabbitmq://localhost:9090')
+    <class 'my.drivers.rabbitmq.Driver'>
 
-        >>> drivers.by_name('redis')
-        <class 'my.drivers.redis.Driver'>
+    >>> drivers.by_name('redis')
+    <class 'my.drivers.redis.Driver'>
+    ```
     """
 
     aliases: MutableMapping[str, str]
@@ -148,7 +149,7 @@ def _ensure_identifier(path: str, full: str) -> None:
 
 
 class ParsedSymbol(NamedTuple):
-    """Tuple returned by :func:`parse_symbol`."""
+    """Tuple returned by `parse_symbol`."""
 
     module_name: Optional[str]
     attribute_name: Optional[str]
@@ -161,7 +162,7 @@ def parse_symbol(
     strict_separator: str = ":",
     relative_separator: str = ".",
 ) -> ParsedSymbol:
-    """Parse :func:`symbol_by_name` argument into components.
+    """Parse `symbol_by_name` argument into components.
 
     Returns:
         ParsedSymbol: Tuple of ``(module_name, attribute_name)``
@@ -171,17 +172,20 @@ def parse_symbol(
             no ``package`` argument is specified.
 
     Examples:
-        >>> parse_symbol('mode.services')
-        ParsedSymbol(module_name='mode.services', attribute_name=None)
 
-        >>> parse_symbol('.services', package='mode')
-        ParsedSymbol(module_name='.services', attribute_name=None)
+    ```sh
+    >>> parse_symbol('mode.services')
+    ParsedSymbol(module_name='mode.services', attribute_name=None)
 
-        >>> parse_symbol('mode.services.Service')
-        ParsedSymbol(module_name='mode.services', attribute_name='Service')
+    >>> parse_symbol('.services', package='mode')
+    ParsedSymbol(module_name='.services', attribute_name=None)
 
-        >>> parse_symbol('mode.services:Service')
-        ParsedSymbol(module_name='mode.services', attribute_name='Service')
+    >>> parse_symbol('mode.services.Service')
+    ParsedSymbol(module_name='mode.services', attribute_name='Service')
+
+    >>> parse_symbol('mode.services:Service')
+    ParsedSymbol(module_name='mode.services', attribute_name='Service')
+    ```
     """
     module_name: Optional[str]
     attribute_name: Optional[str]
@@ -228,35 +232,41 @@ def symbol_by_name(
 ) -> _T:
     """Get symbol by qualified name.
 
-    The name should be the full dot-separated path to the class::
+    The name should be the full dot-separated path to the class:
 
         modulename.ClassName
 
-    Example::
+    Example:
 
-        mazecache.backends.redis.RedisBackend
-                                ^- class name
+    ```python
+    mazecache.backends.redis.RedisBackend
+                            ^- class name
+    ```
 
-    or using ':' to separate module and symbol::
+    or using ':' to separate module and symbol:
 
-        mazecache.backends.redis:RedisBackend
+    ```python
+    mazecache.backends.redis:RedisBackend
+    ```
 
     If `aliases` is provided, a dict containing short name/long name
     mappings, the name is looked up in the aliases first.
 
     Examples:
-        >>> symbol_by_name('mazecache.backends.redis:RedisBackend')
-        <class 'mazecache.backends.redis.RedisBackend'>
 
-        >>> symbol_by_name('default', {
-        ...     'default': 'mazecache.backends.redis:RedisBackend'})
-        <class 'mazecache.backends.redis.RedisBackend'>
+    ```sh
+    >>> symbol_by_name('mazecache.backends.redis:RedisBackend')
+    <class 'mazecache.backends.redis.RedisBackend'>
 
-        # Does not try to look up non-string names.
-        >>> from mazecache.backends.redis import RedisBackend
-        >>> symbol_by_name(RedisBackend) is RedisBackend
-        True
+    >>> symbol_by_name('default', {
+    ...     'default': 'mazecache.backends.redis:RedisBackend'})
+    <class 'mazecache.backends.redis.RedisBackend'>
 
+    # Does not try to look up non-string names.
+    >>> from mazecache.backends.redis import RedisBackend
+    >>> symbol_by_name(RedisBackend) is RedisBackend
+    True
+    ```
     """
     # This code was copied from kombu.utils.symbol_by_name
     imp = importlib.import_module if imp is None else imp
@@ -306,19 +316,23 @@ class RawEntrypointExtension(NamedTuple):
 def load_extension_classes(namespace: str) -> Iterable[EntrypointExtension]:
     """Yield extension classes for setuptools entrypoint namespace.
 
-    If an entrypoint is defined in ``setup.py``::
+    If an entrypoint is defined in `setup.py`:
 
-        entry_points={
-            'faust.codecs': [
-                'msgpack = faust_msgpack:msgpack',
-            ],
+    ```python
+    entry_points={
+        'faust.codecs': [
+            'msgpack = faust_msgpack:msgpack',
+        ],
+    ```
 
     Iterating over the 'faust.codecs' namespace will yield
-    the actual attributes specified in the path (``faust_msgpack:msgpack``)::
+    the actual attributes specified in the path (`faust_msgpack:msgpack`):
 
-        >>> from faust_msgpack import msgpack
-        >>> attrs = list(load_extension_classes('faust.codecs'))
-        assert msgpack in attrs
+    ```python
+    from faust_msgpack import msgpack
+    attrs = list(load_extension_classes('faust.codecs'))
+    assert msgpack in attrs
+    ```
     """
     for name, cls_name in load_extension_class_names(namespace):
         try:
@@ -337,17 +351,21 @@ def load_extension_class_names(
 ) -> Iterable[RawEntrypointExtension]:
     """Get setuptools entrypoint extension class names.
 
-    If the entrypoint is defined in ``setup.py`` as::
+    If the entrypoint is defined in `setup.py` as:
 
-        entry_points={
-            'faust.codecs': [
-                'msgpack = faust_msgpack:msgpack',
-            ],
+    ```python
+    entry_points={
+        'faust.codecs': [
+            'msgpack = faust_msgpack:msgpack',
+        ],
+    ```
 
-    Iterating over the 'faust.codecs' namespace will yield the name::
+    Iterating over the 'faust.codecs' namespace will yield the name:
 
-        >>> list(load_extension_class_names('faust.codecs'))
-        [('msgpack', 'faust_msgpack:msgpack')]
+    ```sh
+    >>> list(load_extension_class_names('faust.codecs'))
+    [('msgpack', 'faust_msgpack:msgpack')]
+    ```
     """
     try:
         from pkg_resources import iter_entry_points
@@ -393,7 +411,7 @@ def import_from_cwd(
 
 
 def smart_import(path: str, imp: Any = None) -> Any:
-    """Import module if module, otherwise same as :func:`symbol_by_name`."""
+    """Import module if module, otherwise same as `symbol_by_name`."""
     imp = importlib.import_module if imp is None else imp
     if ":" in path:
         # Path includes attribute so can just jump

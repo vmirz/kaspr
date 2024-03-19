@@ -17,11 +17,14 @@ class ServiceProxy(ServiceBase):
     """A service proxy delegates ServiceT methods to a composite service.
 
     Example:
-        >>> class MyServiceProxy(ServiceProxy):
-        ...
-        ...     @cached_property
-        ...     def _service(self) -> ServiceT:
-        ...         return ActualService()
+
+    ```python
+    class MyServiceProxy(ServiceProxy):
+
+        @cached_property
+        def _service(self) -> ServiceT:
+            return ActualService()
+    ```
 
     Notes:
         This is used by Faust, and probably useful elsewhere!

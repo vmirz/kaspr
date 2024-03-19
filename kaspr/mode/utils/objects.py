@@ -123,7 +123,7 @@ TUPLE_TYPES: Tuple[Type, ...] = cast(Tuple[Type, ...], (Tuple,))
 
 
 class InvalidAnnotation(Exception):
-    """Raised by :func:`annotations` when encountering an invalid type."""
+    """Raised by `annotations` when encountering an invalid type."""
 
 
 @total_ordering
@@ -152,36 +152,40 @@ class KeywordReduce:
     """Mixin class for objects that can be "pickled".
 
     "Pickled" means the object can be serialized using the Python binary
-    serializer -- the :mod:`pickle` module.
+    serializer -- the `pickle` module.
 
     Python objects are made pickleable through defining the ``__reduce__``
     method, that returns a tuple of:
-    ``(restore_function, function_starargs)``::
+    `(restore_function, function_starargs)`:
 
-        class X:
+    ```python
+    class X:
 
-            def __init__(self, arg1, kw1=None):
-                self.arg1 = arg1
-                self.kw1 = kw1
+        def __init__(self, arg1, kw1=None):
+            self.arg1 = arg1
+            self.kw1 = kw1
 
-            def __reduce__(self) -> Tuple[Callable, Tuple[Any, ...]]:
-                return type(self), (self.arg1, self.kw1)
+        def __reduce__(self) -> Tuple[Callable, Tuple[Any, ...]]:
+            return type(self), (self.arg1, self.kw1)
+    ```
 
     This is *tedious* since this means you cannot accept ``**kwargs`` in the
     constructor, so what we do is define a ``__reduce_keywords__``
-    argument that returns a dict instead::
+    argument that returns a dict instead:
 
-        class X:
+    ```python
+    class X:
 
-            def __init__(self, arg1, kw1=None):
-                self.arg1 = arg1
-                self.kw1 = kw1
+        def __init__(self, arg1, kw1=None):
+            self.arg1 = arg1
+            self.kw1 = kw1
 
-            def __reduce_keywords__(self) -> Mapping[str, Any]:
-                return {
-                    'arg1': self.arg1,
-                    'kw1': self.kw1,
-                }
+        def __reduce_keywords__(self) -> Mapping[str, Any]:
+            return {
+                'arg1': self.arg1,
+                'kw1': self.kw1,
+            }
+    ```
     """
 
     def __reduce_keywords__(self) -> Mapping:
@@ -258,14 +262,14 @@ def annotations(
         cls: Class to get field information from.
         stop: Base class to stop at (default is ``object``).
         invalid_types: Set of types that if encountered should raise
-          :exc:`InvalidAnnotation` (does not test for subclasses).
+            :exc:`InvalidAnnotation` (does not test for subclasses).
         alias_types: Mapping of original type to replacement type.
         skip_classvar: Skip attributes annotated with
-            :class:`typing.ClassVar`.
+            `typing.ClassVar`.
         globalns: Global namespace to use when evaluating forward
-            references (see :class:`typing.ForwardRef`).
+            references (see `typing.ForwardRef`).
         localns: Local namespace to use when evaluating forward
-            references (see :class:`typing.ForwardRef`).
+            references (see `typing.ForwardRef`).
 
     Returns:
         Tuple[FieldMapping, DefaultsMapping]: Tuple with two dictionaries,
@@ -279,20 +283,21 @@ def annotations(
             invalid type is encountered.
 
     Examples:
-        .. sourcecode:: text
 
-            >>> class Point:
-            ...    x: float
-            ...    y: float
+    ```sh
+    >>> class Point:
+    ...    x: float
+    ...    y: float
 
-            >>> class 3DPoint(Point):
-            ...     z: float = 0.0
+    >>> class 3DPoint(Point):
+    ...     z: float = 0.0
 
-            >>> fields, defaults = annotations(3DPoint)
-            >>> fields
-            {'x': float, 'y': float, 'z': 'float'}
-            >>> defaults
-            {'z': 0.0}
+    >>> fields, defaults = annotations(3DPoint)
+    >>> fields
+    {'x': float, 'y': float, 'z': 'float'}
+    >>> defaults
+    {'z': 0.0}
+    ```
     """
     fields: Dict[str, Type] = {}
     defaults: Dict[str, Any] = {}
@@ -359,7 +364,10 @@ def eval_type(
     """Convert (possible) string annotation to actual type.
 
     Examples:
-        >>> eval_type('List[int]') == typing.List[int]
+
+    ```sh
+    >>> eval_type('List[int]') == typing.List[int]
+    ```
     """
     invalid_types = invalid_types or set()
     alias_types = alias_types or {}
@@ -395,15 +403,18 @@ def iter_mro_reversed(cls: Type, stop: Type) -> Iterable[Type]:
         The last item produced will be the class itself (`cls`).
 
     Examples:
-        >>> class A: ...
-        >>> class B(A): ...
-        >>> class C(B): ...
 
-        >>> list(iter_mro_reverse(C, object))
-        [A, B, C]
+    ```sh
+    >>> class A: ...
+    >>> class B(A): ...
+    >>> class C(B): ...
 
-        >>> list(iter_mro_reverse(C, A))
-        [B, C]
+    >>> list(iter_mro_reverse(C, object))
+    [A, B, C]
+
+    >>> list(iter_mro_reverse(C, A))
+    [B, C]
+    ```
 
     Yields:
         Iterable[Type]: every class.
@@ -488,17 +499,20 @@ def guess_polymorphic_type(
 ) -> Tuple[Type, Type]:
     """Try to find the polymorphic and concrete type of an abstract type.
 
-    Returns tuple of ``(polymorphic_type, concrete_type)``.
+    Returns tuple of `(polymorphic_type, concrete_type)`.
 
     Examples:
-        >>> guess_polymorphic_type(List[int])
-        (list, int)
 
-        >>> guess_polymorphic_type(Optional[List[int]])
-        (list, int)
+    ```sh
+    >>> guess_polymorphic_type(List[int])
+    (list, int)
 
-        >>> guess_polymorphic_type(MutableMapping[int, str])
-        (dict, str)
+    >>> guess_polymorphic_type(Optional[List[int]])
+    (list, int)
+
+    >>> guess_polymorphic_type(MutableMapping[int, str])
+    (dict, str)
+    ```
     """
     args, typ = _remove_optional(typ, find_origin=True)
     if typ is not str and typ is not bytes:
@@ -561,23 +575,24 @@ class cached_property(Generic[RT]):
     of the get function.
 
     Examples:
-        .. sourcecode:: python
 
-            @cached_property
-            def connection(self):
-                return Connection()
+    ```python
+    @cached_property
+    def connection(self):
+        return Connection()
 
-            @connection.setter  # Prepares stored value
-            def connection(self, value):
-                if value is None:
-                    raise TypeError('Connection must be a connection')
-                return value
+    @connection.setter  # Prepares stored value
+    def connection(self, value):
+        if value is None:
+            raise TypeError('Connection must be a connection')
+        return value
 
-            @connection.deleter
-            def connection(self, value):
-                # Additional action to do at del(self.attr)
-                if value is not None:
-                    print(f'Connection {value!r} deleted')
+    @connection.deleter
+    def connection(self, value):
+        # Additional action to do at del(self.attr)
+        if value is not None:
+            print(f'Connection {value!r} deleted')
+    ```
     """
 
     def __init__(

@@ -170,15 +170,15 @@ class LogSeverityMixin(LogSeverityMixinBase):
     The class that mixes in this class must define the ``log`` method.
 
     Example:
-        >>> class Foo(LogSeverityMixin):
-        ...
-        ...    logger = get_logger('foo')
-        ...
-        ...    def log(self,
-        ...            severity: int,
-        ...            message: str,
-        ...            *args: Any, **kwargs: Any) -> None:
-        ...        return self.logger.log(severity, message, *args, **kwargs)
+
+    ```python
+    class Foo(LogSeverityMixin):
+
+        logger = get_logger('foo')
+
+        def log(self, severity: int, message: str, *args: Any, **kwargs: Any) -> None:
+            return self.logger.log(severity, message, *args, **kwargs)
+    ```
     """
 
     def dev(self: HasLog, message: str, *args: Any, **kwargs: Any) -> None:
@@ -241,28 +241,28 @@ class CompositeLogger(LogSeverityMixin):
 
     Service uses this to add logging methods:
 
-    .. sourcecode:: python
+    ```python
+    class Service(ServiceT):
 
-        class Service(ServiceT):
+        log: CompositeLogger
 
-            log: CompositeLogger
+        def __init__(self):
+            self.log = CompositeLogger(
+                logger=self.logger,
+                formatter=self._format_log,
+            )
 
-            def __init__(self):
-                self.log = CompositeLogger(
-                    logger=self.logger,
-                    formatter=self._format_log,
-                )
-
-            def _format_log(self, severity: int, message: str,
-                            *args: Any, **kwargs: Any) -> str:
-                return (f'[^{"-" * (self.beacon.depth - 1)}'
-                        f'{self.shortlabel}]: {message}')
+        def _format_log(self, severity: int, message: str,
+                        *args: Any, **kwargs: Any) -> str:
+            return (f'[^{"-" * (self.beacon.depth - 1)}'
+                    f'{self.shortlabel}]: {message}')
+    ```
 
     This means those defining a service may also use it to log:
 
-    .. sourcecode:: pycon
-
-        >>> service.log.info('Something happened')
+    ```sh
+    >>> service.log.info('Something happened')
+    ```
 
     and when logging additional information about the service is automatically
     included.
@@ -305,7 +305,7 @@ def formatter(fun: FormatterHandler) -> FormatterHandler:
 def formatter2(fun: FormatterHandler2) -> FormatterHandler2:
     """Register formatter for logging positional args.
 
-    Like :func:`formatter` but the handler accepts
+    Like `formatter` but the handler accepts
     two arguments instead of one: ``(arg, logrecord)``.
 
     Passing the log record as additional argument expands
@@ -333,7 +333,7 @@ class DefaultFormatter(logging.Formatter):
 class ExtensionFormatter(colorlog.TTYColoredFormatter):
     """Formatter that can register callbacks to format args.
 
-    Extends :pypi:`colorlog`.
+    Extends [`colorlog`](https://pypi.org/project/colorlog).
     """
 
     def __init__(self, stream: Optional[IO] = None, **kwargs: Any) -> None:
@@ -585,7 +585,7 @@ def cry(
 
 
 def print_task_name(task: asyncio.Task, file: IO) -> None:
-    """Print name of :class:`asyncio.Task` in tracebacks."""
+    """Print name of `asyncio.Task` in tracebacks."""
     coro = task._coro  # type: ignore
     wrapped = getattr(task, "__wrapped__", None)
     coro_name = getattr(coro, "__name__", None)
@@ -610,20 +610,21 @@ class LogMessage(NamedTuple):
 
 
 class flight_recorder(ContextManager, LogSeverityMixin):
-    """Flight Recorder context for use with :keyword:`with` statement.
+    """Flight Recorder context for use with `with` statement.
 
     This is a logging utility to log stuff only when something
     times out.
 
-    For example if you have a background thread that is sometimes
-    hanging::
+    For example if you have a background thread that is sometimes hanging:
 
-        class RedisCache(mode.Service):
+    ```python
+    class RedisCache(mode.Service):
 
-            @mode.timer(1.0)
-            def _background_refresh(self) -> None:
-                self._users = await self.redis_client.get(USER_KEY)
-                self._posts = await self.redis_client.get(POSTS_KEY)
+        @mode.timer(1.0)
+        def _background_refresh(self) -> None:
+            self._users = await self.redis_client.get(USER_KEY)
+            self._posts = await self.redis_client.get(POSTS_KEY)
+    ```
 
     You want to figure out on what line this is hanging, but logging
     all the time will provide way too much output, and will even change
@@ -632,44 +633,44 @@ class flight_recorder(ContextManager, LogSeverityMixin):
 
     Use the flight recorder to save the logs and only log when it times out:
 
-    .. sourcecode:: python
+    ```python
+    logger = mode.get_logger(__name__)
 
-        logger = mode.get_logger(__name__)
+    class RedisCache(mode.Service):
 
-        class RedisCache(mode.Service):
+        @mode.timer(1.0)
+        def _background_refresh(self) -> None:
+            with mode.flight_recorder(logger, timeout=10.0) as on_timeout:
+                on_timeout.info(f'+redis_client.get({USER_KEY!r})')
+                await self.redis_client.get(USER_KEY)
+                on_timeout.info(f'-redis_client.get({USER_KEY!r})')
 
-            @mode.timer(1.0)
-            def _background_refresh(self) -> None:
-                with mode.flight_recorder(logger, timeout=10.0) as on_timeout:
-                    on_timeout.info(f'+redis_client.get({USER_KEY!r})')
-                    await self.redis_client.get(USER_KEY)
-                    on_timeout.info(f'-redis_client.get({USER_KEY!r})')
+                on_timeout.info(f'+redis_client.get({POSTS_KEY!r})')
+                await self.redis_client.get(POSTS_KEY)
+                on_timeout.info(f'-redis_client.get({POSTS_KEY!r})')
+    ```
 
-                    on_timeout.info(f'+redis_client.get({POSTS_KEY!r})')
-                    await self.redis_client.get(POSTS_KEY)
-                    on_timeout.info(f'-redis_client.get({POSTS_KEY!r})')
-
-    If the body of this :keyword:`with` statement completes before the
+    If the body of this `with` statement completes before the
     timeout, the logs are forgotten about and never emitted -- if it
     takes more than ten seconds to complete, we will see these messages
     in the log:
 
-    .. sourcecode:: text
+    ```log
+    [2018-04-19 09:43:55,877: WARNING]: Warning: Task timed out!
+    [2018-04-19 09:43:55,878: WARNING]:
+        Please make sure it is hanging before restarting.
+    [2018-04-19 09:43:55,878: INFO]: [Flight Recorder-1]
+        (started at Thu Apr 19 09:43:45 2018) Replaying logs...
+    [2018-04-19 09:43:55,878: INFO]: [Flight Recorder-1]
+        (Thu Apr 19 09:43:45 2018) +redis_client.get('user')
+    [2018-04-19 09:43:55,878: INFO]: [Flight Recorder-1]
+        (Thu Apr 19 09:43:49 2018) -redis_client.get('user')
+    [2018-04-19 09:43:55,878: INFO]: [Flight Recorder-1]
+        (Thu Apr 19 09:43:46 2018) +redis_client.get('posts')
+    [2018-04-19 09:43:55,878: INFO]: [Flight Recorder-1] -End of log-
+    ```
 
-        [2018-04-19 09:43:55,877: WARNING]: Warning: Task timed out!
-        [2018-04-19 09:43:55,878: WARNING]:
-            Please make sure it is hanging before restarting.
-        [2018-04-19 09:43:55,878: INFO]: [Flight Recorder-1]
-            (started at Thu Apr 19 09:43:45 2018) Replaying logs...
-        [2018-04-19 09:43:55,878: INFO]: [Flight Recorder-1]
-            (Thu Apr 19 09:43:45 2018) +redis_client.get('user')
-        [2018-04-19 09:43:55,878: INFO]: [Flight Recorder-1]
-            (Thu Apr 19 09:43:49 2018) -redis_client.get('user')
-        [2018-04-19 09:43:55,878: INFO]: [Flight Recorder-1]
-            (Thu Apr 19 09:43:46 2018) +redis_client.get('posts')
-        [2018-04-19 09:43:55,878: INFO]: [Flight Recorder-1] -End of log-
-
-    Now we know this ``redis_client.get`` call can take too long to complete,
+    Now we know this `redis_client.get` call can take too long to complete,
     and should consider adding a timeout to it.
     """
 
@@ -862,7 +863,7 @@ class FileLogProxy(TextIO):
 
     def _safewrap_handler(self, handler: logging.Handler) -> None:
         # Make the logger handlers dump internal errors to
-        # :data:`sys.__stderr__` instead of :data:`sys.stderr` to circumvent
+        # `sys.__stderr__` instead of `sys.stderr` to circumvent
         # infinite loops.
         class WithSafeHandleError(logging.Handler):
             def handleError(self, record: logging.LogRecord) -> None:
@@ -982,7 +983,7 @@ def redirect_stdouts(
     stdout: bool = True,
     stderr: bool = True,
 ) -> Iterator[FileLogProxy]:
-    """Redirect :data:`sys.stdout` and :data:`sys.stdout` to logger."""
+    """Redirect `sys.stdout` and `sys.stdout` to logger."""
     proxy = FileLogProxy(logger, severity=severity)
     if stdout:
         sys.stdout = proxy

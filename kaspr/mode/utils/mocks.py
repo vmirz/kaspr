@@ -15,10 +15,9 @@ __all__ = ["IN", "call", "mask_module", "patch_module"]
 class IN:
     """Class used to check for multiple alternatives.
 
-    .. code-block:: python
-
-        assert foo.value IN(a, b)
-
+    ```python
+    assert foo.value IN(a, b)
+    ```
     """
 
     def __init__(self, *alternatives: Any) -> None:
@@ -37,7 +36,7 @@ class IN:
 
 @contextmanager
 def patch_module(*names: str, new_callable: Any = MagicMock) -> Iterator:
-    """Mock one or modules such that every attribute is a :class:`Mock`."""
+    """Mock one or modules such that every attribute is a `Mock`."""
     prev = {}
 
     class MockModule(types.ModuleType):
@@ -70,18 +69,20 @@ def patch_module(*names: str, new_callable: Any = MagicMock) -> Iterator:
 def mask_module(*modnames: str) -> Iterator:
     """Ban some modules from being importable inside the context.
 
-    For example::
+    For example:
 
-        >>> with mask_module('sys'):
-        ...     try:
-        ...         import sys
-        ...     except ImportError:
-        ...         print('sys not found')
-        sys not found
+    ```sh
+    >>> with mask_module('sys'):
+    ...     try:
+    ...         import sys
+    ...     except ImportError:
+    ...         print('sys not found')
+    sys not found
 
-        >>> import sys  # noqa
-        >>> sys.version
-        (2, 5, 2, 'final', 0)
+    >>> import sys  # noqa
+    >>> sys.version
+    (2, 5, 2, 'final', 0)
+    ```
 
     Taken from
     http://bitbucket.org/runeh/snippets/src/tip/missing_modules.py

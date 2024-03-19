@@ -47,7 +47,7 @@ def isatty(fh: IO) -> bool:
     """Return True if fh has a controlling terminal.
 
     Notes:
-        Use with e.g. :data:`sys.stdin`.
+        Use with e.g. `sys.stdin`.
     """
     try:
         return fh.isatty()
@@ -79,21 +79,23 @@ def didyoumean(
     """Generate message with helpful list of alternatives.
 
     Examples:
-        >>> raise Exception(f'Unknown mode: {mode}! {didyoumean(modes, mode)}')
 
-        >>> didyoumean(['foo', 'bar', 'baz'], 'boo')
-        'Did you mean foo?'
+    ```sh
+    >>> raise Exception(f'Unknown mode: {mode}! {didyoumean(modes, mode)}')
 
-        >>> didyoumean(['foo', 'moo', 'bar'], 'boo')
-        'Did you mean one of foo, moo?'
+    >>> didyoumean(['foo', 'bar', 'baz'], 'boo')
+    'Did you mean foo?'
 
-        >>> didyoumean(['foo', 'moo', 'bar'], 'xxx')
-        ''
+    >>> didyoumean(['foo', 'moo', 'bar'], 'boo')
+    'Did you mean one of foo, moo?'
+
+    >>> didyoumean(['foo', 'moo', 'bar'], 'xxx')
+    ''
+    ```
 
     Arguments:
         haystack: List of all available choices.
         needle: What the user provided.
-
         fmt_many: String format returned when there are more than one
             alternative.  Default is: ``"Did you mean one of {alt}?"``.
         fmt_one: String format returned when there's a single fuzzy match.
@@ -121,11 +123,14 @@ def enumeration(
     sep: str = "\n",
     template: str = "{index}) {item}",
 ) -> str:
-    r"""Enumerate list of strings.
+    """Enumerate list of strings.
 
     Example:
-        >>> enumeration(['x', 'y', '...'])
-        "1) x\n2) y\n3) ..."
+
+    ```sh
+    >>> enumeration(['x', 'y', '...'])
+    "1) x\\n2) y\\n3) ..."
+    ```
     """
     return sep.join(
         template.format(index=index, item=item)
@@ -208,18 +213,20 @@ def _abbr_abrupt(s: str, max: int, suffix: str = "...") -> str:
 def abbr_fqdn(origin: str, name: str, *, prefix: str = "") -> str:
     """Abbreviate fully-qualified Python name, by removing origin.
 
-    ``app.origin`` is the package where the app is defined,
-    so if this is ``examples.simple``::
+    `app.origin` is the package where the app is defined,
+    so if this is `examples.simple`:
 
-        >>> app.origin
-        'examples.simple'
-        >>> abbr_fqdn(app.origin, 'examples.simple.Withdrawal', prefix='[...]')
-        '[...]Withdrawal'
+    ```sh
+    >>> app.origin
+    'examples.simple'
+    >>> abbr_fqdn(app.origin, 'examples.simple.Withdrawal', prefix='[...]')
+    '[...]Withdrawal'
 
-        >>> abbr_fqdn(app.origin, 'examples.other.Foo', prefix='[...]')
-        'examples.other.foo'
+    >>> abbr_fqdn(app.origin, 'examples.other.Foo', prefix='[...]')
+    'examples.other.foo'
+    ```
 
-    :func:`shorten_fqdn` is similar, but will always shorten a too long name,
+    `shorten_fqdn` is similar, but will always shorten a too long name,
     abbr_fqdn will only remove the origin portion of the name.
     """
     if name.startswith(origin):

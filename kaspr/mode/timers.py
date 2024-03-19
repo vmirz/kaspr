@@ -174,9 +174,9 @@ def timer_intervals(  # XXX deprecated
 ) -> Iterator[float]:
     """Generate timer sleep times.
 
-    Note: This function is deprecated, please use :func:`itertimer`
-    instead (this function also sleeps and calculates sleep time correctly.)
-
+    !!! note
+        This function is deprecated, please use `itertimer`
+        instead (this function also sleeps and calculates sleep time correctly.)
     """
     state = Timer(
         interval,

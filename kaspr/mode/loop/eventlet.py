@@ -1,4 +1,4 @@
-"""Enable :pypi:`eventlet` support for :mod:`asyncio`."""
+"""Enable [`eventlet`](https://pypi.org/project/eventlet) support for `asyncio`."""
 
 import asyncio
 import os

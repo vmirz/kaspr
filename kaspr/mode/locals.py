@@ -12,65 +12,64 @@ these can be combined to create proxies.
 For example to create a proxy to a class that both implements
 the mutable mapping interface and is an async context manager:
 
-.. sourcecode:: python
+```python
+def create_real():
+    print('CREATING X')
+    return X()
 
+class XProxy(MutableMappingRole, AsyncContextManagerRole):
+    ...
 
-    def create_real():
-        print('CREATING X')
-        return X()
-
-    class XProxy(MutableMappingRole, AsyncContextManagerRole):
-        ...
-
-    x = XProxy(create_real)
+x = XProxy(create_real)
+```
 
 Evaluation
 ==========
 
-By default the callable passed to :class:`Proxy` will be evaluated
+By default the callable passed to `Proxy` will be evaluated
 every time it is needed, so in the example above a new
 X will be created every time you access the underlying object:
 
-.. sourcecode:: pycon
+```sh
+>>> x['foo'] = 'value'
+CREATING X
 
-    >>> x['foo'] = 'value'
-    CREATING X
+>>> x['foo']
+CREATING X
+'value'
 
-    >>> x['foo']
-    CREATING X
-    'value'
+>>> X['foo']
+CREATING X
+'value'
 
-    >>> X['foo']
-    CREATING X
-    'value'
-
-    >>> # evaluates twice, once for async with then for __getitem__:
-    >>> async with x:
-    ...    x['foo']
-    CREATING X
-    CREATING X
-    'value'
+>>> # evaluates twice, once for async with then for __getitem__:
+>>> async with x:
+...    x['foo']
+CREATING X
+CREATING X
+'value'
+```
 
 If you want the creation of the object to be lazy (created
-when first needed), you can pass the `cache=True` argument to :class:`Proxy`:
+when first needed), you can pass the `cache=True` argument to `Proxy`:
 
-.. sourcecode:: pycon
+```sh
+>>> x = XProxy(create_real, cache=True)
 
-    >>> x = XProxy(create_real, cache=True)
+>>> # Now only evaluates the first time it is needed.
+>>> x['foo'] = 'value'
+CREATING X
 
-    >>> # Now only evaluates the first time it is needed.
-    >>> x['foo'] = 'value'
-    CREATING X
+>>> x['foo']
+'value'
 
-    >>> x['foo']
-    'value'
+>>> X['foo']
+'value'
 
-    >>> X['foo']
-    'value'
-
-    >>> async with x:
-    ...    x['foo']
-    'value'
+>>> async with x:
+...    x['foo']
+'value'
+```
 """
 
 import sys
@@ -398,7 +397,7 @@ class Proxy(Generic[T]):
 
 
 class AwaitableRole(Awaitable[T]):
-    """Role/Mixin for :class:`typing.Awaitable` proxy methods."""
+    """Role/Mixin for `typing.Awaitable` proxy methods."""
 
     def _get_awaitable(self) -> Awaitable[T]:
         obj = self._get_current_object()  # type: ignore
@@ -409,11 +408,11 @@ class AwaitableRole(Awaitable[T]):
 
 
 class AwaitableProxy(Proxy[T], AwaitableRole[T]):
-    """Proxy to :class:`typing.Awaitable` object."""
+    """Proxy to `typing.Awaitable` object."""
 
 
 class CoroutineRole(Coroutine[T_co, T_contra, V_co]):
-    """Role/Mixin for :class:`typing.Coroutine` proxy methods."""
+    """Role/Mixin for `typing.Coroutine` proxy methods."""
 
     def _get_coroutine(self) -> Coroutine[T_co, T_contra, V_co]:
         obj = self._get_current_object()  # type: ignore
@@ -440,11 +439,11 @@ class CoroutineRole(Coroutine[T_co, T_contra, V_co]):
 class CoroutineProxy(
     Proxy[Coroutine[T_co, T_contra, V_co]], CoroutineRole[T_co, T_contra, V_co]
 ):
-    """Proxy to :class:`typing.Coroutine` object."""
+    """Proxy to `typing.Coroutine` object."""
 
 
 class AsyncIterableRole(AsyncIterable[T_co]):
-    """Role/Mixin for :class:`typing.AsyncIterable` proxy methods."""
+    """Role/Mixin for `typing.AsyncIterable` proxy methods."""
 
     def _get_iterable(self) -> AsyncIterable[T_co]:
         obj = self._get_current_object()  # type: ignore
@@ -455,11 +454,11 @@ class AsyncIterableRole(AsyncIterable[T_co]):
 
 
 class AsyncIterableProxy(Proxy[AsyncIterable[T_co]], AsyncIterableRole[T_co]):
-    """Proxy to :class:`typing.AsyncIterable` object."""
+    """Proxy to `typing.AsyncIterable` object."""
 
 
 class AsyncIteratorRole(AsyncIterator[T_co]):
-    """Role/Mixin for :class:`typing.AsyncIterator` proxy methods."""
+    """Role/Mixin for `typing.AsyncIterator` proxy methods."""
 
     def _get_iterator(self) -> AsyncIterator[T_co]:
         obj = self._get_current_object()  # type: ignore
@@ -473,11 +472,11 @@ class AsyncIteratorRole(AsyncIterator[T_co]):
 
 
 class AsyncIteratorProxy(Proxy[AsyncIterator[T_co]], AsyncIteratorRole[T_co]):
-    """Proxy to :class:`typing.AsyncIterator` object."""
+    """Proxy to `typing.AsyncIterator` object."""
 
 
 class AsyncGeneratorRole(AsyncGenerator[T_co, T_contra]):
-    """Role/Mixin for :class:`typing.AsyncGenerator` proxy methods."""
+    """Role/Mixin for `typing.AsyncGenerator` proxy methods."""
 
     def _get_generator(self) -> AsyncGenerator[T_co, T_contra]:
         obj = self._get_current_object()  # type: ignore
@@ -507,11 +506,11 @@ class AsyncGeneratorRole(AsyncGenerator[T_co, T_contra]):
 class AsyncGeneratorProxy(
     Proxy[AsyncGenerator[T_co, T_contra]], AsyncGeneratorRole[T_co, T_contra]
 ):
-    """Proxy to :class:`typing.AsyncGenerator` object."""
+    """Proxy to `typing.AsyncGenerator` object."""
 
 
 class SequenceRole(Sequence[T_co]):
-    """Role/Mixin for :class:`typing.Sequence` proxy methods."""
+    """Role/Mixin for `typing.Sequence` proxy methods."""
 
     def _get_sequence(self) -> Sequence[T_co]:
         obj = self._get_current_object()  # type: ignore
@@ -546,11 +545,11 @@ class SequenceRole(Sequence[T_co]):
 
 
 class SequenceProxy(Proxy[Sequence[T_co]], SequenceRole[T_co]):
-    """Proxy to :class:`typing.Sequence` object."""
+    """Proxy to `typing.Sequence` object."""
 
 
 class MutableSequenceRole(SequenceRole[T], MutableSequence[T]):
-    """Role/Mixin for :class:`typing.MutableSequence` proxy methods."""
+    """Role/Mixin for `typing.MutableSequence` proxy methods."""
 
     def _get_sequence(self) -> MutableSequence[T]:
         obj = self._get_current_object()  # type: ignore
@@ -599,11 +598,11 @@ class MutableSequenceRole(SequenceRole[T], MutableSequence[T]):
 class MutableSequenceProxy(
     Proxy[MutableSequence[T_co]], MutableSequenceRole[T_co]
 ):
-    """Proxy to :class:`typing.MutableSequence` object."""
+    """Proxy to `typing.MutableSequence` object."""
 
 
 class SetRole(AbstractSet[T_co]):
-    """Role/Mixin for :class:`typing.AbstractSet` proxy methods."""
+    """Role/Mixin for `typing.AbstractSet` proxy methods."""
 
     def _get_set(self) -> AbstractSet[T_co]:
         obj = self._get_current_object()  # type: ignore
@@ -647,11 +646,11 @@ class SetRole(AbstractSet[T_co]):
 
 
 class SetProxy(Proxy[AbstractSet[T_co]], SetRole[T_co]):
-    """Proxy to :class:`typing.AbstractSet` object."""
+    """Proxy to `typing.AbstractSet` object."""
 
 
 class MutableSetRole(SetRole[T], MutableSet[T]):
-    """Role/Mixin for :class:`typing.MutableSet` proxy methods."""
+    """Role/Mixin for `typing.MutableSet` proxy methods."""
 
     def _get_set(self) -> MutableSet[T]:
         obj = self._get_current_object()  # type: ignore
@@ -686,11 +685,11 @@ class MutableSetRole(SetRole[T], MutableSet[T]):
 
 
 class MutableSetProxy(Proxy[MutableSet[T_co]], MutableSetRole[T_co]):
-    """Proxy to :class:`typing.MutableSet` object."""
+    """Proxy to `typing.MutableSet` object."""
 
 
 class ContextManagerRole(ContextManager[T]):
-    """Role/Mixin for :class:`typing.ContextManager` proxy methods."""
+    """Role/Mixin for `typing.ContextManager` proxy methods."""
 
     def _get_context(self) -> ContextManager[T]:
         obj = self._get_current_object()  # type: ignore
@@ -704,11 +703,11 @@ class ContextManagerRole(ContextManager[T]):
 
 
 class ContextManagerProxy(Proxy[ContextManager[T]], ContextManagerRole[T]):
-    """Proxy to :class:`typing.ContextManager` object."""
+    """Proxy to `typing.ContextManager` object."""
 
 
 class AsyncContextManagerRole(AsyncContextManager[T_co]):
-    """Role/Mixin for :class:`typing.AsyncContextManager` proxy methods."""
+    """Role/Mixin for `typing.AsyncContextManager` proxy methods."""
 
     def __aenter__(self) -> Awaitable[T_co]:
         obj = self._get_current_object()  # type: ignore
@@ -728,11 +727,11 @@ class AsyncContextManagerRole(AsyncContextManager[T_co]):
 class AsyncContextManagerProxy(
     Proxy[AsyncContextManager[T_co]], AsyncContextManagerRole[T_co]
 ):
-    """Proxy to :class:`typing.AsyncContextManager` object."""
+    """Proxy to `typing.AsyncContextManager` object."""
 
 
 class MappingRole(Mapping[KT, VT_co]):
-    """Role/Mixin for :class:`typing.Mapping` proxy methods."""
+    """Role/Mixin for `typing.Mapping` proxy methods."""
 
     def _get_mapping(self) -> Mapping[KT, VT_co]:
         obj = self._get_current_object()  # type: ignore
@@ -770,11 +769,11 @@ class MappingRole(Mapping[KT, VT_co]):
 
 
 class MappingProxy(Proxy[Mapping[KT, VT_co]], MappingRole[KT, VT_co]):
-    """Proxy to :class:`typing.Mapping` object."""
+    """Proxy to `typing.Mapping` object."""
 
 
 class MutableMappingRole(MappingRole[KT, VT], MutableMapping[KT, VT]):
-    """Role/Mixin for :class:`typing.MutableMapping` proxy methods."""
+    """Role/Mixin for `typing.MutableMapping` proxy methods."""
 
     def _get_mapping(self) -> MutableMapping[KT, VT]:
         obj = self._get_current_object()  # type: ignore
@@ -820,11 +819,11 @@ class MutableMappingRole(MappingRole[KT, VT], MutableMapping[KT, VT]):
 class MutableMappingProxy(
     Proxy[MutableMapping[KT, VT]], MutableMappingRole[KT, VT]
 ):
-    """Proxy to :class:`typing.MutableMapping` object."""
+    """Proxy to `typing.MutableMapping` object."""
 
 
 class CallableRole:
-    """Role/Mixin for :class:`typing.Callable` proxy methods."""
+    """Role/Mixin for `typing.Callable` proxy methods."""
 
     def _get_callable(self) -> Callable:
         obj = self._get_current_object()  # type: ignore
@@ -835,7 +834,7 @@ class CallableRole:
 
 
 class CallableProxy(Proxy[Callable], CallableRole):
-    """Proxy to :class:`typing.Callable` object."""
+    """Proxy to `typing.Callable` object."""
 
 
 def maybe_evaluate(obj: Any) -> Any:

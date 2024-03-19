@@ -7,7 +7,7 @@ import gevent.core
 
 
 class Loop(gevent.core.loop):  # type: ignore
-    """Gevent core event loop modifed to support :mod:`asyncio`."""
+    """Gevent core event loop modifed to support `asyncio`."""
 
     _aioloop_loop = None
 

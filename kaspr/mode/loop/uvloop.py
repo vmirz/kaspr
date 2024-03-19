@@ -1,4 +1,4 @@
-"""Enable :pypi:`uvloop` as the event loop for :mod:`asyncio`."""
+"""Enable [`uvloop`](https://pypi.org/project/uvloop) as the event loop for `asyncio`."""
 
 import asyncio
 

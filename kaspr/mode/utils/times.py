@@ -37,7 +37,7 @@ if sys.platform == "win32":
 else:
     TIME_MONOTONIC = time.monotonic
 
-#: Seconds can be expressed as float or :class:`~datetime.timedelta`,
+#: Seconds can be expressed as float or `~datetime.timedelta`,
 Seconds = Union[timedelta, float, str]
 
 
@@ -74,38 +74,45 @@ class Bucket(AsyncContextManager):
     caller has to wait.
 
     If this returns :const:`False`, it's prudent to either sleep or raise
-    an exception::
+    an exception:
 
-        if not bucket.pour():
-            await asyncio.sleep(bucket.expected_time())
+    ```python
+    if not bucket.pour():
+        await asyncio.sleep(bucket.expected_time())
+    ```
 
-    If you want to consume multiple tokens in one go then specify the number::
+    If you want to consume multiple tokens in one go then specify the number:
 
-        if not bucket.pour(10):
-            await asyncio.sleep(bucket.expected_time(10))
+    ```python
+    if not bucket.pour(10):
+        await asyncio.sleep(bucket.expected_time(10))
+    ```
 
     This class can also be used as an async. context manager, but in that case
-    can only consume one tokens at a time::
+    can only consume one tokens at a time:
 
-        async with bucket:
-            # do something
+    ```python
+    async with bucket:
+        # do something
+    ```
 
     By default the async. context manager will suspend the current coroutine
     and sleep until as soon as the time that a token can be consumed.
 
     If you wish you can also raise an exception, instead of sleeping, by
-    providing the ``raises`` keyword argument::
+    providing the `raises` keyword argument:
 
-        # hundred tokens in one second, and async with: raises TimeoutError
+    ```python
+    # hundred tokens in one second, and async with: raises TimeoutError
 
-        class MyError(Exception):
-            pass
+    class MyError(Exception):
+        pass
 
-        bucket = Bucket(100, over=1.0, raises=MyError)
+    bucket = Bucket(100, over=1.0, raises=MyError)
 
-        async with bucket:
-            # do something
-
+    async with bucket:
+        # do something
+    ```
     """
 
     rate: float
@@ -236,7 +243,7 @@ def rate_limit(
 
 @singledispatch
 def want_seconds(s: float) -> float:
-    """Convert :data:`Seconds` to float."""
+    """Convert `Seconds` to float."""
     return s
 
 
@@ -264,7 +271,7 @@ def humanize_seconds(
     For example, 60 becomes "1 minute", and 7200 becomes "2 hours".
 
     Arguments:
-        secs: Seconds to format (as :class:`float` or :class:`int`).
+        secs: Seconds to format (as `float` or `int`).
         prefix (str): can be used to add a preposition to the output
             (e.g., 'in' will give 'in 1 second', but add nothing to 'now').
         suffix (str): same as prefix, adds suffix unless 'now'.
@@ -276,9 +283,7 @@ def humanize_seconds(
     for unit, divider, formatter in TIME_UNITS:
         if secs >= divider:
             w = secs / float(divider)
-            return "{}{}{} {}{}".format(
-                prefix, sep, formatter(w), pluralize(int(w), unit), suffix
-            )
+            return f"{prefix}{sep}{formatter(w)} {pluralize(int(w), unit)}{suffix}"
     if microseconds and secs > 0.0:
         return f"{prefix}{sep}{secs:.2f} seconds{suffix}"
     return now

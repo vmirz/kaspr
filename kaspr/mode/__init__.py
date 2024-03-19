@@ -1,48 +1,16 @@
 """AsyncIO Service-based programming."""
 
-# :copyright: (c) 2017-2020, Robinhood Markets
-#             (c) 2020-2022, faust-streaming Org
-#             All rights reserved.
-# :license:   BSD (3 Clause), see LICENSE for more details.
-import re
+__version__ = "0.0.1"
+
 import sys
 import typing
-from importlib.metadata import version
 
 # Lazy loading.
 # - See werkzeug/__init__.py for the rationale behind this.
 from types import ModuleType
-from typing import Any, Mapping, NamedTuple, Sequence
-
-__version__ = version("mode-streaming")
-__author__ = "Faust Streaming"
-__contact__ = "vpatki@wayfair.com, williambbarnhart@gmail.com"
-__homepage__ = "https://github.com/faust-streaming/mode"
-__docformat__ = "restructuredtext"
+from typing import Any, Mapping, Sequence
 
 # -eof meta-
-
-
-class version_info_t(NamedTuple):
-    major: int
-    minor: int
-    micro: int
-    releaselevel: str
-    serial: str
-
-
-# bumpversion can only search for {current_version}
-# so we have to parse the version here.
-_match = re.match(r"(\d+)\.(\d+).(\d+)(.+)?", __version__)
-if _match is None:  # pragma: no cover
-    raise RuntimeError("MODE VERSION HAS ILLEGAL FORMAT")
-_temp = _match.groups()
-VERSION = version_info = version_info_t(
-    int(_temp[0]), int(_temp[1]), int(_temp[2]), _temp[3] or "", ""
-)
-del _match
-del _temp
-del re
 
 
 if typing.TYPE_CHECKING:  # pragma: no cover
@@ -142,14 +110,8 @@ class _module(ModuleType):
                 "__name__",
                 "__path__",
                 "VERSION",
-                "version_info_t",
                 "version_info",
                 "__package__",
-                "__version__",
-                "__author__",
-                "__contact__",
-                "__homepage__",
-                "__docformat__",
             )
         )
         return result
@@ -166,13 +128,6 @@ new_module.__dict__.update(
         "__doc__": __doc__,
         "__all__": tuple(object_origins),
         "__version__": __version__,
-        "__author__": __author__,
-        "__contact__": __contact__,
-        "__homepage__": __homepage__,
-        "__docformat__": __docformat__,
         "__package__": __package__,
-        "version_info_t": version_info_t,
-        "version_info": version_info,
-        "VERSION": VERSION,
     }
 )

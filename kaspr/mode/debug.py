@@ -41,8 +41,11 @@ class BlockingDetector(Service):
     """Service that detects blocking code using alarm/itimer.
 
     Examples:
-        blockdetect = BlockingDetector(timeout=10.0)
-        await blockdetect.start()
+
+    ```python
+    blockdetect = BlockingDetector(timeout=10.0)
+    await blockdetect.start()
+    ```
 
     Keyword Arguments:
         timeout (Seconds): number of seconds that the event loop can

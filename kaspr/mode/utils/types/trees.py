@@ -1,4 +1,4 @@
-"""Type classes for :mod:`mode.utils.trees`."""
+"""Type classes for `mode.utils.trees`."""
 
 import abc
 from typing import Any, Generic, Iterator, List, Optional, TypeVar, Union

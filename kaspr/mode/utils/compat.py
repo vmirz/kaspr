@@ -23,7 +23,7 @@ def isatty(fh: IO) -> bool:
     """Return True if fh has a controlling terminal.
 
     Notes:
-        Use with e.g. :data:`sys.stdin`.
+        Use with e.g. `sys.stdin`.
     """
     try:
         return fh.isatty()

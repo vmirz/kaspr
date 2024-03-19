@@ -112,7 +112,7 @@ class _ARangeIterator(AsyncIterator[int]):
 
 
 class arange(AsyncIterable[int]):
-    """Async generator that counts like :class:`range`."""
+    """Async generator that counts like `range`."""
 
     def __init__(
         self, *slice_args: Optional[int], **slice_kwargs: Optional[int]
@@ -162,15 +162,18 @@ async def chunks(it: AsyncIterable[T], n: int) -> AsyncIterable[List[T]]:
     """Split an async iterator into chunks with `n` elements each.
 
     Example:
-        # n == 2
-        >>> x = chunks(arange(10), 2)
-        >>> [item async for item in x]
-        [[0, 1], [2, 3], [4, 5], [6, 7], [8, 9], [10]]
 
-        # n == 3
-        >>> x = chunks(arange(10)), 3)
-        >>> [item async for item in x]
-        [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10]]
+    ```sh
+    # n == 2
+    >>> x = chunks(arange(10), 2)
+    >>> [item async for item in x]
+    [[0, 1], [2, 3], [4, 5], [6, 7], [8, 9], [10]]
+
+    # n == 3
+    >>> x = chunks(arange(10)), 3)
+    >>> [item async for item in x]
+    [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10]]
+    ```
     """
     ait = aiter(it)
     async for item in ait:

@@ -1,4 +1,4 @@
-"""Enable :pypi:`gevent` support for :mod:`asyncio`."""
+"""Enable [`gevent`](https://pypi.org/project/gevent) support for `asyncio`."""
 
 import asyncio
 import os
@@ -31,7 +31,7 @@ else:
         psycogreen.gevent.patch_psycopg()
 
 try:
-    import aiogevent
+    import asyncio_gevent
 except ImportError:
     raise
     raise ImportError(
@@ -43,13 +43,13 @@ if asyncio._get_running_loop() is not None:
     raise RuntimeError("Event loop created before importing gevent loop!")
 
 
-class Policy(aiogevent.EventLoopPolicy):  # type: ignore
+class Policy(asyncio_gevent.EventLoopPolicy):  # type: ignore
     """Custom gevent event loop policy."""
 
     _loop: Optional[asyncio.AbstractEventLoop] = None
 
     def get_event_loop(self) -> asyncio.AbstractEventLoop:
-        # aiogevent raises an error here current_thread() is not MainThread,
+        # asyncio_gevent raises an error here current_thread() is not MainThread,
         # but gevent monkey patches current_thread, so it's not a good check.
         loop = self._loop
         if loop is None:

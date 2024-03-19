@@ -86,14 +86,18 @@ class BaseSignal(BaseSignalT[T]):
         )
 
     def __set_name__(self, owner: Type, name: str) -> None:
-        # If signal is an attribute of a class, we use __set_name__
-        # to show the location of the signal in __repr__.
-        # E.g.::
-        #    >>> class X(Service):
-        #    ...   starting = Signal()
-        #
-        #    >>> X.starting
-        #    <Signal: X.starting>
+        """If signal is an attribute of a class, we use __set_name__ to show the location of the signal in __repr__.
+
+        Examples:
+
+        ```python
+        class X(Service):
+            starting = Signal()
+
+        >>> X.starting
+        <Signal: X.strting>
+        ```
+        """
         if not self.name:
             self.name = name
         self.owner = owner

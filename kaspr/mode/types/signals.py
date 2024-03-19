@@ -1,4 +1,4 @@
-"""Type classes for :mod:`mode.signals`."""
+"""Type classes for `mode.signals`."""
 
 import abc
 import asyncio

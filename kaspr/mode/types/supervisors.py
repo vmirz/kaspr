@@ -1,4 +1,4 @@
-"""Type classes for :mod:`mode.supervisors`."""
+"""Type classes for `mode.supervisors`."""
 
 import abc
 import typing

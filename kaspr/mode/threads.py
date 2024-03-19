@@ -3,8 +3,9 @@
 Will use the default thread pool executor (``loop.set_default_executor()``),
 unless you specify a specific executor instance.
 
-Note: To stop something using the thread's loop, you have to
-use the ``on_thread_stop`` callback instead of the on_stop callback.
+!!! note
+    To stop something using the thread's loop, you have to
+    use the ``on_thread_stop`` callback instead of the on_stop callback.
 """
 
 import asyncio

@@ -62,7 +62,7 @@ class WaitResults(NamedTuple):
 
 
 class WaitResult(NamedTuple):
-    """Return value of :meth:`Service.wait`."""
+    """Return value of `Service.wait`."""
 
     #: Return value of the future we were waiting for.
     result: Any
@@ -157,32 +157,36 @@ class Diag(DiagT):
     This can be used to track what your service is doing.
     For example if your service is a Kafka consumer with a background
     thread that commits the offset every 30 seconds, you may want to
-    see when this happens::
+    see when this happens:
 
-        DIAG_COMMITTING = 'committing'
+    ```python
+    DIAG_COMMITTING = 'committing'
 
-        class Consumer(Service):
+    class Consumer(Service):
 
-            @Service.task
-            async def _background_commit(self) -> None:
-                while not self.should_stop:
-                    await self.sleep(30.0)
-                    self.diag.set_flag(DIAG_COMMITTING)
-                    try:
-                        await self._consumer.commit()
-                    finally:
-                        self.diag.unset_flag(DIAG_COMMITTING)
+        @Service.task
+        async def _background_commit(self) -> None:
+            while not self.should_stop:
+                await self.sleep(30.0)
+                self.diag.set_flag(DIAG_COMMITTING)
+                try:
+                    await self._consumer.commit()
+                finally:
+                    self.diag.unset_flag(DIAG_COMMITTING)
+    ```
 
     The above code is setting the flag manually, but you can also use
-    a decorator to accomplish the same thing::
+    a decorator to accomplish the same thing:
 
-        @Service.timer(30.0)
-        async def _background_commit(self) -> None:
-            await self.commit()
+    ```python
+    @Service.timer(30.0)
+    async def _background_commit(self) -> None:
+        await self.commit()
 
-        @Service.transitions_with(DIAG_COMMITTING)
-        async def commit(self) -> None:
-            await self._consumer.commit()
+    @Service.transitions_with(DIAG_COMMITTING)
+    async def commit(self) -> None:
+        await self._consumer.commit()
+    ```
     """
 
     def __init__(self, service: ServiceT) -> None:
@@ -202,15 +206,17 @@ class ServiceTask:
     """A background task.
 
     You don't have to use this class directly, instead
-    use the ``@Service.task`` decorator::
+    use the `@Service.task` decorator:
 
-        class MyService(Service):
+    ```python
+    class MyService(Service):
 
-            @Service.task
-            def _background_task(self):
-                while not self.should_stop:
-                    print('Hello')
-                    await self.sleep(1.0)
+        @Service.task
+        def _background_task(self):
+            while not self.should_stop:
+                print('Hello')
+                await self.sleep(1.0)
+    ```
     """
 
     def __init__(self, fun: Callable[..., Awaitable]) -> None:
@@ -226,95 +232,95 @@ class ServiceTask:
 class ServiceCallbacks:
     """Service callback interface.
 
-    When calling ``await service.start()`` this happens:
+    When calling `await service.start()` this happens:
 
-    .. code-block:: text
+    ```text
+    +--------------------+
+    | INIT (not started) |
+    +--------------------+
+            V
+    .-----------------------.
+    / await service.start() |
+    `-----------------------'
+            V
+    +--------------------+
+    | on_first_start     |
+    +--------------------+
+            V
+    +--------------------+
+    | on_start           |
+    +--------------------+
+            V
+    +--------------------+
+    | on_started         |
+    +--------------------+
+    ```
 
-        +--------------------+
-        | INIT (not started) |
-        +--------------------+
-                V
-        .-----------------------.
-        / await service.start() |
-        `-----------------------'
-                V
-        +--------------------+
-        | on_first_start     |
-        +--------------------+
-                V
-        +--------------------+
-        | on_start           |
-        +--------------------+
-                V
-        +--------------------+
-        | on_started         |
-        +--------------------+
+    When stopping and `wait_for_shutdown` is unset, this happens:
 
-    When stopping and ``wait_for_shutdown`` is unset, this happens:
+    ```text
+    .-----------------------.
+    / await service.stop()  |
+    `-----------------------'
+            V
+    +--------------------+
+    | on_stop             |
+    +--------------------+
+            V
+    +--------------------+
+    | on_shutdown        |
+    +--------------------+
+    ```
 
-    .. code-block:: text
-
-        .-----------------------.
-        / await service.stop()  |
-        `-----------------------'
-                V
-        +--------------------+
-        | on_stop             |
-        +--------------------+
-                V
-        +--------------------+
-        | on_shutdown        |
-        +--------------------+
-
-    When stopping and ``wait_for_shutdown`` is set, the stop operation
+    When stopping and `wait_for_shutdown` is set, the stop operation
     will wait for something to set the shutdown flag ``self.set_shutdown()``:
 
-    .. code-block:: text
-
-        .-----------------------.
-        / await service.stop()  |
-        `-----------------------'
-                V
-        +--------------------+
-        | on_stop             |
-        +--------------------+
-                V
-        .-------------------------.
-        / service.set_shutdown()  |
-        `-------------------------'
-                V
-        +--------------------+
-        | on_shutdown        |
-        +--------------------+
+    ```text
+    .-----------------------.
+    / await service.stop()  |
+    `-----------------------'
+            V
+    +--------------------+
+    | on_stop             |
+    +--------------------+
+            V
+    .-------------------------.
+    / service.set_shutdown()  |
+    `-------------------------'
+            V
+    +--------------------+
+    | on_shutdown        |
+    +--------------------+
+    ```
 
     When restarting the order is as follows (assuming
-    ``wait_for_shutdown`` unset):
+    `wait_for_shutdown` unset):
 
-    .. code-block:: text
-
-        .-------------------------.
-        / await service.restart() |
-        `-------------------------'
-                V
-        +--------------------+
-        | on_stop             |
-        +--------------------+
-                V
-        +--------------------+
-        | on_shutdown        |
-        +--------------------+
-                V
-        +--------------------+
-        | on_restart         |
-        +--------------------+
-                V
-        +--------------------+
-        | on_start           |
-        +--------------------+
-                V
-        +--------------------+
-        | on_started         |
-        +--------------------+
+    ```text
+    .-------------------------.
+    / await service.restart() |
+    `-------------------------'
+            V
+    +--------------------+
+    | on_stop             |
+    +--------------------+
+            V
+    +--------------------+
+    | on_shutdown        |
+    +--------------------+
+            V
+    +--------------------+
+    | on_restart         |
+    +--------------------+
+            V
+    +--------------------+
+    | on_start           |
+    +--------------------+
+            V
+    +--------------------+
+    | on_started         |
+    +--------------------+
+    ```
     """
 
     async def on_first_start(self) -> None:
@@ -412,13 +418,16 @@ class Service(ServiceBase, ServiceCallbacks):
         """Decorate function to be used as background task.
 
         Example:
-            >>> class S(Service):
-            ...
-            ...     @Service.task
-            ...     async def background_task(self):
-            ...         while not self.should_stop:
-            ...             await self.sleep(1.0)
-            ...             print('Waking up')
+
+        ```python
+        class S(Service):
+
+            @Service.task
+            async def background_task(self):
+                while not self.should_stop:
+                    await self.sleep(1.0)
+                    print('Waking up')
+        ```
         """
         return ServiceTask(fun)
 
@@ -433,12 +442,13 @@ class Service(ServiceBase, ServiceCallbacks):
     ) -> Callable[[Callable], ServiceTask]:
         """Background timer executing every ``n`` seconds.
 
-        Example:
-            >>> class S(Service):
-            ...
-            ...     @Service.timer(1.0)
-            ...     async def background_timer(self):
-            ...         print('Waking up')
+        ```python
+        class S(Service):
+
+            @Service.timer(1.0)
+            async def background_timer(self):
+                print('Waking up')
+        ```
         """
         _interval = want_seconds(interval)
 
@@ -469,16 +479,19 @@ class Service(ServiceBase, ServiceCallbacks):
         """Background timer executing periodic task based on Crontab description.
 
         Example:
-            >>> class S(Service):
-            ...
-            ...     @Service.crontab(cron_format='30 18 * * *',
-                                     timezone=pytz.timezone('US/Pacific'))
-            ...     async def every_6_30_pm_pacific(self):
-            ...         print('IT IS 6:30pm')
-            ...
-            ...     @Service.crontab(cron_format='30 18 * * *')
-            ...     async def every_6_30_pm(self):
-            ...         print('6:30pm UTC')
+
+        ```python
+        class S(Service):
+
+            @Service.crontab(cron_format='30 18 * * *',
+                                timezone=pytz.timezone('US/Pacific'))
+            async def every_6_30_pm_pacific(self):
+                print('IT IS 6:30pm')
+
+                @Service.crontab(cron_format='30 18 * * *')
+                async def every_6_30_pm(self):
+                    print('6:30pm UTC')
+        ```
         """
 
         def _decorate(
@@ -1047,13 +1060,13 @@ class Service(ServiceBase, ServiceCallbacks):
         clock: ClockArg = perf_counter,
         name: str = "",
     ) -> AsyncIterator[float]:
-        """Sleep ``interval`` seconds for every iteration.
+        """Sleep `interval` seconds for every iteration.
 
         This is an async iterator that takes advantage
-        of :func:`~mode.timers.Timer` to monitor drift and timer
-        oerlap.
+        of `~mode.timers.Timer` to monitor drift and timer
+        overlap.
 
-        Uses ``Service.sleep`` so exits fast when the service is
+        Uses `Service.sleep` so exits fast when the service is
         stopped.
 
         Note:
@@ -1061,9 +1074,12 @@ class Service(ServiceBase, ServiceCallbacks):
             from first iteration.
 
         Examples:
-            >>> async for sleep_time in self.itertimer(1.0):
-            ...   print('another second passed, just woke up...')
-            ...   await perform_some_http_request()
+
+        ```python
+        async for sleep_time in self.itertimer(1.0):
+            print('another second passed, just woke up...')
+            await perform_some_http_request()
+        ```
         """
         sleepfun = sleep or self.sleep
         if self.should_stop:

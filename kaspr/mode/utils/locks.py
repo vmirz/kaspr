@@ -1,6 +1,6 @@
 """Modern versions of asyncio.locks.
 
-asyncio primitives call get_event_loop() in __init__,
+asyncio primitives call `get_event_loop()` in __init__,
 which makes them unsuitable for use in programs that don't
 want to pass the loop around.
 """

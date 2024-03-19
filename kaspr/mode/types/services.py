@@ -1,4 +1,4 @@
-"""Type classes for :mod:`mode.services`."""
+"""Type classes for `mode.services`."""
 
 import abc
 import asyncio
@@ -48,7 +48,7 @@ class ServiceT(AsyncContextManager):
     """Abstract type for an asynchronous service that can be started/stopped.
 
     See Also:
-        :class:`mode.Service`.
+        `mode.Service`.
     """
 
     Diag: Type[DiagT]

@@ -78,7 +78,7 @@ _Setlike = Union[AbstractSet[T], Iterable[T]]
 
 
 class Heap(MutableSequence[T]):
-    """Generic interface to :mod:`heapq`."""
+    """Generic interface to `heapq`."""
 
     def __init__(self, data: Optional[Sequence[T]] = None) -> None:
         self.data = list(data or [])
@@ -104,22 +104,24 @@ class Heap(MutableSequence[T]):
         """Push item on the heap, then pop and return from the heap.
 
         The combined action runs more efficiently than
-        :meth:`push` followed by a separate call to :meth:`pop`.
+        `push` followed by a separate call to `pop`.
         """
         return heappushpop(self.data, item)
 
     def replace(self, item: T) -> T:
         """Pop and return the current smallest value, and add the new item.
 
-        This is more efficient than :meth`pop` followed by :meth:`push`,
+        This is more efficient than :meth`pop` followed by `push`,
         and can be more appropriate when using a fixed-size heap.
 
         Note that the value returned may be larger than item!
         That constrains reasonable uses of this routine unless written as
-        part of a conditional replacement::
+        part of a conditional replacement:
 
-            if item > heap[0]:
-                item = heap.replace(item)
+        ```python
+        if item > heap[0]:
+            item = heap.replace(item)
+        ```
         """
         return heapreplace(self.data, item)
 
@@ -180,7 +182,7 @@ class Heap(MutableSequence[T]):
 class FastUserDict(MutableMapping[KT, VT]):
     """Proxy to dict.
 
-    Like :class:`collection.UserDict` but reimplements some methods
+    Like `collection.UserDict` but reimplements some methods
     for better performance when the underlying dictionary is a real dict.
     """
 
@@ -648,7 +650,9 @@ class ManagedUserDict(FastUserDict[KT, VT]):
 class AttributeDictMixin:
     """Mixin for Mapping interface that adds attribute access.
 
-    I.e., `d.key -> d[key]`).
+    Example:
+
+    `d.key` -> `d[key]`
     """
 
     def __getattr__(self, k: str) -> Any:
@@ -661,7 +665,11 @@ class AttributeDictMixin:
             ) from err
 
     def __setattr__(self, key: str, value: Any) -> None:
-        """`d[key] = value -> d.key = value`."""
+        """
+        ```python
+        d[key] = value -> d.key = value
+        ```
+        """
         self[key] = value
 
 
@@ -672,8 +680,8 @@ class AttributeDict(dict, AttributeDictMixin):
 class DictAttribute(MutableMapping[str, VT], MappingViewProxy):
     """Dict interface to attributes.
 
-    `obj[k] -> obj.k`
-    `obj[k] = val -> obj.k = val`
+    - `obj[k]` -> `obj.k`
+    - `obj[k] = val` -> `obj.k = val`
     """
 
     obj: Any = None
