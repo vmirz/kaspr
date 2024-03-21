@@ -202,7 +202,7 @@ WEB_BASE_PATH = _getenv("WEB_BASE_PATH", "")
 WEB_PORT: int = int(_getenv('WEB_PORT', '6066'))
 
 #: Base http path for serving metrics
-METRICS_BASE_PATH = _getenv("METRICS_BASE_PATH", "")
+WEB_METRICS_BASE_PATH = _getenv("WEB_METRICS_BASE_PATH", "")
 
 
 class CustomSettings(Settings):
@@ -253,8 +253,7 @@ class CustomSettings(Settings):
 
     web_base_path: str = WEB_BASE_PATH
     web_port: int = WEB_PORT
-
-    metrics_base_path: str = METRICS_BASE_PATH
+    web_metrics_base_path: str = WEB_METRICS_BASE_PATH
 
     _worker_name: str = None
     _kafka_credentials: CredentialsT = None
@@ -292,7 +291,7 @@ class CustomSettings(Settings):
         kms_janitor_highwater_offset_seconds: Seconds = None,
         web_base_path: str = None,
         web_port: int = None,
-        metrics_base_path: str = None,
+        web_metrics_base_path: str = None,
         **kwargs,
     ):
         # Apply settings that exist in base class before we pass them down.
@@ -427,8 +426,8 @@ class CustomSettings(Settings):
         if web_base_path is not None:
             self.web_base_path = web_base_path
 
-        if metrics_base_path is not None:
-            self.metrics_base_path = metrics_base_path
+        if web_metrics_base_path is not None:
+            self.web_metrics_base_path = web_metrics_base_path
 
     @property
     def worker_name(self):

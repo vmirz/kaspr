@@ -76,18 +76,21 @@ class MessageScheduler(MessageSchedulerT, Service):
         super().__init__(**kwargs)
 
         topic_prefix = app.conf.topic_prefix
+        topic_partitions = (
+            self.app.conf.kms_topic_partitions or self.app.conf.topic_partitions
+        )
         self.topic_dlq = app.topic(f"{topic_prefix}kms-dlq", partitions=1)
         self.topic_input = app.topic(
-            f"{topic_prefix}kms-input", partitions=self.app.conf.kms_topic_partitions
+            f"{topic_prefix}kms-input", partitions=topic_partitions
         )
         self.topic_timetable_changelog = app.topic(
             self.timetable_changelog_topic_name,
             compacting=True,
             deleting=True,
-            partitions=self.app.conf.kms_topic_partitions,
+            partitions=topic_partitions,
         )
         self.topic_actions = app.topic(
-            f"{topic_prefix}kms-actions", partitions=self.app.conf.kms_topic_partitions
+            f"{topic_prefix}kms-actions", partitions=topic_partitions
         )
         self.timetable = app.Table(
             self.timetable_changelog_topic_name,
@@ -103,7 +106,7 @@ class MessageScheduler(MessageSchedulerT, Service):
             },
         )
 
-        # Attach event hooks to changes to partitions so 
+        # Attach event hooks to changes to partitions so
         # we can adjust dispatchers and janitors accordingly
         self.app.on_rebalance_started.connect(self.on_rebalance_started)
         self.app.on_partitions_assigned.connect(self.on_partitions_assigned)

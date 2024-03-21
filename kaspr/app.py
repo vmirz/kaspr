@@ -56,5 +56,5 @@ app = KasprApp(
 
 app.monitor = PrometheusMonitor(
     app,
-    pattern=f"{app.conf.metrics_base_path}/metrics",
+    pattern=f"{app.conf.web_metrics_base_path}/metrics",
 )
