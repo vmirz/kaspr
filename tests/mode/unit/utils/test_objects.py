@@ -34,6 +34,7 @@ from mode.utils.objects import (
     annotations,
     canoname,
     canonshortname,
+    eval_type,
     guess_polymorphic_type,
     is_optional,
     is_union,
@@ -182,6 +183,12 @@ def test_canonshortname():
     assert canonshortname(x, main_name="faust") == "faust.X"
     assert canonshortname(Y, main_name="faust") == ".".join([__name__, "Y"])
     assert canonshortname(y, main_name="faust") == ".".join([__name__, "Y"])
+
+
+@pytest.mark.skip(reason="Needs fixing, typing.List eval does not work")
+def test_eval_type():
+    assert eval_type("list") == list
+    assert eval_type("typing.List") == typing.List
 
 
 def test_annotations():
