@@ -16,7 +16,7 @@ from faust.types.topics import ChannelT
 
 class KasprStream(faust.Stream):
     """
-    Adds customization to faust.Sream.
+    Adds customization to faust.Stream.
 
     Unlike `stream.take()`, which returns values, this implementation
     adds `stream.take_events()` iterator that returns events.
