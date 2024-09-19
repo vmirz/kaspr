@@ -467,8 +467,9 @@ class CustomSettings(Settings):
 
     def _prepare_kafka_credentials(self) -> CredentialsT:
         security_protocol = AuthProtocol(self.kafka_security_protocol)
-        if security_protocol in [
-            AuthProtocol.PLAINTEXT,
+        if security_protocol == AuthProtocol.PLAINTEXT:
+            return None
+        elif security_protocol in [
             AuthProtocol.SASL_PLAINTEXT,
             AuthProtocol.SASL_SSL,
         ]:
@@ -479,15 +480,16 @@ class CustomSettings(Settings):
                 if security_protocol == AuthProtocol.SASL_SSL
                 else None,
                 mechanism=SASLMechanism(self.kafka_sasl_mechanism)
-                if self.kafka_sasl_mechanism is not None
+                if self.kafka_sasl_mechanism
                 else None,
             )
         elif security_protocol in [AuthProtocol.SSL]:
-            return SSLCredentials(
-                cafile=self.kafka_auth_cafile,
-                capath=self.kafka_auth_capath,
-                cadata=self.kafka_auth_cadata,
-            )
+            ssl_auth = {
+                "cafile": self.kafka_auth_cafile,
+                "capath": self.kafka_auth_capath,
+                "cadata": self.kafka_auth_cadata,
+            }
+            return SSLCredentials(context=ssl.create_default_context(), **ssl_auth)
         else:
             raise ImproperlyConfigured(
                 f"Unknown or unsupported auth protocol: {security_protocol}"
