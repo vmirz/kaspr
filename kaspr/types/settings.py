@@ -98,7 +98,7 @@ TABLE_DIR = _getenv("TABLE_DIR", "/var/lib/stream/rocksdb")
 TOPIC_PREFIX = _subenv(_getenv("TOPIC_PREFIX", "{K_APP_NAME}."))
 
 #: The default replication factor for topics created by the application.
-TOPIC_REPLICATION_FACTOR = int(_getenv("TOPIC_REPLICATION_FACTOR", 3))
+TOPIC_REPLICATION_FACTOR = int(_getenv("TOPIC_REPLICATION_FACTOR", 1))
 
 #: Default number of partitions for new topics.
 TOPIC_PARTITIONS = int(_getenv("TOPIC_PARTITIONS", 3))
