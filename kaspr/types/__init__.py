@@ -7,6 +7,8 @@ from .dispatcher import DispatcherT
 from .janitor import JanitorT
 from .checkpoint import CheckpointT
 from .table import CustomTableT
+from .builder import AppBuilderT
+from .stream import KasprStreamT
 
 __all__ = [
     "TTLocation",
@@ -21,4 +23,6 @@ __all__ = [
     "JanitorT",
     "CheckpointT",
     "CustomTableT",
+    "AppBuilderT",
+    "KasprStreamT",
 ]
