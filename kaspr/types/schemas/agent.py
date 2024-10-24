@@ -9,8 +9,8 @@ class AgentSpecSchema(BaseSchema):
 
     name = fields.Str(data_key="name", allow_none=False, required=True)
     description = fields.Str(data_key="description", allow_none=True, load_default=None)
-    input = fields.Nested(AgentInputSchema(), data_key="input", required=True)
-    output = fields.List(
-        fields.Nested(AgentOutputSchema(), data_key="output", allow_none=True),
+    inputs = fields.Nested(AgentInputSchema(), data_key="inputs", required=True)
+    outputs = fields.List(
+        fields.Nested(AgentOutputSchema(), data_key="outputs", allow_none=True),
         required=True,
     )

@@ -56,25 +56,22 @@ class AppBuilder(AppBuilderT):
         self._build_agents()
 
     def _build_agents(self) -> None:
-
         async def _root_processor(stream: KasprStreamT):
-            async for event in stream.events():
-                print(event)
-                
+            pass
+        
         for agent in self.agents:
-            if (
-                agent.input.topic
-                and agent.input.topic.names
-                or agent.input.topic.pattern
-            ):
+            _topic = agent.inputs.topic
+            if _topic and _topic.names or _topic.pattern:
                 channel = self.app.topic(
-                    *agent.input.topic.names,
-                    pattern=agent.input.topic.pattern,
-                    key_serializer=agent.input.topic.key_serializer,
-                    value_serializer=agent.input.topic.value_serializer,
+                    *_topic.names,
+                    pattern=_topic.pattern,
+                    key_serializer=_topic.key_serializer,
+                    value_serializer=_topic.value_serializer,
                 )
-            elif agent.input.channel and agent.input.channel.name:
-                channel = self.app.channel(agent.input.channel.name)
+            elif agent.inputs.channel and agent.inputs.channel.name:
+                channel = self.app.channel(agent.inputs.channel.name)
+            else:
+                raise ValueError("No input channel or topic defined for agent")
             self.app.agent(channel, name=agent.name)(_root_processor)
 
     @cached_property

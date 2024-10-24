@@ -7,5 +7,5 @@ class AgentSpec(BaseModel):
 
     name: str
     description: Optional[str]
-    input: AgentInput
-    output: List[AgentOutput]
+    inputs: AgentInput
+    outputs: List[AgentOutput]
