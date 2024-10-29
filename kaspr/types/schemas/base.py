@@ -29,4 +29,4 @@ class BaseSchema(Schema):
             data_list = data.get("objects", [{}])
             # guard against empty return list of a valid results return
             data = data_list[0] if len(data_list) != 0 else {}
-        return self.__model__(**data)
+        return self.__model__(**data, **self.context)

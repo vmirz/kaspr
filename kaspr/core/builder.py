@@ -31,7 +31,7 @@ class AppBuilder(AppBuilderT):
         for file in files:
             with file.open("r") as file:
                 try:
-                    apps.append(AppSpecSchema().load(yaml.safe_load(file)))
+                    apps.append(AppSpecSchema.from_file(file, app=self.app))
                 except yaml.YAMLError as exc:
                     print(f"Error loading file `{file}`: {exc}")
         return apps
@@ -44,35 +44,13 @@ class AppBuilder(AppBuilderT):
         """Prepare agents from loaded definitions."""
         agents = []
         for app in self.apps:
-            agents.extend(app.agents)
+            agents.extend(app.agents_spec)
         return agents
-
-    async def __process(self, stream):
-        async for event in stream:
-            print(event)
 
     def build(self) -> None:
         """Build agents, tasks, etc. from external definition files."""
-        self._build_agents()
-
-    def _build_agents(self) -> None:
-        async def _root_processor(stream: KasprStreamT):
-            pass
-        
-        for agent in self.agents:
-            _topic = agent.inputs.topic
-            if _topic and _topic.names or _topic.pattern:
-                channel = self.app.topic(
-                    *_topic.names,
-                    pattern=_topic.pattern,
-                    key_serializer=_topic.key_serializer,
-                    value_serializer=_topic.value_serializer,
-                )
-            elif agent.inputs.channel and agent.inputs.channel.name:
-                channel = self.app.channel(agent.inputs.channel.name)
-            else:
-                raise ValueError("No input channel or topic defined for agent")
-            self.app.agent(channel, name=agent.name)(_root_processor)
+        for app in self.apps:
+            app.agents
 
     @cached_property
     def apps(self) -> List[AppSpec]:

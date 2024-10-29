@@ -1,18 +1,28 @@
 from .base import BaseModel, UnknownModel
-from .topicsrc import TopicSrc
-from .channel import Channel
-from .input import AgentInput
+from .topicsrc import TopicSrcSpec
+from .channel import ChannelSpec
+from .input import AgentInputSpec
 from .output import AgentOutput
 from .agent import AgentSpec
 from .app import AppSpec
+from .pycode import PyCode
+from .processor import AgentProcessorSpec
+from .operations import (
+    AgentProcessorOperation, 
+    AgentProcessorOperationFilter
+)
 
 __all__ = [
     "BaseModel",
     "UnknownModel",
-    "TopicSrc",
-    "Channel",
-    "AgentInput",
+    "TopicSrcSpec",
+    "ChannelSpec",
+    "AgentInputSpec",
     "AgentOutput",
     "AgentSpec",
     "AppSpec",
+    "PyCode",
+    "AgentProcessorOperationFilter",
+    "AgentProcessorOperation",
+    "AgentProcessorSpec",
 ]

@@ -1,8 +1,8 @@
 from kaspr.types.models.base import BaseModel
-from kaspr.types.models.topicsrc import TopicSrc
-from kaspr.types.models.channel import Channel
+from kaspr.types.models.topicsrc import TopicSrcSpec
+from kaspr.types.models.channel import ChannelSpec
 from typing import Optional
 
 class AgentOutput(BaseModel):
-    topic: Optional[TopicSrc]
-    channel: Optional[Channel]
+    topic: Optional[TopicSrcSpec]
+    channel: Optional[ChannelSpec]

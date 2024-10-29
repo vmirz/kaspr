@@ -1,7 +1,12 @@
 import abc
 from mode import Seconds
-from typing import AsyncIterable, Sequence
+from typing import AsyncIterable, Sequence, TypeVar, Union, Awaitable, Callable
 from faust.types import StreamT, EventT
+
+# Used for typing StreamT[Withdrawal]
+T = TypeVar("T")
+
+Processor = Callable[[T], Union[T, Awaitable[T]]]
 
 
 class KasprStreamT(StreamT):
@@ -10,5 +15,7 @@ class KasprStreamT(StreamT):
     @abc.abstractmethod
     async def take_events(
         self, max_: int, within: Seconds
-    ) -> AsyncIterable[Sequence[EventT]]:
-        ...
+    ) -> AsyncIterable[Sequence[EventT]]: ...
+
+    @abc.abstractmethod
+    def filter(self, fun: Processor[T]) -> "KasprStreamT": ...

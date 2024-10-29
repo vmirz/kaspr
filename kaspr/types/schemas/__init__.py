@@ -1,17 +1,27 @@
 from .base import BaseSchema
-from .topicsrc import TopicSrcSchema
-from .channel import ChannelSchema
-from .input import AgentInputSchema
+from .topicsrc import TopicSrcSpecSchema
+from .channel import ChannelSpecSchema
+from .input import AgentInputSpecSchema
 from .output import AgentOutputSchema
 from .agent import AgentSpecSchema
 from .app import AppSpecSchema
+from .processor import AgentProcessorSpecSchema
+from .pycode import PyCodeSchema
+from .operations import (
+    AgentProcessorOperationSchema, 
+    AgentProcessorOperationFilterSchema
+)
 
 __all__ = [
     "BaseSchema",
-    "TopicSrcSchema",
-    "ChannelSchema",
-    "AgentInputSchema",
+    "TopicSrcSpecSchema",
+    "ChannelSpecSchema",
+    "AgentInputSpecSchema",
     "AgentOutputSchema",
     "AgentSpecSchema",
     "AppSpecSchema",
+    "AgentProcessorSpecSchema",
+    "PyCodeSchema",
+    "AgentProcessorOperationFilterSchema",
+    "AgentProcessorOperationSchema",
 ]

@@ -9,6 +9,9 @@ from .checkpoint import CheckpointT
 from .table import CustomTableT
 from .builder import AppBuilderT
 from .stream import KasprStreamT
+from .agent import KasprAgentT
+from .channel import KasprChannelT
+from .topic import KasprTopicT
 
 __all__ = [
     "TTLocation",
@@ -25,4 +28,7 @@ __all__ = [
     "CustomTableT",
     "AppBuilderT",
     "KasprStreamT",
+    "KasprAgentT",
+    "KasprChannelT",
+    "KasprTopicT",
 ]

@@ -1,18 +1,17 @@
 from kaspr.types.schemas.base import BaseSchema
-from kaspr.types.schemas.topicsrc import TopicSrcSchema
-from kaspr.types.schemas.channel import ChannelSchema
+from kaspr.types.schemas.topicsrc import TopicSrcSpecSchema
+from kaspr.types.schemas.channel import ChannelSpecSchema
 from marshmallow import fields
-from kaspr.types.models import Channel
-from kaspr.types.models import AgentInput
+from kaspr.types.models import AgentInputSpec
 
-class AgentInputSchema(BaseSchema):
-    __model__ = AgentInput
+class AgentInputSpecSchema(BaseSchema):
+    __model__ = AgentInputSpec
 
-    topic = fields.Nested(
-        TopicSrcSchema(), data_key="topic", allow_none=True, load_default=None
+    topic_spec = fields.Nested(
+        TopicSrcSpecSchema(), data_key="topic", allow_none=True, load_default=None
     )
-    channel = fields.Nested(
-        ChannelSchema(),
+    channel_spec = fields.Nested(
+        ChannelSpecSchema(),
         data_key="channel",
         allow_none=True,
         load_default=None,
