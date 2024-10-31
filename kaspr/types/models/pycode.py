@@ -10,9 +10,11 @@ Function = Callable[[T], Union[T, Awaitable[T]]]
 class PyCode(BaseModel):
     """Dynamic python code"""
 
+    init: str = None
     python: str
 
     _func: Function = None
+
 
     @property
     def func(self) -> Function:
@@ -20,7 +22,10 @@ class PyCode(BaseModel):
         if self._func is None:
             if self.python:
                 local_scope = {}
+                if self.init:
+                    exec(self.init, {}, local_scope)
                 exec(self.python, {}, local_scope)
+                # TODO: this is too flaky. find a better way to get *main* function
                 self._func = next(v for v in local_scope.values() if callable(v))
                 if not self._func:
                     raise ValueError("Python function not defined!")

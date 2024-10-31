@@ -9,7 +9,8 @@ from .pycode import PyCode
 from .processor import AgentProcessorSpec
 from .operations import (
     AgentProcessorOperation, 
-    AgentProcessorOperationFilter
+    AgentProcessorOperationFilter,
+    AgentProcessorOperationMap
 )
 
 __all__ = [
@@ -22,7 +23,8 @@ __all__ = [
     "AgentSpec",
     "AppSpec",
     "PyCode",
-    "AgentProcessorOperationFilter",
-    "AgentProcessorOperation",
     "AgentProcessorSpec",
+    "AgentProcessorOperation",    
+    "AgentProcessorOperationFilter",    
+    "AgentProcessorOperationMap"
 ]

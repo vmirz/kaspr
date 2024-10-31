@@ -9,13 +9,28 @@ class AgentProcessorOperationFilterSchema(PyCodeSchema):
     __model__ = AgentProcessorOperationFilter
 
 
+class AgentProcessorOperationMapSchema(PyCodeSchema):
+    __model__ = AgentProcessorOperationFilter
+
 class AgentProcessorOperationSchema(BaseSchema):
     __model__ = AgentProcessorOperation
 
     name = fields.String(data_key="name", required=True)
+    init = fields.Nested(
+        PyCodeSchema(),
+        data_key="init",
+        allow_none=True,
+        load_default=None,
+    )
     filter = fields.Nested(
         AgentProcessorOperationFilterSchema(),
         data_key="filter",
+        allow_none=True,
+        load_default=None,
+    )
+    map = fields.Nested(
+        AgentProcessorOperationMapSchema(),
+        data_key="map",
         allow_none=True,
         load_default=None,
     )

@@ -12,6 +12,7 @@ from .stream import KasprStreamT
 from .agent import KasprAgentT
 from .channel import KasprChannelT
 from .topic import KasprTopicT
+from .operation import AgentProcessorOperationT
 
 __all__ = [
     "TTLocation",
@@ -31,4 +32,5 @@ __all__ = [
     "KasprAgentT",
     "KasprChannelT",
     "KasprTopicT",
+    "AgentProcessorOperationT",
 ]
