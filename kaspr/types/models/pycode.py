@@ -1,47 +1,49 @@
 """PyCode model"""
 
 import inspect
-from typing import Union, Callable, TypeVar, Awaitable
+from typing import Union, Callable, TypeVar, Awaitable, Optional, Dict
 from kaspr.types.models.base import BaseModel
+from kaspr.types.code import CodeT
 
-T = TypeVar('T')
+T = TypeVar("T")
 Function = Callable[[T], Union[T, Awaitable[T]]]
 
-class PyCode(BaseModel):
-    """Dynamic python code"""
 
-    init: str = None
+class PyCode(CodeT, BaseModel):
+    """Python code"""
+
     python: str
 
-    _func: Function = None
+    _scope: Dict[str, T]
+    _func: Function
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._scope = {}
+        self._func = None
+
+    def with_scope(self, scope: Dict[str, T]) -> "PyCode":
+        """Set the scope for executing source code"""
+        self._scope = scope
+        return self
+
+    def clear_scope(self) -> "PyCode":
+        """Clear the scope"""
+        self._scope.clear()
+        return self
+    
+    def execute(self) -> "PyCode":
+        """Execute the source code"""
+        exec(self.python, self._scope)
+        # Find the first callable object in the scope - this will be the entrypoint function
+        self._func = next((v for v in self._scope.values() if callable(v)), None)
+        return self
 
     @property
-    def func(self) -> Function:
-        """Callable function derived from python string"""
-        if self._func is None:
-            if self.python:
-                local_scope = {}
-                if self.init:
-                    exec(self.init, {}, local_scope)
-                exec(self.python, {}, local_scope)
-                # TODO: this is too flaky. find a better way to get *main* function
-                self._func = next(v for v in local_scope.values() if callable(v))
-                if not self._func:
-                    raise ValueError("Python function not defined!")
+    def func(self) -> Optional[Function]:
+        self.execute()
         return self._func
-    
+
     @property
-    def is_async(self) -> bool:
-        """Check if the function is async"""
-        if self.func is None:
-            return False
-        return inspect.iscoroutinefunction(self.func)
-    
-    @property
-    def signature(self) -> inspect.Signature:
-        """Signature of the function"""
-        if self.func is None:
-            return None
-        return inspect.signature(self.func)
-    
+    def scope(self) -> Dict[str, T]:
+        return self._scope

@@ -1,5 +1,6 @@
 from kaspr.types.schemas.base import BaseSchema
 from kaspr.types.schemas.operations import AgentProcessorOperationSchema
+from kaspr.types.schemas.pycode import PyCodeSchema
 from marshmallow import fields
 from kaspr.types.models import AgentProcessorSpec
 
@@ -12,6 +13,12 @@ class AgentProcessorSpecSchema(BaseSchema):
         allow_none=False,
         load_default=[],
     )
+    init = fields.Nested(
+        PyCodeSchema(),
+        data_key="init",
+        allow_none=True,
+        load_default=None,
+    )    
     operations = fields.List(
         fields.Nested(
             AgentProcessorOperationSchema(), data_key="operations", required=True

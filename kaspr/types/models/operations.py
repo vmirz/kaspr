@@ -1,37 +1,35 @@
-from typing import Optional
+from typing import Dict, Optional
 from kaspr.types.models.base import BaseModel
 from kaspr.types.stream import KasprStreamT
 from kaspr.types.models.pycode import PyCode
-from kaspr.types.operation import AgentProcessorOperationT
+from kaspr.types.operation import AgentProcessorOperatorT
 
 
-class AgentProcessorOperationFilter(AgentProcessorOperationT, PyCode):
+class AgentProcessorFilterOperator(AgentProcessorOperatorT, PyCode):
+    
     def process(self, stream: KasprStreamT) -> KasprStreamT:
         return stream.filter(self.func)
 
 
-class AgentProcessorOperationMap(AgentProcessorOperationT, PyCode):
+class AgentProcessorMapOperator(AgentProcessorOperatorT, PyCode):
     def process(self, stream: KasprStreamT) -> KasprStreamT:
         stream.add_processor(self.func)
         return stream
 
+
 class AgentProcessorOperation(BaseModel):
     name: str
-    init: Optional[PyCode]
-    filter: Optional[AgentProcessorOperationFilter]
-    map: Optional[AgentProcessorOperationMap]
+    filter: Optional[AgentProcessorFilterOperator]
+    map: Optional[AgentProcessorMapOperator]
 
-    _operation: AgentProcessorOperationT = None
-
-    def process(self, stream: KasprStreamT) -> KasprStreamT:
-        """Process the stream with the provided operation."""
-        return self.operation.process(stream)
-
-    def prepare_operation(self) -> AgentProcessorOperationT:
+    _operator: AgentProcessorOperatorT = None
+    
+    def get_operator(self) -> AgentProcessorOperatorT:
+        """Get the specific operator type for this operation block."""
         return next((x for x in [self.filter, self.map] if x is not None), None)
 
     @property
-    def operation(self) -> AgentProcessorOperationT:
-        if self._operation is None:
-            self._operation = self.prepare_operation()
-        return self._operation
+    def operator(self) -> AgentProcessorOperatorT:
+        if self._operator is None:
+            self._operator = self.get_operator()
+        return self._operator
