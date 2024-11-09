@@ -15,4 +15,4 @@ class TopicSrcSpecSchema(BaseSchema):
     @validates_schema
     def validate_schema(self, data: Dict, **kwargs):
         if data.get("pattern") and data.get("names"):
-            raise ValueError("Only one of 'pattern' or 'names' can be specified")
+            raise ValueError("Only one of 'pattern' or 'names' can be provided, but not both.")
