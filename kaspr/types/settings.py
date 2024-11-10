@@ -207,10 +207,10 @@ WEB_PORT: int = int(_getenv("WEB_PORT", "6066"))
 #: Base http path for serving metrics
 WEB_METRICS_BASE_PATH = _getenv("WEB_METRICS_BASE_PATH", "")
 
-#: Directory path to app builder definition file(s).
+#: Directory path to app component definition file(s).
 #: This path will be treated as relative to appdir, unless the provided
 #: path is absolute.
-APP_BUILDER_DIR = _getenv("APP_BUILDER_DIR", "builders")
+DEFINITIONS_DIR = _getenv("DEFINITIONS_DIR", "builders")
 
 #: Enable building of stream processors from definition file(s).
 # Set this to False if you don't want to allow defining stream processors with configuration.
@@ -274,7 +274,7 @@ class CustomSettings(Settings):
 
     _worker_name: str = None
     _kafka_credentials: CredentialsT = None
-    _buildersdir: Path = None
+    _definitionsdir: Path = None
 
     def __init__(
         self,
@@ -310,7 +310,7 @@ class CustomSettings(Settings):
         web_base_path: str = None,
         web_port: int = None,
         web_metrics_base_path: str = None,
-        builders_dir: str = None,
+        definitions_dir: str = None,
         app_builder_enabled: bool = None,
         AppBuilder: SymbolArg[Type[AppBuilderT]] = None,
         **kwargs,
@@ -357,7 +357,7 @@ class CustomSettings(Settings):
             **kwargs,
         )
 
-        self.buildersdir = cast(Path, builders_dir or APP_BUILDER_DIR)
+        self.definitionssdir = cast(Path, definitions_dir or DEFINITIONS_DIR)
 
         if app_builder_enabled is not None:
             self.app_builder_enabled = app_builder_enabled
@@ -500,8 +500,8 @@ class CustomSettings(Settings):
             # last resort: generate a random number
             return random.randint(1000, 1999)
 
-    def _prepare_buildersdir(self, buildersdir: Union[str, Path]) -> Path:
-        return self._appdir_path(self._Path(buildersdir))
+    def _prepare_definitionsdir(self, definitionsdir: Union[str, Path]) -> Path:
+        return self._appdir_path(self._Path(definitionsdir))
 
     @property
     def kafka_credentials(self) -> CredentialsT:
@@ -512,12 +512,12 @@ class CustomSettings(Settings):
         self._kafka_credentials = credentials
 
     @property
-    def buildersdir(self) -> Path:
-        return self._buildersdir
+    def definitionssdir(self) -> Path:
+        return self._definitionsdir
 
-    @buildersdir.setter
-    def buildersdir(self, buildersdir: Union[Path, str]) -> None:
-        self._buildersdir = self._prepare_buildersdir(buildersdir)
+    @definitionssdir.setter
+    def definitionssdir(self, definitionsdir: Union[Path, str]) -> None:
+        self._definitionsdir = self._prepare_definitionsdir(definitionsdir)
 
     @property
     def worker_name(self):

@@ -103,7 +103,7 @@ class KasprApp(KasprAppT, faust.App):
 
     def _create_directories(self) -> None:
         super()._create_directories()
-        self.conf.buildersdir.mkdir(exist_ok=True)
+        self.conf.definitionssdir.mkdir(exist_ok=True)
 
     @cached_property
     def scheduler(self) -> MessageSchedulerT:

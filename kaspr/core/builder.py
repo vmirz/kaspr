@@ -11,7 +11,7 @@ from mode.utils.objects import cached_property
 
 
 class AppBuilder(AppBuilderT):
-    """Build stream processors from external definition files."""
+    """Build stream processors from definition files."""
 
     app: KasprAppT = None
 
@@ -37,8 +37,8 @@ class AppBuilder(AppBuilderT):
         return apps
 
     def _load_apps(self) -> List[AppSpec]:
-        """Load apps specs from files."""
-        return self._load(self._files(self.app.conf.buildersdir))
+        """Load app component definitions."""
+        return self._load(self._files(self.app.conf.definitionssdir))
 
     def _prepare_agents(self) -> List[AgentSpec]:
         """Prepare agents from loaded definitions."""
