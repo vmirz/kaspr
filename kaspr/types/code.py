@@ -1,8 +1,10 @@
 import abc
-from typing import Union, Dict, TypeVar
+from typing import Union, Dict, TypeVar, Callable, Awaitable
 from kaspr.types.stream import KasprStreamT
 
 T = TypeVar("T")
+
+Function = Callable[[T], Union[T, Awaitable[T]]]
 
 class CodeT:
     
@@ -11,3 +13,7 @@ class CodeT:
 
     @abc.abstractmethod
     def execute(self, stream: KasprStreamT) -> Union["CodeT", None]: ...    
+
+    @property
+    def func(self) -> Callable[[T], Union[T, Awaitable[T]]]:
+        ...

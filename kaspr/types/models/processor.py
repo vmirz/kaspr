@@ -1,4 +1,6 @@
 from typing import Optional, List, Awaitable, Any, Callable
+from kaspr.utils import maybe_async, ensure_generator
+from kaspr.exceptions import Skip
 from kaspr.types.models.base import BaseModel
 from kaspr.types.models.operations import AgentProcessorOperation
 from kaspr.types.models.pycode import PyCode
@@ -18,21 +20,48 @@ class AgentProcessorSpec(BaseModel):
     def prepare_processor(self) -> Callable[..., Awaitable[Any]]:
         operations = {op.name: op for op in self.operations}
 
-        async def _main(stream: KasprStreamT):
+        async def _aprocessor(stream: KasprStreamT):
             init_scope = self.init.execute().scope if self.init else {}
-            _stream = stream
-            for name in self.pipeline:
-                operation = operations[name]
-                operation.operator.with_scope(init_scope)
-                _stream = operation.operator.process(_stream)
+            context = {"app": stream.app}
+            ops = [operations[name] for name in self.pipeline]
             try:
-                async for event in _stream:
-                    print(event)
+                async for value in stream:
+                    operation = ops[0]
+                    operator = operation.operator
+                    scope = {
+                        **init_scope,
+                        "context": {**context, "event": stream.current_event},
+                    }
+                    operator.with_scope(scope)
+                    value = await operator.process(value)
+                    if value == operator.skip_value:
+                        continue
+                    gen = ensure_generator(value)
+                    for value in gen:
+                        # Start with the initial value
+                        current_values = [value]
+                        for operation in ops[1:]:
+                            operator = operation.operator
+                            next_values = []
+                            for current_value in current_values:
+                                scope = {
+                                    **init_scope,
+                                    "context": {**context, "event": stream.current_event},
+                                }
+                                operator.with_scope(scope)
+                                value = await operator.process(current_value)
+                                if value == operator.skip_value:
+                                    continue
+                                # Collect all results
+                                next_values.extend(ensure_generator(value))
+                            # Update for the next callback
+                            current_values = next_values
+
             except Exception as e:
                 self.on_error(e)
                 raise
 
-        return _main
+        return _aprocessor
 
     def on_error(self, e: Exception):
         """Handle errors in the processor."""

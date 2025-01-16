@@ -1,9 +1,9 @@
 import re
 import math
-import inspect
+from inspect import signature, isawaitable, isgenerator
 from functools import wraps
 from datetime import datetime, timezone
-from typing import Optional, Iterator, List, Mapping
+from typing import Optional, Iterator, List, Mapping, Any
 
 DEFAULT_DATE_FORMAT = "%Y-%m-%d"
 
@@ -96,7 +96,7 @@ def null_if_any(*required):
         if required:
             required_indices = [
                 i
-                for i, param in enumerate(inspect.signature(func).parameters)
+                for i, param in enumerate(signature(func).parameters)
                 if param in required
             ]
 
@@ -166,3 +166,23 @@ def ensure_dollars(val) -> float:
 def ensure_date(dtstr, format=DEFAULT_DATE_FORMAT):
     """Converts input datetime string to YYYY-MM-DD format"""
     return datetime.fromisoformat(dtstr).strftime(format)
+
+async def maybe_async(res: Any) -> Any:
+    """Await future if argument is Awaitable.
+
+    Examples:
+        >>> await maybe_async(regular_function(arg))
+        >>> await maybe_async(async_function(arg))
+    """
+    if isawaitable(res):
+        return await res
+    return res
+
+def ensure_generator(obj) -> Iterator:
+    """
+    Ensures that the given object is a generator.
+    If it's not a generator, wrap it in a generator.
+    """
+    if isgenerator(obj):
+        return obj  # Already a generator
+    return (obj for _ in range(1))  # Wrap non-generator in a generator

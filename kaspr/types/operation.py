@@ -1,11 +1,12 @@
 import abc
-from typing import Union, TypeVar, Dict
-from kaspr.types.stream import KasprStreamT
+from typing import Union, TypeVar
 from kaspr.types.code import CodeT
 
 T = TypeVar("T")
 
 class AgentProcessorOperatorT(CodeT):
-    
+
+    skip_value = object()
+
     @abc.abstractmethod
-    def process(self, stream: KasprStreamT) -> Union["KasprStreamT", None]: ...    
+    async def process(self, value: T) -> Union["T", None]: ...    

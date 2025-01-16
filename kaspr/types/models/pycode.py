@@ -1,6 +1,5 @@
 """PyCode model"""
 
-import inspect
 from typing import Union, Callable, TypeVar, Awaitable, Optional, Dict
 from kaspr.types.models.base import BaseModel
 from kaspr.types.code import CodeT

@@ -1,20 +1,24 @@
-from typing import Dict, Optional
+from typing import Optional, TypeVar
+from kaspr.utils import maybe_async
+from kaspr.exceptions import Skip
 from kaspr.types.models.base import BaseModel
-from kaspr.types.stream import KasprStreamT
 from kaspr.types.models.pycode import PyCode
 from kaspr.types.operation import AgentProcessorOperatorT
 
+T = TypeVar("T")
 
 class AgentProcessorFilterOperator(AgentProcessorOperatorT, PyCode):
     
-    def process(self, stream: KasprStreamT) -> KasprStreamT:
-        return stream.filter(self.func)
+    async def process(self, value: T) -> T:
+        if not await maybe_async(self.func(value)):
+            return self.skip_value
+        else:
+            return value
 
 
 class AgentProcessorMapOperator(AgentProcessorOperatorT, PyCode):
-    def process(self, stream: KasprStreamT) -> KasprStreamT:
-        stream.add_processor(self.func)
-        return stream
+    async def process(self, value: T) -> T:
+        return await maybe_async(self.func(value))
 
 
 class AgentProcessorOperation(BaseModel):

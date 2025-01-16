@@ -2,7 +2,6 @@ from .base import BaseModel, UnknownModel
 from .topicsrc import TopicSrcSpec
 from .channel import ChannelSpec
 from .input import AgentInputSpec
-from .output import AgentOutput
 from .agent import AgentSpec
 from .app import AppSpec
 from .pycode import PyCode
@@ -19,7 +18,6 @@ __all__ = [
     "TopicSrcSpec",
     "ChannelSpec",
     "AgentInputSpec",
-    "AgentOutput",
     "AgentSpec",
     "AppSpec",
     "PyCode",
