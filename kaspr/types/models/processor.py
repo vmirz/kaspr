@@ -1,14 +1,13 @@
 from typing import Optional, List, Awaitable, Any, Callable
-from kaspr.utils import maybe_async, ensure_generator
-from kaspr.exceptions import Skip
-from kaspr.types.models.base import BaseModel
+from kaspr.utils.functional import ensure_generator
+from kaspr.types.models.base import SpecComponent
 from kaspr.types.models.operations import AgentProcessorOperation
 from kaspr.types.models.pycode import PyCode
 from kaspr.types.app import KasprAppT
 from kaspr.types.stream import KasprStreamT
 
 
-class AgentProcessorSpec(BaseModel):
+class AgentProcessorSpec(SpecComponent):
     pipeline: Optional[List[str]]
     init: Optional[PyCode]
     operations: List[AgentProcessorOperation]
@@ -19,10 +18,10 @@ class AgentProcessorSpec(BaseModel):
 
     def prepare_processor(self) -> Callable[..., Awaitable[Any]]:
         operations = {op.name: op for op in self.operations}
-
+        
         async def _aprocessor(stream: KasprStreamT):
             init_scope = self.init.execute().scope if self.init else {}
-            context = {"app": stream.app}
+            context = {"app": self.app}
             ops = [operations[name] for name in self.pipeline]
             try:
                 async for value in stream:
@@ -41,8 +40,8 @@ class AgentProcessorSpec(BaseModel):
                         # Start with the initial value
                         current_values = [value]
                         for operation in ops[1:]:
-                            operator = operation.operator
                             next_values = []
+                            operator = operation.operator
                             for current_value in current_values:
                                 scope = {
                                     **init_scope,
@@ -56,6 +55,16 @@ class AgentProcessorSpec(BaseModel):
                                 next_values.extend(ensure_generator(value))
                             # Update for the next callback
                             current_values = next_values
+
+                        for value in current_values:
+                            # for sink in self.:
+                            #     if isinstance(sink, AgentT):
+                            #         await sink.send(value=value)
+                            #     elif isinstance(sink, ChannelT):
+                            #         await cast(TopicT, sink).send(value=value)
+                            #     else:
+                            #         await maybe_async(cast(Callable, sink)(value))
+                            yield value
 
             except Exception as e:
                 self.on_error(e)
@@ -72,3 +81,13 @@ class AgentProcessorSpec(BaseModel):
         if self._processor is None:
             self._processor = self.prepare_processor()
         return self._processor
+    
+    @property
+    def label(self) -> str:
+        """Return description, used in graphs and logs."""
+        return f'{type(self).__name__}'
+
+    @property
+    def shortlabel(self) -> str:
+        """Return short description."""
+        return self.label    

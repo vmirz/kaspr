@@ -16,7 +16,7 @@ from kaspr.types import (
     PT,
 )
 from kaspr.sensors.kaspr import KasprMonitor
-from kaspr.utils import iso_datestr_to_datetime
+from kaspr.utils.functional import iso_datestr_to_datetime
 from kaspr.scheduler import Checkpoint, Dispatcher, Janitor
 from .utils import (
     create_message_key,

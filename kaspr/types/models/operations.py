@@ -1,7 +1,6 @@
 from typing import Optional, TypeVar
-from kaspr.utils import maybe_async
-from kaspr.exceptions import Skip
-from kaspr.types.models.base import BaseModel
+from kaspr.utils.functional import maybe_async
+from kaspr.types.models.base import SpecComponent
 from kaspr.types.models.pycode import PyCode
 from kaspr.types.operation import AgentProcessorOperatorT
 
@@ -21,7 +20,7 @@ class AgentProcessorMapOperator(AgentProcessorOperatorT, PyCode):
         return await maybe_async(self.func(value))
 
 
-class AgentProcessorOperation(BaseModel):
+class AgentProcessorOperation(SpecComponent):
     name: str
     filter: Optional[AgentProcessorFilterOperator]
     map: Optional[AgentProcessorMapOperator]
@@ -37,3 +36,13 @@ class AgentProcessorOperation(BaseModel):
         if self._operator is None:
             self._operator = self.get_operator()
         return self._operator
+
+    @property
+    def label(self) -> str:
+        """Return description, used in graphs and logs."""
+        return f'{type(self).__name__}: {self.name}'
+
+    @property
+    def shortlabel(self) -> str:
+        """Return short description."""
+        return self.label

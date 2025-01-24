@@ -1,12 +1,12 @@
 from typing import Optional
-from kaspr.types.models.base import BaseModel
+from kaspr.types.models.base import SpecComponent
 from kaspr.types.models.topicsrc import TopicSrcSpec
 from kaspr.types.models.channel import ChannelSpec
 from kaspr.types.app import KasprAppT
 from kaspr.types.channel import KasprChannelT
 
 
-class AgentInputSpec(BaseModel):
+class AgentInputSpec(SpecComponent):
     topic_spec: Optional[TopicSrcSpec]
     channel_spec: Optional[ChannelSpec]
 
@@ -25,3 +25,13 @@ class AgentInputSpec(BaseModel):
         if self._channel is None:
             self._channel = self.prepre_channel()
         return self._channel
+
+    @property
+    def label(self) -> str:
+        """Return description, used in graphs and logs."""
+        return f'{type(self).__name__}: {", ".join(self.topic_spec.names)}'
+
+    @property
+    def shortlabel(self) -> str:
+        """Return short description."""
+        return self.label

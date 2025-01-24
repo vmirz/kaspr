@@ -1,14 +1,14 @@
 """PyCode model"""
 
 from typing import Union, Callable, TypeVar, Awaitable, Optional, Dict
-from kaspr.types.models.base import BaseModel
+from kaspr.types.models.base import SpecComponent
 from kaspr.types.code import CodeT
 
 T = TypeVar("T")
 Function = Callable[[T], Union[T, Awaitable[T]]]
 
 
-class PyCode(CodeT, BaseModel):
+class PyCode(CodeT, SpecComponent):
     """Python code"""
 
     python: str
@@ -46,3 +46,13 @@ class PyCode(CodeT, BaseModel):
     @property
     def scope(self) -> Dict[str, T]:
         return self._scope
+
+    @property
+    def label(self) -> str:
+        """Return description, used in graphs and logs."""
+        return f'{type(self).__name__}'
+
+    @property
+    def shortlabel(self) -> str:
+        """Return short description."""
+        return self.label

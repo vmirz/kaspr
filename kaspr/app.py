@@ -47,7 +47,7 @@ app = KasprApp(
     # The maximum number of records returned in a single call to poll()
     broker_max_poll_records=100,
     table_cleanup_interval=10,
-    # A app.Table class with customized behavior
+    Agent="kaspr.core.agent.KasprAgent",
     Table="kaspr.core.table.KasprTable",
     GlobalTable="kaspr.core.table.KasprGlobalTable",
     Stream="kaspr.core.stream.KasprStream",
