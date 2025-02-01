@@ -8,10 +8,8 @@ class AgentOutputSpecSchema(BaseSchema):
     __model__ = AgentOutputSpec
 
     topics_spec = fields.List(
-        fields.Nested(
-            TopicOutSpecSchema(), allow_none=True, load_default=None
-        ),
-        data_key="topics", 
+        fields.Nested(TopicOutSpecSchema(), allow_none=True, load_default=None),
+        data_key="topics",
         allow_none=True,
         load_default=None,
     )

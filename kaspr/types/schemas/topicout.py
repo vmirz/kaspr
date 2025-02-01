@@ -19,11 +19,14 @@ class AgentOutputTopicKeySelectorSchema(PyCodeSchema):
 class AgentOutputTopicValueSelectorSchema(PyCodeSchema):
     __model__ = AgentOutputTopicValueSelector
 
+
 class AgentOutputTopicPartitionSelectorSchema(PyCodeSchema):
     __model__ = AgentOutputTopicPartitionSelector
 
+
 class AgentOutputTopicHeadersSelectorSchema(PyCodeSchema):
     __model__ = AgentOutputTopicHeadersSelector
+
 
 class AgentOutputTopicPredicateSchema(PyCodeSchema):
     __model__ = AgentOutputTopicPredicate
@@ -62,7 +65,7 @@ class TopicOutSpecSchema(BaseSchema):
         data_key="headers_selector",
         allow_none=True,
         load_default=None,
-    )    
+    )
     predicate = fields.Nested(
         AgentOutputTopicPredicateSchema(),
         data_key="predicate",
