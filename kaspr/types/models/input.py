@@ -7,6 +7,9 @@ from kaspr.types.channel import KasprChannelT
 
 
 class AgentInputSpec(SpecComponent):
+    """Agent input specification.
+    Input can be either a topic or an in-memory channel.
+    """
     topic_spec: Optional[TopicSrcSpec]
     channel_spec: Optional[ChannelSpec]
 
@@ -16,7 +19,7 @@ class AgentInputSpec(SpecComponent):
     def prepre_channel(self) -> KasprChannelT:
         return (
             self.topic_spec.topic
-            if self.topic_spec and (self.topic_spec.names or self.topic_spec.pattern)
+            if self.topic_spec and (self.topic_spec.name or self.topic_spec.pattern)
             else self.channel_spec.channel
         )
 
@@ -29,7 +32,9 @@ class AgentInputSpec(SpecComponent):
     @property
     def label(self) -> str:
         """Return description, used in graphs and logs."""
-        return f'{type(self).__name__}: {", ".join(self.topic_spec.names)}'
+        return (
+            f"{type(self).__name__}: {self.topic_spec.name or self.topic_spec.pattern}"
+        )
 
     @property
     def shortlabel(self) -> str:

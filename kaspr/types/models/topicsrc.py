@@ -1,11 +1,13 @@
-from typing import Optional, List
+from typing import Optional
 from kaspr.types.models.base import SpecComponent
 from kaspr.types.app import KasprAppT
 from kaspr.types.topic import KasprTopicT
 
 
 class TopicSrcSpec(SpecComponent):
-    names: List[str]
+    """Source topic specification."""
+    
+    name: str
     pattern: Optional[str]
     key_serializer: Optional[str]
     value_serializer: Optional[str]
@@ -15,7 +17,7 @@ class TopicSrcSpec(SpecComponent):
 
     def prepare_topic(self):
         return self.app.topic(
-            *self.names,
+            self.name,
             pattern=self.pattern,
             key_serializer=self.key_serializer,
             value_serializer=self.value_serializer,

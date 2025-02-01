@@ -9,7 +9,7 @@ Function = Callable[[T], Union[T, Awaitable[T]]]
 
 
 class PyCode(CodeT, SpecComponent):
-    """Python code"""
+    """Python code definition"""
 
     python: str
 

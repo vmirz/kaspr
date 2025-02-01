@@ -2,12 +2,14 @@ from typing import Optional, List, Awaitable, Any, Callable
 from kaspr.utils.functional import ensure_generator
 from kaspr.types.models.base import SpecComponent
 from kaspr.types.models.operations import AgentProcessorOperation
+from kaspr.types.models.output import AgentOutputSpec
 from kaspr.types.models.pycode import PyCode
 from kaspr.types.app import KasprAppT
 from kaspr.types.stream import KasprStreamT
 
-
 class AgentProcessorSpec(SpecComponent):
+    """Processor specification."""
+    
     pipeline: Optional[List[str]]
     init: Optional[PyCode]
     operations: List[AgentProcessorOperation]
@@ -15,9 +17,11 @@ class AgentProcessorSpec(SpecComponent):
     app: KasprAppT = None
 
     _processor: Callable[..., Awaitable[Any]] = None
+    _output: AgentOutputSpec = None
 
     def prepare_processor(self) -> Callable[..., Awaitable[Any]]:
         operations = {op.name: op for op in self.operations}
+        output = self.output
         
         async def _aprocessor(stream: KasprStreamT):
             init_scope = self.init.execute().scope if self.init else {}
@@ -64,7 +68,11 @@ class AgentProcessorSpec(SpecComponent):
                             #         await cast(TopicT, sink).send(value=value)
                             #     else:
                             #         await maybe_async(cast(Callable, sink)(value))
-                            yield value
+                            # self.log.info(f"Processed value: {value}")
+
+                            if output:
+                                await output.send(value)
+                            #yield value
 
             except Exception as e:
                 self.on_error(e)
@@ -81,6 +89,14 @@ class AgentProcessorSpec(SpecComponent):
         if self._processor is None:
             self._processor = self.prepare_processor()
         return self._processor
+    
+    @property
+    def output(self) -> AgentOutputSpec:
+        return self._output
+    
+    @output.setter
+    def output(self, outputs: AgentOutputSpec):
+        self._output = outputs
     
     @property
     def label(self) -> str:

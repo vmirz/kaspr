@@ -4,6 +4,7 @@ from kaspr.types.schemas.channel import ChannelSpecSchema
 from marshmallow import fields
 from kaspr.types.models import AgentInputSpec
 
+
 class AgentInputSpecSchema(BaseSchema):
     __model__ = AgentInputSpec
 

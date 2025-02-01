@@ -1,7 +1,7 @@
-import asyncio
 from typing import Optional
 from kaspr.types.models.base import SpecComponent
 from kaspr.types.models.input import AgentInputSpec
+from kaspr.types.models.output import AgentOutputSpec
 from kaspr.types.models.processor import AgentProcessorSpec
 from kaspr.types.app import KasprAppT
 from kaspr.types.agent import KasprAgentT
@@ -10,7 +10,8 @@ from kaspr.types.agent import KasprAgentT
 class AgentSpec(SpecComponent):
     name: str
     description: Optional[str]
-    inputs: AgentInputSpec
+    input: AgentInputSpec
+    output: AgentOutputSpec
     processors: AgentProcessorSpec
 
     app: KasprAppT = None
@@ -19,9 +20,11 @@ class AgentSpec(SpecComponent):
 
     def prepare_agent(self) -> KasprAgentT:
         self.log.info("Preparing...")
+        processors = self.processors
+        processors.output = self.output
         return self.app.agent(
-            self.inputs.channel, name=self.name
-        )(self.processors.processor)
+            self.input.channel, name=self.name
+        )(processors.processor)
 
     @property
     def agent(self) -> KasprAgentT:

@@ -1,9 +1,9 @@
 """Build stream processors from external definition files."""
 
 import yaml
-from typing import Dict, List
+from typing import List
 from pathlib import Path
-from kaspr.types import KasprAppT, AppBuilderT, KasprStreamT
+from kaspr.types import KasprAppT, AppBuilderT
 from kaspr.types.models import AppSpec, AgentSpec
 from kaspr.types.schemas import AppSpecSchema
 
