@@ -2,6 +2,7 @@ import yaml
 from marshmallow import fields
 from kaspr.types.schemas.base import BaseSchema
 from kaspr.types.schemas.agent import AgentSpecSchema
+from kaspr.types.schemas.webview import WebViewSpecSchema
 from kaspr.types.models import AppSpec
 from kaspr.types import KasprAppT
 
@@ -10,9 +11,17 @@ class AppSpecSchema(BaseSchema):
     __model__ = AppSpec
 
     agents_spec = fields.List(
-        fields.Nested(AgentSpecSchema(), allow_none=False, load_default=[]),
+        fields.Nested(AgentSpecSchema(), allow_none=False),
         data_key="agents",
-        required=False,
+        load_default=[],
+        required=False
+    )
+
+    webviews_spec = fields.List(
+        fields.Nested(WebViewSpecSchema(), allow_none=False),
+        data_key="webviews",
+        load_default=[],
+        required=False
     )
 
     @classmethod

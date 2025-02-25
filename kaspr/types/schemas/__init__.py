@@ -13,6 +13,15 @@ from .operations import (
     AgentProcessorFilterOperatorSchema,
     AgentProcessorMapOperatorSchema
 )
+from .webview import (
+    WebViewSpecSchema,
+    WebViewResponseSpecSchema,
+    WebViewRequestSpecSchema,
+    WebViewProcessorSpecSchema,
+    WebViewProcessorOperationSchema,
+    WebViewProcessorTopicSendOperatorSchema,
+    WebViewProcessorMapOperatorSchema
+)
 
 __all__ = [
     "BaseSchema",
@@ -28,4 +37,11 @@ __all__ = [
     "AgentProcessorOperationSchema",
     "AgentProcessorFilterOperatorSchema",
     "AgentProcessorMapOperatorSchema",
+    "WebViewSpecSchema",
+    "WebViewResponseSpecSchema",
+    "WebViewRequestSpecSchema",
+    "WebViewProcessorSpecSchema",
+    "WebViewProcessorOperationSchema",
+    "WebViewProcessorTopicSendOperatorSchema",
+    "WebViewProcessorMapOperatorSchema"
 ]

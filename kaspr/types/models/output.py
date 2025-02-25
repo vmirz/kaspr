@@ -26,16 +26,9 @@ class AgentOutputSpec(SpecComponent):
                 ts = cast(TopicOutSpec, ts)
                 if ts.should_skip(value):
                     continue
-                await ts.topic.send(
-                    key_serializer=ts.key_serializer,
-                    value_serializer=ts.value_serializer,
-                    key=ts.get_key(value),
-                    value=ts.get_value(value),
-                    partition=ts.get_partition(value),
-                    headers=ts.get_headers(value),
-                )
+                await ts.send(value)
 
-    def prepre_topics(self) -> Iterable[KasprTopicT]:
+    def prepare_topics(self) -> Iterable[KasprTopicT]:
         if self.topics_spec:
             return [topic.topic for topic in self.topics_spec]
         return []
@@ -43,7 +36,7 @@ class AgentOutputSpec(SpecComponent):
     @property
     def topics(self) -> Iterable[KasprTopicT]:
         if self._topics is None:
-            self._topics = self.prepre_topics()
+            self._topics = self.prepare_topics()
         return self._topics
 
     @property

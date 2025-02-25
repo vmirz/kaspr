@@ -1,4 +1,4 @@
-from typing import Optional, List, TypeVar, Callable, Union, Awaitable
+from typing import Optional, List, TypeVar, Callable, Union, Awaitable, OrderedDict
 from kaspr.types.models.base import SpecComponent
 from kaspr.types.app import KasprAppT
 from kaspr.types.topic import KasprTopicT
@@ -27,6 +27,7 @@ class TopicOutSpec(SpecComponent):
     """Output topic specification."""
     
     name: List[str]
+    ack: Optional[bool]
     key_serializer: Optional[str]
     value_serializer: Optional[str]
     key_selector: Optional[AgentOutputTopicKeySelector]
@@ -43,6 +44,23 @@ class TopicOutSpec(SpecComponent):
     _headers_selector_func: Function = None
     _predicate_func: Function = None
 
+    async def send(self, value: T) -> Union[None, OrderedDict]:
+        """Send value to topic according to spec.
+        
+        If ack is True, returns metadata (offset, timestamp, etc).
+        of the sent message.
+        """
+        res = await self.topic.send(
+            key_serializer=self.key_serializer,
+            value_serializer=self.value_serializer,
+            key=self.get_key(value),
+            value=self.get_value(value),
+            partition=self.get_partition(value),
+            headers=self.get_headers(value),
+        )
+        if self.ack:
+            return (await res)._asdict()
+                
     def get_key(self, value: T) -> T:
         """Get key from value"""
         if self.key_selector_func is not None:
@@ -117,7 +135,7 @@ class TopicOutSpec(SpecComponent):
     @property
     def predicate_func(self):
         """Predicate function"""
-        if self._predicate_func is None:
+        if self._predicate_func is None and self.predicate:
             self._predicate_func = self.predicate.func
         return self._predicate_func
 

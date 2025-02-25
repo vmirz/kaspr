@@ -36,6 +36,7 @@ class TopicOutSpecSchema(BaseSchema):
     __model__ = TopicOutSpec
 
     name = fields.Str(data_key="name", required=True)
+    ack = fields.Bool(data_key="ack", allow_none=True, load_default=False)
     key_serializer = fields.Str(
         data_key="key_serializer", allow_none=True, load_default=None
     )

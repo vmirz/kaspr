@@ -4,9 +4,8 @@ import yaml
 from typing import List
 from pathlib import Path
 from kaspr.types import KasprAppT, AppBuilderT
-from kaspr.types.models import AppSpec, AgentSpec
+from kaspr.types.models import AppSpec, AgentSpec, WebViewSpec
 from kaspr.types.schemas import AppSpecSchema
-
 from mode.utils.objects import cached_property
 
 
@@ -17,6 +16,7 @@ class AppBuilder(AppBuilderT):
 
     _apps: List[AppSpec] = None
     _agents: List[AgentSpec] = None
+    _webviews: List[WebViewSpec] = None
 
     def __init__(self, app: KasprAppT) -> None:
         self.app = app
@@ -46,11 +46,19 @@ class AppBuilder(AppBuilderT):
         for app in self.apps:
             agents.extend(app.agents_spec)
         return agents
+    
+    def _prepare_webviews(self) -> List[WebViewSpec]:
+        """Prepare webviews from loaded definitions."""
+        webviews = []
+        for app in self.apps:
+            webviews.extend(app.webviews_spec)
+        return webviews
 
     def build(self) -> None:
-        """Build agents, tasks, etc. from external definition files."""
+        """Build agents, tasks, etc. from definition files."""
         for app in self.apps:
             app.agents
+            app.webviews
 
     @cached_property
     def apps(self) -> List[AppSpec]:
@@ -63,127 +71,9 @@ class AppBuilder(AppBuilderT):
         if self._agents is None:
             self._agents = self._prepare_agents()
         return self._agents
-
-
-
-
-# # operators are a form of data processing. 
-# # i.e. Arithamic operators, logical operators, comparison operators, 
-# # assignment operators, bitwise operators, etc. are some of the operators used in Python.
-
-# # terminal functions:
-# # - take
-
-# models: []
-# tables: []
-# agents:
-#   - name: inspector
-#     description: Compute transaction risk score
-#     inputs:
-#       topic:
-#         names: 
-#           - transactions
-#         #pattern: "transactions/*"
-#         key_serializer: json
-#         value_serializer: json
-#     processors: # AgentProcessors
-#       pipeline:
-#         #- remove-deposits
-#         - debug
-#         # - repartition
-#         # - compute-risk-score
-#         # - reformat
-#         # - batch
-#         # - send-to-output-topic
-#       init:
-#         python: |
-#           import uuid
-#           things = { 'id': "ABC" }
-#       operations: # AgentProcessorOperation
-#         # - name: remove-deposits
-#         #   filter:
-#         #     python: |
-#         #       def filter(transaction):
-#         #         return transaction['amount'] > 1000
-#         - name: debug
-#           map:
-#             python: |
-#               def simplify2(transaction):
-#                 print(things['id'])
-#                 return {
-#                   'transaction_id': things['id'],
-#                   'sales_dollars': transaction['amount'],
-#                 }
-#   - name: risk-evaluator
-#     description: Compute transaction risk score
-#     inputs:
-#       topic:
-#         names: 
-#           - transactions
-#         #pattern: "transactions/*"
-#         key_serializer: json
-#         value_serializer: json
-#     processors: # AgentProcessors
-#       pipeline:
-#         #- remove-deposits
-#         - reformat
-#         # - repartition
-#         # - compute-risk-score
-#         # - reformat
-#         # - batch
-#         # - send-to-output-topic
-#       init:
-#         python: |
-#           import uuid
-#           context = { 'id': str(uuid.uuid4()) }
-#       operations: # AgentProcessorOperation
-#         # - name: remove-deposits
-#         #   filter:
-#         #     python: |
-#         #       def filter(transaction):
-#         #         return transaction['amount'] > 1000
-#         - name: reformat
-#           map:
-#             python: |
-#               def simplify(transaction):
-#                 print(context['id'])
-#                 return {
-#                   'transaction_id': str(uuid.uuid4()),
-#                   'sales_dollars': transaction['amount'],
-#                 }
-#     #     - name: compute-risk-score
-#     #       custom:
-#     #         python:
-#     #           function: |
-#     #             def process(transaction):
-#     #               return {
-#     #                 'transaction_id': transaction['transaction_id'],
-#     #                 'risk_score': transaction['amount'] * 0.1
-#     #               }
-#     #     - name: reformat
-#     #       map:
-#     #         python: |
-#     #           def process(transaction):
-#     #             return {
-#     #               'transaction_id': transaction['transaction_id'],
-#     #               'risk_score': transaction['risk_score']
-#     #             }
-#     #     - name: repartition
-#     #       group_by:
-#     #         key:
-#     #           python: |
-#     #             def get_key(transaction):
-#     #               return transaction['user_id']
-#     #         topic: transactions-by-user-id
-#     #     - name: batch
-#     #       take:
-#     #         size: 100
-#     #         within: 0.5s
-#     #     - name: send-to-output-topic
-#     #       echo:
-#     #         topics: 
-#     #           - risk-scores
-#     # outputs:
-#     #   - topics:
-#     #       - risk-scores
-#     #       - risk-alerts
+    
+    @cached_property
+    def webviews(self) -> List[WebViewSpec]:
+        if self._webviews is None:
+            self._webviews = self._prepare_webviews()
+        return self._webviews
