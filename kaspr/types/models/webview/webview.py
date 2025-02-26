@@ -1,11 +1,10 @@
-from typing import Callable, TypeVar, Union, Awaitable, Type, Optional
+from typing import Callable, TypeVar, Union, Awaitable, Type, Optional, Any
 from kaspr.types.models.base import SpecComponent
 from kaspr.types.models.webview.request import WebViewRequestSpec
 from kaspr.types.models.webview.response import WebViewResponseSpec
 from kaspr.types.models.webview.processor import WebViewProcessorSpec
 from kaspr.types.app import KasprAppT
-from kaspr.types.webview import KasprWebViewT, View
-from kaspr.utils.functional import maybe_async
+from kaspr.types.webview import KasprWebViewT, View, Request
 
 T = TypeVar("T")
 Function = Callable[[T], Union[T, Awaitable[T]]]
@@ -35,13 +34,28 @@ class WebViewSpec(SpecComponent):
         processor = self.processors.processor
 
         class KasprWebView(View):
-            async def get(self, request, **kwargs):
+            async def head(self, request: Request, **kwargs: Any) -> Any:
                 return await processor(request, **kwargs)
 
-            async def post(self, request, **kwargs):
+            async def get(self, request: Request, **kwargs: Any) -> Any:
                 return await processor(request, **kwargs)
 
-            async def delete(self, request, **kwargs):
+            async def post(self, request: Request, **kwargs: Any) -> Any:
+                return await processor(request, **kwargs)
+
+            async def put(self, request: Request, **kwargs: Any) -> Any:
+                return await processor(request, **kwargs)
+
+            async def patch(self, request: Request, **kwargs: Any) -> Any:
+                return await processor(request, **kwargs)
+
+            async def delete(self, request: Request, **kwargs: Any) -> Any:
+                return await processor(request, **kwargs)
+
+            async def options(self, request: Request, **kwargs: Any) -> Any:
+                return await processor(request, **kwargs)
+
+            async def search(self, request: Request, **kwargs: Any) -> Any:
                 return await processor(request, **kwargs)
 
         return KasprWebView
