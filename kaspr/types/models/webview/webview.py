@@ -35,14 +35,14 @@ class WebViewSpec(SpecComponent):
         processor = self.processors.processor
 
         class KasprWebView(View):
-            async def get(self, request):
-                return await maybe_async(processor(request))
+            async def get(self, request, **kwargs):
+                return await processor(request, **kwargs)
 
-            async def post(self, request):
-                return await maybe_async(processor(request))
+            async def post(self, request, **kwargs):
+                return await processor(request, **kwargs)
 
-            async def delete(self, request):
-                return await maybe_async(processor(request))
+            async def delete(self, request, **kwargs):
+                return await processor(request, **kwargs)
 
         return KasprWebView
 
