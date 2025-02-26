@@ -15,7 +15,7 @@ CONTENT_TYPE = {
 }
 
 
-class WebViewResponseError(KasprError):
+class WebViewResponseError(KasprProcessingError):
     """WebViewResponse error."""
 
     def __init__(self, message: str):
@@ -23,7 +23,8 @@ class WebViewResponseError(KasprError):
 
     def to_dict(self):
         return {"error": self.args[0]}
-    
+
+
 class WebViewResponseSelector(BaseModel):
     on_success: Optional[PyCode]
     on_error: Optional[PyCode]
@@ -33,9 +34,12 @@ class WebViewResponseSpec(BaseModel):
     content_type: Optional[str]
     status_code: Optional[int]
     headers: Optional[Mapping[str, str]]
+    body_selector: Optional[WebViewResponseSelector]
     status_code_selector: Optional[WebViewResponseSelector]
     headers_selector: Optional[WebViewResponseSelector]
 
+    _body_selector_success_func: Function = None
+    _body_selector_error_func: Function = None
     _status_code_selector_success_func: Function = None
     _status_code_selector_error_func: Function = None
     _headers_selector_success_func: Function = None
@@ -59,6 +63,9 @@ class WebViewResponseSpec(BaseModel):
         else:
             headers = None
 
+        if self.body_selector_success_func:
+            data = self.body_selector_success_func(data)
+
         if self.content_type == CONTENT_TYPE["html"]:
             response = web.html
         elif self.content_type == CONTENT_TYPE["json"]:
@@ -74,7 +81,9 @@ class WebViewResponseSpec(BaseModel):
             data, content_type=content_type, status=status_code, headers=headers
         )
 
-    def build_error(self, web: KasprWeb, error: KasprProcessingError) -> KasprWebResponse:
+    def build_error(
+        self, web: KasprWeb, error: KasprProcessingError
+    ) -> KasprWebResponse:
         """Build response for error condition."""
         content_type = self.content_type or CONTENT_TYPE["plain"]
 
@@ -90,6 +99,11 @@ class WebViewResponseSpec(BaseModel):
         else:
             headers = None
 
+        if self.body_selector_error_func:
+            data = self.body_selector_error_func(error)
+        else:
+            data = error.to_dict()
+
         if self.content_type == CONTENT_TYPE["html"]:
             response = web.html
         elif self.content_type == CONTENT_TYPE["json"]:
@@ -102,8 +116,30 @@ class WebViewResponseSpec(BaseModel):
             response = web.text
 
         return response(
-            error.to_dict(), content_type=content_type, status=status_code, headers=headers
+            data, content_type=content_type, status=status_code, headers=headers
         )
+
+    @property
+    def body_selector_success_func(self):
+        """Body selector function on success condition"""
+        if (
+            self._body_selector_success_func is None
+            and self.body_selector
+            and self.body_selector.on_success
+        ):
+            self._body_selector_success_func = self.body_selector.on_success.func
+        return self._body_selector_success_func
+
+    @property
+    def body_selector_error_func(self):
+        """Body selector function on error condition"""
+        if (
+            self._body_selector_error_func is None
+            and self.body_selector
+            and self.body_selector.on_error
+        ):
+            self._body_selector_error_func = self.body_selector.on_error.func
+        return self._body_selector_error_func
 
     @property
     def status_code_selector_success_func(self):

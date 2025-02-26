@@ -42,6 +42,12 @@ class WebViewResponseSpecSchema(BaseSchema):
         allow_none=False,
         load_default=[],
     )
+    body_selector = fields.Nested(
+        WebViewResponseSelectorSchema(),
+        data_key="body_selector",
+        allow_none=True,
+        load_default=None,
+    )
     status_code_selector = fields.Nested(
         WebViewResponseSelectorSchema(),
         data_key="status_code_selector",
