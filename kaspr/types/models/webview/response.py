@@ -2,6 +2,7 @@ from typing import TypeVar, Optional, Mapping, Union, Awaitable, Callable
 from kaspr.types.models.base import BaseModel
 from kaspr.types.models.pycode import PyCode
 from kaspr.types.webview import KasprWeb, KasprWebResponse
+from kaspr.exceptions import KasprProcessingError
 
 T = TypeVar("T")
 Function = Callable[[T], Union[T, Awaitable[T]]]
@@ -14,6 +15,15 @@ CONTENT_TYPE = {
 }
 
 
+class WebViewResponseError(KasprError):
+    """WebViewResponse error."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+    def to_dict(self):
+        return {"error": self.args[0]}
+    
 class WebViewResponseSelector(BaseModel):
     on_success: Optional[PyCode]
     on_error: Optional[PyCode]
@@ -64,9 +74,7 @@ class WebViewResponseSpec(BaseModel):
             data, content_type=content_type, status=status_code, headers=headers
         )
 
-    def build_error(
-        self, web: KasprWeb, error: Exception = None
-    ) -> KasprWebResponse:
+    def build_error(self, web: KasprWeb, error: KasprProcessingError) -> KasprWebResponse:
         """Build response for error condition."""
         content_type = self.content_type or CONTENT_TYPE["plain"]
 
@@ -94,7 +102,7 @@ class WebViewResponseSpec(BaseModel):
             response = web.text
 
         return response(
-            error, content_type=content_type, status=status_code, headers=headers
+            error.to_dict(), content_type=content_type, status=status_code, headers=headers
         )
 
     @property

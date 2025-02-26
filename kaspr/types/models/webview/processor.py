@@ -6,6 +6,7 @@ from kaspr.types.models.webview.response import WebViewResponseSpec
 from kaspr.types.models.pycode import PyCode
 from kaspr.types.app import KasprAppT
 from kaspr.types.webview import KasprWebRequest, KasprWeb
+from kaspr.exceptions import KasprProcessingError
 
 
 class WebViewProcessorSpec(SpecComponent):
@@ -61,7 +62,12 @@ class WebViewProcessorSpec(SpecComponent):
 
                     return self.response.build_success(web, current_values[0])
                 
-            except Exception as error:
+            except Exception as ex:
+                error = KasprProcessingError(
+                    message=str(ex),
+                    cause=ex,
+                    operation=operation.name,
+                )
                 return self.response.build_error(web, error)
 
         return _request_processor

@@ -3,12 +3,12 @@ from kaspr.utils.functional import maybe_async
 from kaspr.types.models.base import SpecComponent
 from kaspr.types.models.topicout import TopicOutSpec
 from kaspr.types.models.pycode import PyCode
-from kaspr.types.operation import WebViewProcessorOperatorT
+from kaspr.types.operation import ProcessorOperatorT
 
 T = TypeVar("T")
 
 
-class WebViewProcessorTopicSendOperator(WebViewProcessorOperatorT, TopicOutSpec):
+class WebViewProcessorTopicSendOperator(ProcessorOperatorT, TopicOutSpec):
     """Operator to send a message to a topic."""
     def with_scope(self, scope: Dict[str, T]):
         # Not applicable for this operator
@@ -23,7 +23,7 @@ class WebViewProcessorTopicSendOperator(WebViewProcessorOperatorT, TopicOutSpec)
             return self.skip_value
         return await self.send(value)
 
-class WebViewProcessorMapOperator(WebViewProcessorOperatorT, PyCode):
+class WebViewProcessorMapOperator(ProcessorOperatorT, PyCode):
     """Operator to reformat a value."""
     async def process(self, value: T) -> T:
         return await maybe_async(self.func(value))
@@ -35,14 +35,14 @@ class WebViewProcessorOperation(SpecComponent):
     topic_send: Optional[WebViewProcessorTopicSendOperator]
     map: Optional[WebViewProcessorMapOperator]
 
-    _operator: WebViewProcessorOperatorT = None
+    _operator: ProcessorOperatorT = None
 
-    def get_operator(self) -> WebViewProcessorOperatorT:
+    def get_operator(self) -> ProcessorOperatorT:
         """Get the specific operator type for this operation block."""
         return next((x for x in [self.topic_send, self.map] if x is not None), None)
 
     @property
-    def operator(self) -> WebViewProcessorOperatorT:
+    def operator(self) -> ProcessorOperatorT:
         if self._operator is None:
             self._operator = self.get_operator()
         return self._operator
