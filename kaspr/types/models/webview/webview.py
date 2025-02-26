@@ -1,10 +1,14 @@
-from typing import Optional
+from typing import Callable, TypeVar, Union, Awaitable, Type, Optional
 from kaspr.types.models.base import SpecComponent
 from kaspr.types.models.webview.request import WebViewRequestSpec
 from kaspr.types.models.webview.response import WebViewResponseSpec
 from kaspr.types.models.webview.processor import WebViewProcessorSpec
 from kaspr.types.app import KasprAppT
-from kaspr.types.webview import KasprWebViewT
+from kaspr.types.webview import KasprWebViewT, View
+from kaspr.utils.functional import maybe_async
+
+T = TypeVar("T")
+Function = Callable[[T], Union[T, Awaitable[T]]]
 
 
 class WebViewSpec(SpecComponent):
@@ -23,8 +27,24 @@ class WebViewSpec(SpecComponent):
         processors = self.processors
         processors.response = self.response
         return self.app.page(self.request.path, name=self.name)(
-            processors.processor
+            self.prepare_request_handler()
         )
+
+    def prepare_request_handler(self) -> Type[View]:
+        """Returns a class type that implements handlers for all HTTP verbs."""
+        processor = self.processors.processor
+
+        class KasprWebView(View):
+            async def get(self, request):
+                return await maybe_async(processor(request))
+
+            async def post(self, request):
+                return await maybe_async(processor(request))
+
+            async def delete(self, request):
+                return await maybe_async(processor(request))
+
+        return KasprWebView
 
     @property
     def webview(self) -> KasprWebViewT:

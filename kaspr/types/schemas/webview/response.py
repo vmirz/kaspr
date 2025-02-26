@@ -1,3 +1,4 @@
+from typing import Dict
 from kaspr.types.schemas.base import BaseSchema
 from kaspr.types.models.webview import (
     WebViewResponseSpec,
@@ -5,7 +6,7 @@ from kaspr.types.models.webview import (
     CONTENT_TYPE,
 )
 from kaspr.types.schemas.pycode import PyCodeSchema
-from marshmallow import fields, validate
+from marshmallow import fields, validate, validates_schema
 
 
 class WebViewResponseSelectorSchema(BaseSchema):
@@ -60,3 +61,11 @@ class WebViewResponseSpecSchema(BaseSchema):
         allow_none=True,
         load_default=None,
     )
+
+    @validates_schema
+    def validate_schema(self, data: Dict, **kwargs):
+        if data.get("status_code") and data.get("status_code_selector"):
+            raise ValueError("Only one of 'status_code' or 'status_code_selector' can be specified")
+        if data.get("headers") and data.get("headers_selector"):
+            raise ValueError("Only one of 'headers' or 'headers_selector' can be specified")
+        

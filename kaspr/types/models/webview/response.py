@@ -15,16 +15,6 @@ CONTENT_TYPE = {
 }
 
 
-class WebViewResponseError(KasprProcessingError):
-    """WebViewResponse error."""
-
-    def __init__(self, message: str):
-        super().__init__(message)
-
-    def to_dict(self):
-        return {"error": self.args[0]}
-
-
 class WebViewResponseSelector(BaseModel):
     on_success: Optional[PyCode]
     on_error: Optional[PyCode]
