@@ -37,4 +37,8 @@ class KasprProcessingError(KasprError):
         return f"{self.__class__.__name__}({self.args[0]!r}, {self.cause!r})"
 
     def to_dict(self):
-        return {"error": self.args[0], "operation": self.operation, "cause": str(self.cause) if self.cause else None}
+        return {
+            "error": self.args[0],
+            "operation": self.operation,
+            "cause": str(self.cause) if self.cause else None,
+        }
