@@ -8,19 +8,19 @@ T = TypeVar("T")
 Function = Callable[[T], Union[T, Awaitable[T]]]
 
 
-class AgentOutputTopicKeySelector(PyCode): ...
+class TopicKeySelector(PyCode): ...
 
 
-class AgentOutputTopicValueSelector(PyCode): ...
+class TopicValueSelector(PyCode): ...
 
 
-class AgentOutputTopicPartitionSelector(PyCode): ...
+class TopicPartitionSelector(PyCode): ...
 
 
-class AgentOutputTopicHeadersSelector(PyCode): ...
+class TopicHeadersSelector(PyCode): ...
 
 
-class AgentOutputTopicPredicate(PyCode): ...
+class TopicPredicate(PyCode): ...
 
 
 class TopicOutSpec(SpecComponent):
@@ -30,11 +30,11 @@ class TopicOutSpec(SpecComponent):
     ack: Optional[bool]
     key_serializer: Optional[str]
     value_serializer: Optional[str]
-    key_selector: Optional[AgentOutputTopicKeySelector]
-    value_selector: Optional[AgentOutputTopicValueSelector]
-    partition_selector: Optional[AgentOutputTopicPartitionSelector]
-    headers_selector: Optional[AgentOutputTopicHeadersSelector]
-    predicate: Optional[AgentOutputTopicPredicate]
+    key_selector: Optional[TopicKeySelector]
+    value_selector: Optional[TopicValueSelector]
+    partition_selector: Optional[TopicPartitionSelector]
+    headers_selector: Optional[TopicHeadersSelector]
+    predicate: Optional[TopicPredicate]
 
     app: KasprAppT = None
     _topic: KasprTopicT = None

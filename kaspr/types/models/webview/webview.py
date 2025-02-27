@@ -1,10 +1,10 @@
-from typing import Callable, TypeVar, Union, Awaitable, Type, Optional, Any
+from typing import Callable, TypeVar, Union, Awaitable, Type, Optional
 from kaspr.types.models.base import SpecComponent
 from kaspr.types.models.webview.request import WebViewRequestSpec
 from kaspr.types.models.webview.response import WebViewResponseSpec
 from kaspr.types.models.webview.processor import WebViewProcessorSpec
 from kaspr.types.app import KasprAppT
-from kaspr.types.webview import KasprWebViewT, View, Request, KasprWeb
+from kaspr.types.webview import KasprWebViewT, View
 
 T = TypeVar("T")
 Function = Callable[[T], Union[T, Awaitable[T]]]

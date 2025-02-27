@@ -1,7 +1,7 @@
 import yaml
 from marshmallow import fields
 from kaspr.types.schemas.base import BaseSchema
-from kaspr.types.schemas.agent import AgentSpecSchema
+from kaspr.types.schemas.agent.agent import AgentSpecSchema
 from kaspr.types.schemas.webview import WebViewSpecSchema
 from kaspr.types.models import AppSpec
 from kaspr.types import KasprAppT

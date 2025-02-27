@@ -1,8 +1,8 @@
 from typing import Optional
 from kaspr.types.models.base import SpecComponent
-from kaspr.types.models.input import AgentInputSpec
-from kaspr.types.models.output import AgentOutputSpec
-from kaspr.types.models.processor import AgentProcessorSpec
+from kaspr.types.models.agent.input import AgentInputSpec
+from kaspr.types.models.agent.output import AgentOutputSpec
+from kaspr.types.models.agent.processor import AgentProcessorSpec
 from kaspr.types.app import KasprAppT
 from kaspr.types.agent import KasprAgentT
 
