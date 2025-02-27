@@ -67,5 +67,4 @@ class WebViewResponseSpecSchema(BaseSchema):
         if data.get("status_code") and data.get("status_code_selector"):
             raise ValueError("Only one of 'status_code' or 'status_code_selector' can be specified")
         if data.get("headers") and data.get("headers_selector"):
-            raise ValueError("Only one of 'headers' or 'headers_selector' can be specified")
-        
+            raise ValueError("Only one of 'headers' or 'headers_selector' can be specified")   

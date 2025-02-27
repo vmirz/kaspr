@@ -31,6 +31,10 @@ class WebViewProcessorSpec(SpecComponent):
                 init_scope = self.init.execute().scope if self.init else {}
                 context = {"app": self.app}
                 ops = [operations[name] for name in self.pipeline]
+                operation = None
+                # No operations, return the request data
+                if not ops:
+                    return self.response.build_success(web)
                 operation = ops[0]
                 operator = operation.operator
                 scope = {
@@ -67,7 +71,7 @@ class WebViewProcessorSpec(SpecComponent):
             except Exception as ex:
                 error = KasprProcessingError(
                     message=str(ex),
-                    operation=operation.name,
+                    operation=operation.name if operation else None,
                     cause=ex,
                 )
                 return self.response.build_error(web, error)

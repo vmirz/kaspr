@@ -1,7 +1,7 @@
 from typing import TypeVar, Optional, Mapping, Union, Awaitable, Callable
 from kaspr.types.models.base import BaseModel
 from kaspr.types.models.pycode import PyCode
-from kaspr.types.webview import KasprWeb, KasprWebResponse
+from kaspr.types.webview import KasprWeb, KasprWebResponse, KasprWebRequest
 from kaspr.exceptions import KasprProcessingError
 
 T = TypeVar("T")
@@ -35,7 +35,7 @@ class WebViewResponseSpec(BaseModel):
     _headers_selector_success_func: Function = None
     _headers_selector_error_func: Function = None
 
-    def build_success(self, web: KasprWeb, data: T) -> KasprWebResponse:
+    def build_success(self, web: KasprWeb, data: T = None) -> KasprWebResponse:
         """Build response for success condition."""
         content_type = self.content_type or CONTENT_TYPE["plain"]
 
