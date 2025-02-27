@@ -24,7 +24,9 @@ class WebViewProcessorSpec(SpecComponent):
     def prepare_processor(self) -> Callable[..., Awaitable[Any]]:
         operations = {op.name: op for op in self.operations}
 
-        async def _request_processor(web: KasprWeb, request: KasprWebRequest):
+        async def _request_processor(
+            web: KasprWeb, request: KasprWebRequest, **kwargs: Any
+        ) -> Any:
             try:
                 init_scope = self.init.execute().scope if self.init else {}
                 context = {"app": self.app}
@@ -36,7 +38,7 @@ class WebViewProcessorSpec(SpecComponent):
                     "context": {**context},
                 }
                 operator.with_scope(scope)
-                result = await operator.process(request)
+                result = await operator.process(request, **kwargs)
                 if result == operator.skip_value:
                     return
                 gen = ensure_generator(result)
@@ -61,12 +63,12 @@ class WebViewProcessorSpec(SpecComponent):
                         current_values = next_values
 
                     return self.response.build_success(web, current_values[0])
-                
+
             except Exception as ex:
                 error = KasprProcessingError(
                     message=str(ex),
-                    cause=ex,
                     operation=operation.name,
+                    cause=ex,
                 )
                 return self.response.build_error(web, error)
 

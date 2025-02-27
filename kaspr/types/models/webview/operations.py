@@ -1,4 +1,4 @@
-from typing import Optional, TypeVar, Union, Dict, cast
+from typing import Optional, TypeVar, Dict
 from kaspr.utils.functional import maybe_async
 from kaspr.types.models.base import SpecComponent
 from kaspr.types.models.topicout import TopicOutSpec
@@ -18,15 +18,15 @@ class WebViewProcessorTopicSendOperator(ProcessorOperatorT, TopicOutSpec):
         # Not applicable for this operator
         ...
 
-    async def process(self, value: T) -> T:
-        if self.should_skip(value):
+    async def process(self, value: T, **kwargs) -> T:
+        if self.should_skip(value, **kwargs):
             return self.skip_value
-        return await self.send(value)
+        return await self.send(value, **kwargs)
 
 class WebViewProcessorMapOperator(ProcessorOperatorT, PyCode):
     """Operator to reformat a value."""
-    async def process(self, value: T) -> T:
-        return await maybe_async(self.func(value))
+    async def process(self, value: T, **kwargs) -> T:
+        return await maybe_async(self.func(value, **kwargs))
 
 
 class WebViewProcessorOperation(SpecComponent):

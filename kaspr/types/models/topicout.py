@@ -44,7 +44,7 @@ class TopicOutSpec(SpecComponent):
     _headers_selector_func: Function = None
     _predicate_func: Function = None
 
-    async def send(self, value: T) -> Union[None, OrderedDict]:
+    async def send(self, value: T, **kwargs) -> Union[None, OrderedDict]:
         """Send value to topic according to spec.
         
         If ack is True, returns metadata (offset, timestamp, etc).
@@ -53,40 +53,40 @@ class TopicOutSpec(SpecComponent):
         res = await self.topic.send(
             key_serializer=self.key_serializer,
             value_serializer=self.value_serializer,
-            key=self.get_key(value),
-            value=self.get_value(value),
-            partition=self.get_partition(value),
-            headers=self.get_headers(value),
+            key=self.get_key(value, **kwargs),
+            value=self.get_value(value, **kwargs),
+            partition=self.get_partition(value, **kwargs),
+            headers=self.get_headers(value, **kwargs),
         )
         if self.ack:
             return (await res)._asdict()
                 
-    def get_key(self, value: T) -> T:
+    def get_key(self, value: T, **kwargs) -> T:
         """Get key from value"""
         if self.key_selector_func is not None:
-            return self.key_selector_func(value)
+            return self.key_selector_func(value, **kwargs)
 
-    def get_value(self, value: T) -> T:
+    def get_value(self, value: T, **kwargs) -> T:
         """Get value from value"""
         if self.value_selector_func is not None:
-            return self.value_selector_func(value)
+            return self.value_selector_func(value, **kwargs)
         else:
             return value
 
-    def get_partition(self, value: T) -> T:
+    def get_partition(self, value: T, **kwargs) -> T:
         """Get partition from value"""
         if self.partition_selector_func is not None:
-            return self.partition_selector_func(value)
+            return self.partition_selector_func(value, **kwargs)
 
-    def get_headers(self, value: T) -> T:
+    def get_headers(self, value: T, **kwargs) -> T:
         """Get headers from value"""
         if self.headers_selector_func is not None:
-            return self.headers_selector_func(value)
+            return self.headers_selector_func(value, **kwargs)
 
-    def should_skip(self, value: T) -> bool:
+    def should_skip(self, value: T, **kwargs) -> bool:
         """Check if value should be skipped"""
         if self.predicate_func is not None:
-            return not self.predicate_func(value)
+            return not self.predicate_func(value, **kwargs)
         else:
             return False
 

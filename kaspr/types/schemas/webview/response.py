@@ -35,7 +35,7 @@ class WebViewResponseSpecSchema(BaseSchema):
         load_default=None,
         validate=validate.OneOf(CONTENT_TYPE.values()),
     )
-    status_code = fields.Int(data_key="status_code", allow_none=False, load_default=200)
+    status_code = fields.Int(data_key="status_code", allow_none=False, load_default=None)
     headers = fields.Mapping(
         keys=fields.Str(required=True),
         values=fields.Str(required=True),
