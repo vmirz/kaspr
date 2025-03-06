@@ -31,17 +31,17 @@ class WebViewResponseSpecSchema(BaseSchema):
 
     content_type = fields.Str(
         data_key="content_type",
-        allow_none=False,
+        allow_none=True,
         load_default=None,
         validate=validate.OneOf(CONTENT_TYPE.values()),
     )
-    status_code = fields.Int(data_key="status_code", allow_none=False, load_default=None)
+    status_code = fields.Int(data_key="status_code", allow_none=True, load_default=None)
     headers = fields.Mapping(
         keys=fields.Str(required=True),
         values=fields.Str(required=True),
         data_key="headers",
-        allow_none=False,
-        load_default=[],
+        allow_none=True,
+        load_default={},
     )
     body_selector = fields.Nested(
         WebViewResponseSelectorSchema(),
