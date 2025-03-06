@@ -5,6 +5,7 @@ from kaspr.types.schemas.webview.processor import WebViewProcessorSpecSchema
 from kaspr.types.models import WebViewSpec
 from marshmallow import fields
 
+
 class WebViewSpecSchema(BaseSchema):
     __model__ = WebViewSpec
 
@@ -29,17 +30,17 @@ class WebViewSpecSchema(BaseSchema):
     @pre_load
     def set_processors(self, data, **kwargs):
         # Set default/empty processors if not provided
-        if "processors" not in data:
+        if "processors" not in data or data["processors"] is None:
             data["processors"] = {
                 "pipeline": [],
                 "init": None,
                 "operations": [],
             }
         return data
-    
+
     @pre_load
     def set_response(self, data, **kwargs):
         # Set default/empty response if not provided
-        if "response" not in data:
+        if "response" not in data or data["response"] is None:
             data["response"] = {}
-        return data    
+        return data
