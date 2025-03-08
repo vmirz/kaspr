@@ -26,7 +26,7 @@ from faust.types import (
 from .kaspr import KasprMonitor
 from faust.sensors.monitor import TPOffsetMapping
 
-import kaspr.utils as utils
+from kaspr.utils.functional import utc_now
 from kaspr.types import KasprAppT, CustomTableT, DispatcherT, JanitorT, TTLocation
 
 
@@ -42,7 +42,7 @@ __all__ = ["PrometheusMonitor"]
 RE_NORMALIZE = re.compile(r"[\<\>:\s]+")
 RE_NORMALIZE_SUBSTITUTION = "_"
 
-now = utils.utc_now
+now = utc_now
 
 
 class PrometheusMonitor(KasprMonitor):

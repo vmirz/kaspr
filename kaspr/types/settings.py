@@ -5,12 +5,15 @@ import os
 import psutil
 import math
 import ssl
-from typing import Any, Sequence, Optional
+from pathlib import Path
+from typing import Any, Sequence, Optional, Union, Type, cast
 from faust import SASLCredentials, SSLCredentials
 from faust.types.settings import Settings
 from faust.types.auth import SASLMechanism, CredentialsT, AuthProtocol
 from faust.exceptions import ImproperlyConfigured
 from mode import Seconds, want_seconds
+from mode.utils.imports import SymbolArg, symbol_by_name
+from kaspr.types.builder import AppBuilderT
 
 PREFICES: Sequence[str] = ["KASPR_", "K_"]
 _TRUE, _FALSE = {"True", "true"}, {"False", "false"}
@@ -199,10 +202,22 @@ KMS_JANITOR_HIGHWATER_OFFSET_SECONDS = float(
 WEB_BASE_PATH = _getenv("WEB_BASE_PATH", "")
 
 #: Port number between 1024 and 65535 to use for the web server.
-WEB_PORT: int = int(_getenv('WEB_PORT', '6066'))
+WEB_PORT: int = int(_getenv("WEB_PORT", "6066"))
 
 #: Base http path for serving metrics
 WEB_METRICS_BASE_PATH = _getenv("WEB_METRICS_BASE_PATH", "")
+
+#: Directory path to app component definition file(s).
+#: This path will be treated as relative to appdir, unless the provided
+#: path is absolute.
+DEFINITIONS_DIR = _getenv("DEFINITIONS_DIR", "builders")
+
+#: Enable building of stream processors from definition file(s).
+# Set this to False if you don't want to allow defining stream processors with configuration.
+APP_BUILDER_ENABLED = bool(_getenv("APP_BUILDER_ENABLED", True))
+
+#: Path to app builder class, used as default for :setting:`AppBuilder`.
+APP_BUILDER_TYPE = "kaspr.core.builder.AppBuilder"
 
 
 class CustomSettings(Settings):
@@ -255,8 +270,11 @@ class CustomSettings(Settings):
     web_port: int = WEB_PORT
     web_metrics_base_path: str = WEB_METRICS_BASE_PATH
 
+    app_builder_enabled: bool = APP_BUILDER_ENABLED
+
     _worker_name: str = None
     _kafka_credentials: CredentialsT = None
+    _definitionsdir: Path = None
 
     def __init__(
         self,
@@ -292,6 +310,9 @@ class CustomSettings(Settings):
         web_base_path: str = None,
         web_port: int = None,
         web_metrics_base_path: str = None,
+        definitions_dir: str = None,
+        app_builder_enabled: bool = None,
+        AppBuilder: SymbolArg[Type[AppBuilderT]] = None,
         **kwargs,
     ):
         # Apply settings that exist in base class before we pass them down.
@@ -336,6 +357,11 @@ class CustomSettings(Settings):
             **kwargs,
         )
 
+        self.definitionssdir = cast(Path, definitions_dir or DEFINITIONS_DIR)
+
+        if app_builder_enabled is not None:
+            self.app_builder_enabled = app_builder_enabled
+
         if worker_ordinal_number is not None:
             self.worker_ordinal_number = int(worker_ordinal_number)
 
@@ -343,14 +369,6 @@ class CustomSettings(Settings):
             self.worker_name_format = worker_name_format
 
         self.worker_name = self._prepare_worker_name(name=self.name)
-
-        # These environment variables are required so we can connect to kafka
-        # self._kafka_broker_username = _getenv("KAFKA_BROKER_USERNAME", None)
-        # self._kafka_broker_password = _getenv("KAFKA_BROKER_PASSWORD", None)
-        # self._kafka_broker_security_protocol = _getenv(
-        #     "KAFKA_BROKER_SECURITY_PROTOCOL", None
-        # )
-        # self._kafka_broker_sasl_mechanism = _getenv("KAFKA_BROKER_SASL_MECHANISM", None)
 
         if topic_prefix is not None:
             self.topic_prefix = str(topic_prefix)
@@ -429,14 +447,39 @@ class CustomSettings(Settings):
         if web_metrics_base_path is not None:
             self.web_metrics_base_path = web_metrics_base_path
 
-    @property
-    def worker_name(self):
-        """Unique name for worker in a multi-worker application."""
-        return self._worker_name
+        self.AppBuilder = cast(
+            Type[AppBuilderT], AppBuilder or APP_BUILDER_TYPE
+        )
 
-    @worker_name.setter
-    def worker_name(self, name: str):
-        self._worker_name = name
+    def _prepare_kafka_credentials(self) -> CredentialsT:
+        security_protocol = AuthProtocol(self.kafka_security_protocol)
+        if security_protocol == AuthProtocol.PLAINTEXT:
+            return None
+        elif security_protocol in [
+            AuthProtocol.SASL_PLAINTEXT,
+            AuthProtocol.SASL_SSL,
+        ]:
+            return SASLCredentials(
+                username=self.kafka_auth_username,
+                password=self.kafka_auth_password,
+                ssl_context=ssl.create_default_context()
+                if security_protocol == AuthProtocol.SASL_SSL
+                else None,
+                mechanism=SASLMechanism(self.kafka_sasl_mechanism)
+                if self.kafka_sasl_mechanism
+                else None,
+            )
+        elif security_protocol in [AuthProtocol.SSL]:
+            ssl_auth = {
+                "cafile": self.kafka_auth_cafile,
+                "capath": self.kafka_auth_capath,
+                "cadata": self.kafka_auth_cadata,
+            }
+            return SSLCredentials(context=ssl.create_default_context(), **ssl_auth)
+        else:
+            raise ImproperlyConfigured(
+                f"Unknown or unsupported auth protocol: {security_protocol}"
+            )
 
     def _prepare_worker_name(self, name: str):
         return self.worker_name_format.format(
@@ -457,6 +500,9 @@ class CustomSettings(Settings):
             # last resort: generate a random number
             return random.randint(1000, 1999)
 
+    def _prepare_definitionsdir(self, definitionsdir: Union[str, Path]) -> Path:
+        return self._appdir_path(self._Path(definitionsdir))
+
     @property
     def kafka_credentials(self) -> CredentialsT:
         return self._kafka_credentials
@@ -465,30 +511,27 @@ class CustomSettings(Settings):
     def kafka_credentials(self, credentials: CredentialsT):
         self._kafka_credentials = credentials
 
-    def _prepare_kafka_credentials(self) -> CredentialsT:
-        security_protocol = AuthProtocol(self.kafka_security_protocol)
-        if security_protocol in [
-            AuthProtocol.PLAINTEXT,
-            AuthProtocol.SASL_PLAINTEXT,
-            AuthProtocol.SASL_SSL,
-        ]:
-            return SASLCredentials(
-                username=self.kafka_auth_username,
-                password=self.kafka_auth_password,
-                ssl_context=ssl.create_default_context()
-                if security_protocol == AuthProtocol.SASL_SSL
-                else None,
-                mechanism=SASLMechanism(self.kafka_sasl_mechanism)
-                if self.kafka_sasl_mechanism is not None
-                else None,
-            )
-        elif security_protocol in [AuthProtocol.SSL]:
-            return SSLCredentials(
-                cafile=self.kafka_auth_cafile,
-                capath=self.kafka_auth_capath,
-                cadata=self.kafka_auth_cadata,
-            )
-        else:
-            raise ImproperlyConfigured(
-                f"Unknown or unsupported auth protocol: {security_protocol}"
-            )
+    @property
+    def definitionssdir(self) -> Path:
+        return self._definitionsdir
+
+    @definitionssdir.setter
+    def definitionssdir(self, definitionsdir: Union[Path, str]) -> None:
+        self._definitionsdir = self._prepare_definitionsdir(definitionsdir)
+
+    @property
+    def worker_name(self):
+        """Unique name for worker in a multi-worker application."""
+        return self._worker_name
+
+    @worker_name.setter
+    def worker_name(self, name: str):
+        self._worker_name = name
+
+    @property
+    def AppBuilder(self) -> Type[AppBuilderT]:
+        return self._AppBuilder
+
+    @AppBuilder.setter
+    def AppBuilder(self, AppBuilder: SymbolArg[Type[AppBuilderT]]) -> None:
+        self._AppBuilder = symbol_by_name(AppBuilder)
