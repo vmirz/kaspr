@@ -1,41 +1,41 @@
-from typing import Dict
-from marshmallow import fields, validates_schema
+from marshmallow import fields
 from kaspr.types.schemas.base import BaseSchema
 from kaspr.types.models.topicout import TopicOutSpec
 from kaspr.types.schemas.pycode import PyCodeSchema
 from kaspr.types.models.topicout import (
-    AgentOutputTopicKeySelector,
-    AgentOutputTopicValueSelector,
-    AgentOutputTopicPartitionSelector,
-    AgentOutputTopicHeadersSelector,
-    AgentOutputTopicPredicate,
+    TopicKeySelector,
+    TopicValueSelector,
+    TopicPartitionSelector,
+    TopicHeadersSelector,
+    TopicPredicate,
 )
 
 
-class AgentOutputTopicKeySelectorSchema(PyCodeSchema):
-    __model__ = AgentOutputTopicKeySelector
+class TopicKeySelectorSchema(PyCodeSchema):
+    __model__ = TopicKeySelector
 
 
-class AgentOutputTopicValueSelectorSchema(PyCodeSchema):
-    __model__ = AgentOutputTopicValueSelector
+class TopicValueSelectorSchema(PyCodeSchema):
+    __model__ = TopicValueSelector
 
 
-class AgentOutputTopicPartitionSelectorSchema(PyCodeSchema):
-    __model__ = AgentOutputTopicPartitionSelector
+class TopicPartitionSelectorSchema(PyCodeSchema):
+    __model__ = TopicPartitionSelector
 
 
-class AgentOutputTopicHeadersSelectorSchema(PyCodeSchema):
-    __model__ = AgentOutputTopicHeadersSelector
+class TopicHeadersSelectorSchema(PyCodeSchema):
+    __model__ = TopicHeadersSelector
 
 
-class AgentOutputTopicPredicateSchema(PyCodeSchema):
-    __model__ = AgentOutputTopicPredicate
+class TopicPredicateSchema(PyCodeSchema):
+    __model__ = TopicPredicate
 
 
 class TopicOutSpecSchema(BaseSchema):
     __model__ = TopicOutSpec
 
     name = fields.Str(data_key="name", required=True)
+    ack = fields.Bool(data_key="ack", allow_none=True, load_default=False)
     key_serializer = fields.Str(
         data_key="key_serializer", allow_none=True, load_default=None
     )
@@ -43,31 +43,31 @@ class TopicOutSpecSchema(BaseSchema):
         data_key="value_serializer", allow_none=True, load_default=None
     )
     key_selector = fields.Nested(
-        AgentOutputTopicKeySelectorSchema(),
+        TopicKeySelectorSchema(),
         data_key="key_selector",
         allow_none=True,
         load_default=None,
     )
     value_selector = fields.Nested(
-        AgentOutputTopicValueSelectorSchema(),
+        TopicValueSelectorSchema(),
         data_key="value_selector",
         allow_none=True,
         load_default=None,
     )
     partition_selector = fields.Nested(
-        AgentOutputTopicPartitionSelectorSchema(),
+        TopicPartitionSelectorSchema(),
         data_key="partition_selector",
         allow_none=True,
         load_default=None,
     )
     headers_selector = fields.Nested(
-        AgentOutputTopicHeadersSelectorSchema(),
+        TopicHeadersSelectorSchema(),
         data_key="headers_selector",
         allow_none=True,
         load_default=None,
     )
     predicate = fields.Nested(
-        AgentOutputTopicPredicateSchema(),
+        TopicPredicateSchema(),
         data_key="predicate",
         allow_none=True,
         load_default=None,

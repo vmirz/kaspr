@@ -1,13 +1,13 @@
-from kaspr.utils.logging import get_logger, CompositeLogger
-from kaspr.types.schemas.base import BaseSchema, post_load
-from kaspr.types.schemas.operations import AgentProcessorOperationSchema
+from kaspr.types.schemas.base import BaseSchema
+from kaspr.types.schemas.webview.operations import WebViewProcessorOperationSchema
 from kaspr.types.schemas.pycode import PyCodeSchema
+from kaspr.types.models.webview import WebViewProcessorSpec
 from marshmallow import fields
-from kaspr.types.models import AgentProcessorSpec
 
 
-class AgentProcessorSpecSchema(BaseSchema):
-    __model__ = AgentProcessorSpec
+class WebViewProcessorSpecSchema(BaseSchema):
+    __model__ = WebViewProcessorSpec
+
 
     pipeline = fields.List(
         fields.Str(data_key="pipeline", allow_none=False, required=True),
@@ -22,7 +22,7 @@ class AgentProcessorSpecSchema(BaseSchema):
     )    
     operations = fields.List(
         fields.Nested(
-            AgentProcessorOperationSchema(), data_key="operations", required=True
+            WebViewProcessorOperationSchema(), data_key="operations", required=True
         ),
         allow_none=False,
         load_default=[],

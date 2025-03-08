@@ -1,6 +1,13 @@
 from typing import Any, Dict, Optional
-from marshmallow import INCLUDE, EXCLUDE, Schema, post_load
+from marshmallow import INCLUDE, EXCLUDE, Schema, post_load, pre_load
 from kaspr.types.models import UnknownModel
+
+__all__ = [
+    "BaseSchema",
+    "UnknownModel",
+    "post_load",
+    "pre_load",
+]
 
 JSON = Dict[str, Any]
 

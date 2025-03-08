@@ -1,8 +1,8 @@
 from typing import Optional, List, Awaitable, Any, Callable
 from kaspr.utils.functional import ensure_generator
 from kaspr.types.models.base import SpecComponent
-from kaspr.types.models.operations import AgentProcessorOperation
-from kaspr.types.models.output import AgentOutputSpec
+from kaspr.types.models.agent.operations import AgentProcessorOperation
+from kaspr.types.models.agent.output import AgentOutputSpec
 from kaspr.types.models.pycode import PyCode
 from kaspr.types.app import KasprAppT
 from kaspr.types.stream import KasprStreamT

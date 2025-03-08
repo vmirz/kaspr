@@ -47,4 +47,4 @@ class TTMessage(NamedTuple):
 class PT(NamedTuple):
     """Tuple of SchedulerPart (janitor/dispatcher) and partition number."""
     part: _SchedulerPartT
-    partition: int
+    partition: int  

@@ -2,16 +2,25 @@ from .base import BaseSchema
 from .topicsrc import TopicSrcSpecSchema
 from .topicout import TopicOutSpecSchema
 from .channel import ChannelSpecSchema
-from .input import AgentInputSpecSchema
-from .output import AgentOutputSpecSchema
-from .agent import AgentSpecSchema
+from .agent.input import AgentInputSpecSchema
+from .agent.output import AgentOutputSpecSchema
+from .agent.agent import AgentSpecSchema
 from .app import AppSpecSchema
-from .processor import AgentProcessorSpecSchema
+from .agent.processor import AgentProcessorSpecSchema
 from .pycode import PyCodeSchema
-from .operations import (
+from .agent.operations import (
     AgentProcessorOperationSchema, 
     AgentProcessorFilterOperatorSchema,
     AgentProcessorMapOperatorSchema
+)
+from .webview import (
+    WebViewSpecSchema,
+    WebViewResponseSpecSchema,
+    WebViewRequestSpecSchema,
+    WebViewProcessorSpecSchema,
+    WebViewProcessorOperationSchema,
+    WebViewProcessorTopicSendOperatorSchema,
+    WebViewProcessorMapOperatorSchema
 )
 
 __all__ = [
@@ -28,4 +37,11 @@ __all__ = [
     "AgentProcessorOperationSchema",
     "AgentProcessorFilterOperatorSchema",
     "AgentProcessorMapOperatorSchema",
+    "WebViewSpecSchema",
+    "WebViewResponseSpecSchema",
+    "WebViewRequestSpecSchema",
+    "WebViewProcessorSpecSchema",
+    "WebViewProcessorOperationSchema",
+    "WebViewProcessorTopicSendOperatorSchema",
+    "WebViewProcessorMapOperatorSchema"
 ]

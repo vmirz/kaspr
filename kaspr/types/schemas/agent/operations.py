@@ -1,4 +1,3 @@
-from typing import Optional
 from kaspr.types.schemas.base import BaseSchema
 from marshmallow import fields
 from kaspr.types.models import (

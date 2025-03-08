@@ -12,8 +12,9 @@ from .stream import KasprStreamT
 from .agent import KasprAgentT
 from .channel import KasprChannelT
 from .topic import KasprTopicT
-from .operation import AgentProcessorOperatorT
+from .operation import ProcessorOperatorT
 from .code import CodeT
+from .webview import KasprWebViewT, KasprWebRequest, KasprWebResponse, KasprWeb
 
 __all__ = [
     "TTLocation",
@@ -33,6 +34,10 @@ __all__ = [
     "KasprAgentT",
     "KasprChannelT",
     "KasprTopicT",
-    "AgentProcessorOperatorT",
+    "ProcessorOperatorT",
     "CodeT",
+    "KasprWebViewT",
+    "KasprWebRequest",
+    "KasprWebResponse",
+    "KasprWeb",
 ]

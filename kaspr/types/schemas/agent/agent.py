@@ -1,7 +1,7 @@
 from kaspr.types.schemas.base import BaseSchema
-from kaspr.types.schemas.input import AgentInputSpecSchema
-from kaspr.types.schemas.output import AgentOutputSpecSchema
-from kaspr.types.schemas.processor import AgentProcessorSpecSchema
+from kaspr.types.schemas.agent.input import AgentInputSpecSchema
+from kaspr.types.schemas.agent.output import AgentOutputSpecSchema
+from kaspr.types.schemas.agent.processor import AgentProcessorSpecSchema
 from marshmallow import fields
 from kaspr.types.models import AgentSpec
 

@@ -2,11 +2,11 @@ from typing import Optional, TypeVar
 from kaspr.utils.functional import maybe_async
 from kaspr.types.models.base import SpecComponent
 from kaspr.types.models.pycode import PyCode
-from kaspr.types.operation import AgentProcessorOperatorT
+from kaspr.types.operation import ProcessorOperatorT
 
 T = TypeVar("T")
 
-class AgentProcessorFilterOperator(AgentProcessorOperatorT, PyCode):
+class AgentProcessorFilterOperator(ProcessorOperatorT, PyCode):
     
     async def process(self, value: T) -> T:
         if not await maybe_async(self.func(value)):
@@ -15,7 +15,7 @@ class AgentProcessorFilterOperator(AgentProcessorOperatorT, PyCode):
             return value
 
 
-class AgentProcessorMapOperator(AgentProcessorOperatorT, PyCode):
+class AgentProcessorMapOperator(ProcessorOperatorT, PyCode):
     async def process(self, value: T) -> T:
         return await maybe_async(self.func(value))
 
@@ -25,14 +25,14 @@ class AgentProcessorOperation(SpecComponent):
     filter: Optional[AgentProcessorFilterOperator]
     map: Optional[AgentProcessorMapOperator]
 
-    _operator: AgentProcessorOperatorT = None
+    _operator: ProcessorOperatorT = None
     
-    def get_operator(self) -> AgentProcessorOperatorT:
+    def get_operator(self) -> ProcessorOperatorT:
         """Get the specific operator type for this operation block."""
         return next((x for x in [self.filter, self.map] if x is not None), None)
 
     @property
-    def operator(self) -> AgentProcessorOperatorT:
+    def operator(self) -> ProcessorOperatorT:
         if self._operator is None:
             self._operator = self.get_operator()
         return self._operator
