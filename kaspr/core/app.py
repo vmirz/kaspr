@@ -50,7 +50,7 @@ class CustomBootStrategy(BootStrategy):
 
     def _should_enable_message_scheduler(self) -> bool:
         if self.enable_scheduler is None:
-            return self.app.conf.kms_enabled
+            return self.app.conf.scheduler_enabled
         return self.enable_scheduler
 
 
@@ -74,7 +74,7 @@ class KasprApp(KasprAppT, faust.App):
         """Call first time app starts in this process."""
         await super().on_first_start()
 
-        if self.conf.kms_enabled:
+        if self.conf.scheduler_enabled:
             await self.scheduler.maybe_create_topics()
 
         if self.conf.app_builder_enabled:

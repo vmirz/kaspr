@@ -158,44 +158,44 @@ STORE_ROCKSDB_SET_CACHE_INDEX_AND_FILTER_BLOCKS = _getenv(
 )
 
 #: Enable kafka message scheduler service
-KMS_ENABLED = bool(_getenv("KMS_ENABLED", False))
+SCHEDULER_ENABLED = bool(_getenv("SCHEDULER_ENABLED", False))
 
 #: Enable printing runtime scheduler statistics to log
-KMS_DEBUG_STATS_ENABLED = bool(_getenv("KMS_DEBUG_STATS_ENABLED", False))
+SCHEDULER_DEBUG_STATS_ENABLED = bool(_getenv("SCHEDULER_DEBUG_STATS_ENABLED", False))
 
 #: Default number of partitions for KMS related topics
 #: If not specified, will use app's default topic partition configuration.
-_kms_tps = _getenv("KMS_TOPIC_PARTITIONS", None)
-KMS_TOPIC_PARTITIONS = int(_kms_tps) if _kms_tps is not None else None
+_scheduler_tps = _getenv("SCHEDULER_TOPIC_PARTITIONS", None)
+SCHEDULER_TOPIC_PARTITIONS = int(_scheduler_tps) if _scheduler_tps is not None else None
 
 #: How often we save checkpoint to storage (and to changelog topic)
-KMS_CHECKPOINT_SAVE_INTERVAL_SECONDS = float(
-    _getenv("KMS_CHECKPOINT_SAVE_INTERVAL_SECONDS", 1.3)
+SCHEDULER_CHECKPOINT_SAVE_INTERVAL_SECONDS = float(
+    _getenv("SCHEDULER_CHECKPOINT_SAVE_INTERVAL_SECONDS", 1.3)
 )
 
 #: Number of days dispatcher looks back to build a default checkpoint
-KMS_DISPATCHER_DEFAULT_CHECKPOINT_LOOKBACK_DAYS = int(
-    _getenv("KMS_DISPATCHER_DEFAULT_CHECKPOINT_LOOKBACK_DAYS", 7)
+SCHEDULER_DISPATCHER_DEFAULT_CHECKPOINT_LOOKBACK_DAYS = int(
+    _getenv("SCHEDULER_DISPATCHER_DEFAULT_CHECKPOINT_LOOKBACK_DAYS", 7)
 )
 
 #: How often we checkpoint the dispacher's location in the timetable.
-KMS_DISPATCHER_CHECKPOINT_INTERVAL = float(
-    _getenv("KMS_DISPATCHER_CHECKPOINT_INTERVAL", 10.0)
+SCHEDULER_DISPATCHER_CHECKPOINT_INTERVAL = float(
+    _getenv("SCHEDULER_DISPATCHER_CHECKPOINT_INTERVAL", 10.0)
 )
 
 #: How often we checkpoint the janitor's location in the timetable.
-KMS_JANITOR_CHECKPOINT_INTERVAL = float(
-    _getenv("KMS_JANITOR_CHECKPOINT_INTERVAL", 10.0)
+SCHEDULER_JANITOR_CHECKPOINT_INTERVAL = float(
+    _getenv("SCHEDULER_JANITOR_CHECKPOINT_INTERVAL", 10.0)
 )
 
 #: How oftwn we attempt to run the cleaning process.
-KMS_JANITOR_CLEAN_INTERVAL_SECONDS = float(
-    _getenv("KMS_JANITOR_CLEAN_INTERVAL_SECONDS", 3.0)
+SCHEDULER_JANITOR_CLEAN_INTERVAL_SECONDS = float(
+    _getenv("SCHEDULER_JANITOR_CLEAN_INTERVAL_SECONDS", 3.0)
 )
 
 #: Number of seconds to offset the janitor highwater Timetable location.
-KMS_JANITOR_HIGHWATER_OFFSET_SECONDS = float(
-    _getenv("KMS_JANITOR_HIGHWATER_OFFSET_SECONDS", 3600 * 4.0)
+SCHEDULER_JANITOR_HIGHWATER_OFFSET_SECONDS = float(
+    _getenv("SCHEDULER_JANITOR_HIGHWATER_OFFSET_SECONDS", 3600 * 4.0)
 )
 
 #: Base http path for serving web requests
@@ -254,17 +254,17 @@ class CustomSettings(Settings):
         STORE_ROCKSDB_SET_CACHE_INDEX_AND_FILTER_BLOCKS
     )
 
-    kms_enabled: bool = KMS_ENABLED
-    kms_debug_stats_enabled: bool = KMS_DEBUG_STATS_ENABLED
-    kms_topic_partitions: Optional[int] = KMS_TOPIC_PARTITIONS
-    kms_checkpoint_save_interval_seconds: float = KMS_CHECKPOINT_SAVE_INTERVAL_SECONDS
-    kms_dispatcher_default_checkpoint_lookback_days: int = (
-        KMS_DISPATCHER_DEFAULT_CHECKPOINT_LOOKBACK_DAYS
+    scheduler_enabled: bool = SCHEDULER_ENABLED
+    scheduler_debug_stats_enabled: bool = SCHEDULER_DEBUG_STATS_ENABLED
+    scheduler_topic_partitions: Optional[int] = SCHEDULER_TOPIC_PARTITIONS
+    scheduler_checkpoint_save_interval_seconds: float = SCHEDULER_CHECKPOINT_SAVE_INTERVAL_SECONDS
+    scheduler_dispatcher_default_checkpoint_lookback_days: int = (
+        SCHEDULER_DISPATCHER_DEFAULT_CHECKPOINT_LOOKBACK_DAYS
     )
-    kms_dispatcher_checkpoint_interval: float = KMS_DISPATCHER_CHECKPOINT_INTERVAL
-    kms_janitor_checkpoint_interval: float = KMS_JANITOR_CHECKPOINT_INTERVAL
-    kms_janitor_clean_interval_seconds: float = KMS_JANITOR_CLEAN_INTERVAL_SECONDS
-    kms_janitor_highwater_offset_seconds: float = KMS_JANITOR_HIGHWATER_OFFSET_SECONDS
+    scheduler_dispatcher_checkpoint_interval: float = SCHEDULER_DISPATCHER_CHECKPOINT_INTERVAL
+    scheduler_janitor_checkpoint_interval: float = SCHEDULER_JANITOR_CHECKPOINT_INTERVAL
+    scheduler_janitor_clean_interval_seconds: float = SCHEDULER_JANITOR_CLEAN_INTERVAL_SECONDS
+    scheduler_janitor_highwater_offset_seconds: float = SCHEDULER_JANITOR_HIGHWATER_OFFSET_SECONDS
 
     web_base_path: str = WEB_BASE_PATH
     web_port: int = WEB_PORT
@@ -403,41 +403,41 @@ class CustomSettings(Settings):
             )
 
         if kms_enabled is not None:
-            self.kms_enabled = kms_enabled
+            self.scheduler_enabled = kms_enabled
 
         if kms_debug_stats_enabled is not None:
-            self.kms_debug_stats_enabled = kms_debug_stats_enabled
+            self.scheduler_debug_stats_enabled = kms_debug_stats_enabled
 
         if kms_topic_partitions is not None:
-            self.kms_topic_partitions = kms_topic_partitions
+            self.scheduler_topic_partitions = kms_topic_partitions
 
         if kms_checkpoint_save_interval_seconds is not None:
-            self.kms_checkpoint_save_interval_seconds = want_seconds(
+            self.scheduler_checkpoint_save_interval_seconds = want_seconds(
                 kms_checkpoint_save_interval_seconds
             )
 
         if kms_dispatcher_default_checkpoint_lookback_days is not None:
-            self.kms_dispatcher_default_checkpoint_lookback_days = (
+            self.scheduler_dispatcher_default_checkpoint_lookback_days = (
                 kms_dispatcher_default_checkpoint_lookback_days
             )
 
         if kms_dispatcher_checkpoint_interval is not None:
-            self.kms_dispatcher_checkpoint_interval = want_seconds(
+            self.scheduler_dispatcher_checkpoint_interval = want_seconds(
                 kms_dispatcher_checkpoint_interval
             )
 
         if kms_janitor_checkpoint_interval is not None:
-            self.kms_janitor_checkpoint_interval = want_seconds(
+            self.scheduler_janitor_checkpoint_interval = want_seconds(
                 kms_janitor_checkpoint_interval
             )
 
         if kms_janitor_clean_interval_seconds is not None:
-            self.kms_janitor_clean_interval_seconds = want_seconds(
+            self.scheduler_janitor_clean_interval_seconds = want_seconds(
                 kms_janitor_clean_interval_seconds
             )
 
         if kms_janitor_highwater_offset_seconds is not None:
-            self.kms_janitor_highwater_offset_seconds = want_seconds(
+            self.scheduler_janitor_highwater_offset_seconds = want_seconds(
                 kms_janitor_highwater_offset_seconds
             )
 

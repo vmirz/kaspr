@@ -139,7 +139,7 @@ class PrometheusMonitor(KasprMonitor):
         self.app_info.labels(
             group_id=self.app.conf.name,
             kaspr_version=kaspr.__version__,
-            kms_enabled="1" if self.app.conf.kms_enabled else "0",
+            kms_enabled="1" if self.app.conf.scheduler_enabled else "0",
             **self.common_labels,
         ).set_to_current_time()
         self.health.labels(**self.common_labels).set(self.INITIALIZING)
@@ -376,7 +376,7 @@ class PrometheusMonitor(KasprMonitor):
             ],
         )
 
-        if self.app.conf.kms_enabled:
+        if self.app.conf.scheduler_enabled:
             # Scheduler metrics
             self.dispatcher_info = Gauge(
                 f"{prefix}kms_dispatcher_info",

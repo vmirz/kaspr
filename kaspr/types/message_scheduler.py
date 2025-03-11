@@ -13,8 +13,7 @@ else:
     class _KasprAppT:
         ...  # noqa
 
-
-
+    
 class SchedulerPartT:
     janitor: str
     dispatcher: str
@@ -24,11 +23,6 @@ class MessageSchedulerT(ServiceT):
 
     app: _KasprAppT
     timetable: CustomTableT = None
-
-    topic_dlq: TopicT = None
-    topic_input: TopicT = None
-    topic_timetable_changelog: TopicT = None
-    topic_actions: TopicT = None
 
     topics_created: Event
     timetable_recovered: Event
@@ -40,8 +34,23 @@ class MessageSchedulerT(ServiceT):
 
     @cached_property
     @abc.abstractmethod
-    def timetable_changelog_topic_name(self) -> str:
+    def schedule_rejections_topic(self) -> TopicT:
         ...
+
+    @cached_property
+    @abc.abstractmethod
+    def schedule_requests_topic(self) -> TopicT:
+        ...
+
+    @cached_property
+    @abc.abstractmethod
+    def schedule_actions_topic(self) -> TopicT:
+        ...    
+        
+    @cached_property
+    @abc.abstractmethod
+    def timetable_changelog_topic(self) -> TopicT:
+        ...            
 
     @abc.abstractmethod
     async def maybe_create_topics(self):
