@@ -27,7 +27,7 @@ from .kaspr import KasprMonitor
 from faust.sensors.monitor import TPOffsetMapping
 
 from kaspr.utils.functional import utc_now
-from kaspr.types import KasprAppT, CustomTableT, DispatcherT, JanitorT, TTLocation
+from kaspr.types import KasprAppT, KasprTableT, DispatcherT, JanitorT, TTLocation
 
 
 try:
@@ -621,7 +621,7 @@ class PrometheusMonitor(KasprMonitor):
             self.infra.disk_space_free_bytes
         )
 
-    def on_timetable_size_refreshed(self, table: CustomTableT):
+    def on_timetable_size_refreshed(self, table: KasprTableT):
         """Count of keys in Timetable is refreshed."""
         self.timetable_size.labels(**self.common_labels).set(self.count_timetable_keys)
 

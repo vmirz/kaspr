@@ -6,7 +6,7 @@ from faust.types import AppT, WindowT
 
 from mode.utils.objects import cached_property
 from kaspr.types.message_scheduler import MessageSchedulerT
-from kaspr.types.table import CustomTableT
+from kaspr.types.table import KasprTableT
 from mode import SyncSignalT
 
 if typing.TYPE_CHECKING:
@@ -51,7 +51,7 @@ class KasprAppT(AppT):
         partitions: int = None,
         help: str = None,
         **kwargs: Any,
-    ) -> CustomTableT:
+    ) -> KasprTableT:
         """Define new table.
 
         Arguments:
