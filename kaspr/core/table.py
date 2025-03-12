@@ -57,7 +57,7 @@ class KasprTable(faust.Table):
         self,
         *args: Any,
         partition: int,
-        callback: MessageSentCallback = None,
+        callback: MessageSentCallback = None, # type: ignore
         **kwargs: Any,
     ) -> None:
         """Update a specific partition of table"""
@@ -74,7 +74,7 @@ class KasprTable(faust.Table):
         return self.data.get_for_partition(key, partition)
 
     def del_for_partition(
-        self, key, partition: int, callback: MessageSentCallback = None
+        self, key, partition: int, callback: MessageSentCallback = None # type: ignore
     ):
         """Delete key in specific partition of table"""
         self.on_key_del(key, partition, callback)

@@ -1,7 +1,7 @@
 from typing import TypeVar, Optional, Mapping, Union, Awaitable, Callable
 from kaspr.types.models.base import BaseModel
 from kaspr.types.models.pycode import PyCode
-from kaspr.types.webview import KasprWeb, KasprWebResponse, KasprWebRequest
+from kaspr.types.webview import KasprWeb, KasprWebResponse
 from kaspr.exceptions import KasprProcessingError
 
 T = TypeVar("T")

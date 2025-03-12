@@ -8,6 +8,7 @@ from mode.utils.locks import Event
 from faust.types import TP, StreamT, EventT, TopicT
 from kaspr.types import (
     KasprAppT,
+    KasprTableT,
     MessageSchedulerT,
     CheckpointT,
     DispatcherT,
@@ -74,20 +75,6 @@ class MessageScheduler(MessageSchedulerT, Service):
         self._janitors = {}
         self._out_topics = {}
         super().__init__(**kwargs)
-
-        self.timetable = app.Table(
-            self.timetable_changelog_topic.get_topic_name(),
-            changelog_topic=self.timetable_changelog_topic,
-            options={
-                "write_buffer_size": self.app.conf.store_rocksdb_write_buffer_size,
-                "max_write_buffer_number": self.app.conf.store_rocksdb_max_write_buffer_number,
-                "target_file_size_base": self.app.conf.store_rocksdb_target_file_size_base,
-                "block_cache_size": self.app.conf.store_rocksdb_block_cache_size,
-                "block_cache_compressed_size": self.app.conf.store_rocksdb_block_cache_compressed_size,
-                "bloom_filter_size": self.app.conf.store_rocksdb_bloom_filter_size,
-                "set_cache_index_and_filter_blocks": self.app.conf.store_rocksdb_set_cache_index_and_filter_blocks,
-            },
-        )
 
         # Attach event hooks to changes to partitions so
         # we can adjust dispatchers and janitors accordingly
@@ -213,7 +200,7 @@ class MessageScheduler(MessageSchedulerT, Service):
         _tt_assigned = set(
             tp
             for tp in assigned
-            if tp[0] == self.timetable_changelog_topic.get_topic_name()
+            if tp[0] == self.timetable.changelog_topic.get_topic_name()
         )
         await self._on_timetable_partitions_assigned(_tt_assigned)
 
@@ -283,16 +270,13 @@ class MessageScheduler(MessageSchedulerT, Service):
             self._janitors.pop(partition)
 
     def _schedule_requests_topic_name(self) -> str:
-        return f"{self.app.conf.id}.schedule-requests"
+        return f"{self.app.conf.id}-schedule-requests"
 
     def _schedule_actions_topic_name(self) -> str:
-        return f"{self.app.conf.id}.schedule-actions"
+        return f"{self.app.conf.id}-schedule-actions"
 
     def _schedule_rejections_topic_name(self) -> str:
-        return f"{self.app.conf.id}.schedule-rejections"
-
-    def _timetable_changelog_topic_name(self) -> str:
-        return f"{self.app.conf.id}.schedule-timetable-changelog"
+        return f"{self.app.conf.id}-schedule-rejections"
 
     def prepare_schedule_requests_topic(self) -> TopicT:
         """Prepare the requests topic."""
@@ -312,13 +296,20 @@ class MessageScheduler(MessageSchedulerT, Service):
         """Prepare the rejections topic."""
         return self.app.topic(self._schedule_rejections_topic_name())
 
-    def prepare_timetable_changelog_topic(self) -> TopicT:
-        """Prepare the timetable changelog topic."""
-        return self.app.topic(
-            self._timetable_changelog_topic_name(),
+    def prepare_timetable(self):
+        """Prepare the timetable table."""
+        return self.app.Table(
+            "timetable",
             partitions=self.app.conf.scheduler_topic_partitions,
-            compacting=True,
-            deleting=True,
+            options={
+                "write_buffer_size": self.app.conf.store_rocksdb_write_buffer_size,
+                "max_write_buffer_number": self.app.conf.store_rocksdb_max_write_buffer_number,
+                "target_file_size_base": self.app.conf.store_rocksdb_target_file_size_base,
+                "block_cache_size": self.app.conf.store_rocksdb_block_cache_size,
+                "block_cache_compressed_size": self.app.conf.store_rocksdb_block_cache_compressed_size,
+                "bloom_filter_size": self.app.conf.store_rocksdb_bloom_filter_size,
+                "set_cache_index_and_filter_blocks": self.app.conf.store_rocksdb_set_cache_index_and_filter_blocks,
+            },
         )
 
     @cached_property
@@ -337,9 +328,9 @@ class MessageScheduler(MessageSchedulerT, Service):
         return self.prepare_schedule_rejections_topic()
 
     @cached_property
-    def timetable_changelog_topic(self) -> TopicT:
-        """Topic for timetable changelog."""
-        return self.prepare_timetable_changelog_topic()
+    def timetable(self) -> KasprTableT:
+        """Timetable table."""
+        return self.prepare_timetable()
 
     @property
     def dispatcher_partitions(self) -> Set[int]:

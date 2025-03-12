@@ -22,7 +22,6 @@ class MessageSchedulerT(ServiceT):
     """Abstract type for the kafka message scheduler service."""
 
     app: _KasprAppT
-    timetable: KasprTableT = None
 
     topics_created: Event
     timetable_recovered: Event
@@ -49,7 +48,7 @@ class MessageSchedulerT(ServiceT):
         
     @cached_property
     @abc.abstractmethod
-    def timetable_changelog_topic(self) -> TopicT:
+    def timetable(self) -> KasprTableT:
         ...            
 
     @abc.abstractmethod
