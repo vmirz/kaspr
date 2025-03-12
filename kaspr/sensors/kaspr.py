@@ -10,7 +10,7 @@ from kaspr.types import (
     DispatcherT,
     JanitorT,
     KasprAppT,
-    CustomTableT,
+    KasprTableT,
 )
 from faust.sensors.monitor import Monitor
 from mode.utils.objects import KeywordReduce
@@ -407,7 +407,7 @@ class KasprMonitor(Monitor):
 
     def _sample_tables(self):
         for _, table_state in self.tables.items():
-            table: CustomTableT = table_state.table
+            table: KasprTableT = table_state.table
             if table.name == self.app.scheduler.timetable_changelog_topic_name:
                 self.count_timetable_keys = len(table.keys())
                 self.on_timetable_size_refreshed(table)
@@ -435,7 +435,7 @@ class KasprMonitor(Monitor):
         self.infra.disk_space_used_bytes = used
         self.on_disk_stats_refreshed()
 
-    def on_timetable_size_refreshed(table: CustomTableT):
+    def on_timetable_size_refreshed(table: KasprTableT):
         """Count of keys in Timetable is refreshed."""
         ...
 

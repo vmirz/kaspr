@@ -22,6 +22,7 @@ from .webview import (
     WebViewProcessorTopicSendOperator,
     WebViewProcessorMapOperator
 )
+from .table import TableSpec
 
 __all__ = [
     "BaseModel",
@@ -44,5 +45,6 @@ __all__ = [
     "WebViewProcessorSpec",
     "WebViewProcessorOperation",
     "WebViewProcessorTopicSendOperator",
-    "WebViewProcessorMapOperator"
+    "WebViewProcessorMapOperator",
+    "TableSpec"
 ]

@@ -6,7 +6,7 @@ from .message_scheduler import MessageSchedulerT, SchedulerPartT
 from .dispatcher import DispatcherT
 from .janitor import JanitorT
 from .checkpoint import CheckpointT
-from .table import CustomTableT
+from .table import KasprTableT, KasprGlobalTableT
 from .builder import AppBuilderT
 from .stream import KasprStreamT
 from .agent import KasprAgentT
@@ -28,7 +28,8 @@ __all__ = [
     "DispatcherT",
     "JanitorT",
     "CheckpointT",
-    "CustomTableT",
+    "KasprTableT",
+    "KasprGlobalTableT",
     "AppBuilderT",
     "KasprStreamT",
     "KasprAgentT",

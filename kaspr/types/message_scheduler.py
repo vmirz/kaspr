@@ -3,7 +3,7 @@ import typing
 from faust.types import ServiceT, TopicT
 from mode.utils.objects import cached_property
 from mode.utils.locks import Event
-from .table import CustomTableT
+from .table import KasprTableT
 from .checkpoint import CheckpointT
 
 if typing.TYPE_CHECKING:
@@ -22,7 +22,7 @@ class MessageSchedulerT(ServiceT):
     """Abstract type for the kafka message scheduler service."""
 
     app: _KasprAppT
-    timetable: CustomTableT = None
+    timetable: KasprTableT = None
 
     topics_created: Event
     timetable_recovered: Event
