@@ -406,9 +406,10 @@ class KasprMonitor(Monitor):
             self._sample_disk_space()
 
     def _sample_tables(self):
+        tt_changelog_name = self.app.scheduler.timetable.changelog_topic.get_topic_name()
         for _, table_state in self.tables.items():
             table: KasprTableT = table_state.table
-            if table.name == self.app.scheduler.timetable_changelog_topic_name:
+            if table.name == tt_changelog_name:
                 self.count_timetable_keys = len(table.keys())
                 self.on_timetable_size_refreshed(table)
 
