@@ -113,7 +113,7 @@ class Janitor(Service):
     @property
     def highwater(self) -> Optional[TTLocation]:
         """Timetable location janitor is working to get to.
-        
+
         The janitor's highwater is (last dispatcher checkpoint - fixed offset)
         Dispatcher checkpoint may not be set, which in that case highwater will be None.
         """
@@ -227,7 +227,7 @@ class Janitor(Service):
                 else time_key
             )
             highwater = self.highwater
-            while time_key <= highwater.time_key:
+            while highwater is not None and time_key <= highwater.time_key:
                 if self.last_location and time_key == self.last_location:
                     time_key += 1
                     continue

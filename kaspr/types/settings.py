@@ -298,15 +298,15 @@ class CustomSettings(Settings):
         store_rocksdb_block_cache_compressed_size: int = None,
         store_rocksdb_bloom_filter_size: int = None,
         store_rocksdb_set_cache_index_and_filter_blocks: bool = None,
-        kms_enabled: bool = None,
-        kms_debug_stats_enabled: bool = None,
-        kms_topic_partitions: int = None,
-        kms_checkpoint_save_interval_seconds: Seconds = None,
-        kms_dispatcher_default_checkpoint_lookback_days: int = None,
-        kms_dispatcher_checkpoint_interval: float = None,
-        kms_janitor_checkpoint_interval: float = None,
-        kms_janitor_clean_interval_seconds: Seconds = None,
-        kms_janitor_highwater_offset_seconds: Seconds = None,
+        scheduler_enabled: bool = None,
+        scheduler_debug_stats_enabled: bool = None,
+        scheduler_topic_partitions: int = None,
+        scheduler_checkpoint_save_interval_seconds: Seconds = None,
+        scheduler_dispatcher_default_checkpoint_lookback_days: int = None,
+        scheduler_dispatcher_checkpoint_interval: float = None,
+        scheduler_janitor_checkpoint_interval: float = None,
+        scheduler_janitor_clean_interval_seconds: Seconds = None,
+        scheduler_janitor_highwater_offset_seconds: Seconds = None,
         web_base_path: str = None,
         web_port: int = None,
         web_metrics_base_path: str = None,
@@ -402,43 +402,43 @@ class CustomSettings(Settings):
                 store_rocksdb_set_cache_index_and_filter_blocks
             )
 
-        if kms_enabled is not None:
-            self.scheduler_enabled = kms_enabled
+        if scheduler_enabled is not None:
+            self.scheduler_enabled = scheduler_enabled
 
-        if kms_debug_stats_enabled is not None:
-            self.scheduler_debug_stats_enabled = kms_debug_stats_enabled
+        if scheduler_debug_stats_enabled is not None:
+            self.scheduler_debug_stats_enabled = scheduler_debug_stats_enabled
 
-        if kms_topic_partitions is not None:
-            self.scheduler_topic_partitions = kms_topic_partitions
+        if scheduler_topic_partitions is not None:
+            self.scheduler_topic_partitions = scheduler_topic_partitions
 
-        if kms_checkpoint_save_interval_seconds is not None:
+        if scheduler_checkpoint_save_interval_seconds is not None:
             self.scheduler_checkpoint_save_interval_seconds = want_seconds(
-                kms_checkpoint_save_interval_seconds
+                scheduler_checkpoint_save_interval_seconds
             )
 
-        if kms_dispatcher_default_checkpoint_lookback_days is not None:
+        if scheduler_dispatcher_default_checkpoint_lookback_days is not None:
             self.scheduler_dispatcher_default_checkpoint_lookback_days = (
-                kms_dispatcher_default_checkpoint_lookback_days
+                scheduler_dispatcher_default_checkpoint_lookback_days
             )
 
-        if kms_dispatcher_checkpoint_interval is not None:
+        if scheduler_dispatcher_checkpoint_interval is not None:
             self.scheduler_dispatcher_checkpoint_interval = want_seconds(
-                kms_dispatcher_checkpoint_interval
+                scheduler_dispatcher_checkpoint_interval
             )
 
-        if kms_janitor_checkpoint_interval is not None:
+        if scheduler_janitor_checkpoint_interval is not None:
             self.scheduler_janitor_checkpoint_interval = want_seconds(
-                kms_janitor_checkpoint_interval
+                scheduler_janitor_checkpoint_interval
             )
 
-        if kms_janitor_clean_interval_seconds is not None:
+        if scheduler_janitor_clean_interval_seconds is not None:
             self.scheduler_janitor_clean_interval_seconds = want_seconds(
-                kms_janitor_clean_interval_seconds
+                scheduler_janitor_clean_interval_seconds
             )
 
-        if kms_janitor_highwater_offset_seconds is not None:
+        if scheduler_janitor_highwater_offset_seconds is not None:
             self.scheduler_janitor_highwater_offset_seconds = want_seconds(
-                kms_janitor_highwater_offset_seconds
+                scheduler_janitor_highwater_offset_seconds
             )
 
         if web_base_path is not None:
