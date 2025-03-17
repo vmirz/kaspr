@@ -94,8 +94,8 @@ KAFKA_AUTH_CADATA = _getenv("KAFKA_AUTH_CADATA", None)
 
 #: Table state directory path used as default
 #: This path will be treated as relative to datadir, unless the provided
-#: poth is absolute.
-TABLE_DIR = _getenv("TABLE_DIR", "/var/lib/stream/rocksdb")
+#: path is absolute.
+TABLE_DIR = _getenv("TABLE_DIR", "tables")
 
 # Prefix applied to all internal Kafka topics.
 TOPIC_PREFIX = _subenv(_getenv("TOPIC_PREFIX", "{K_APP_NAME}."))

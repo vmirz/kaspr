@@ -1,3 +1,4 @@
+import inspect
 from typing import Callable, TypeVar, Union, Awaitable, Optional, Dict
 from kaspr.types.models.base import SpecComponent
 from kaspr.types.app import KasprAppT
@@ -23,28 +24,34 @@ class TableSpec(SpecComponent):
     _table: KasprTableT
 
     def prepare_table(self) -> KasprTableT:
-        key_type = None
-        value_type = None
-        default = None
-        if self.key_serializer == "raw":
-            key_type = bytes
-        if self.value_serializer == "raw":
-            value_type = bytes
-        if self.default_selector is not None:
-            default = self.default_selector.func()
+        """Prepare table instance."""
+        _Table = self.app.Table
         if self.is_global:
             _Table = self.app.GlobalTable
-        else:
-            _Table = self.app.Table
         return _Table(
             name=self.name,
             help=self.description,
-            default_selector=default,
-            key_type=key_type,
-            value_type=value_type,
+            default_selector=self._default_type(),
+            key_type=self._serializer_to_type(self.key_serializer),
+            value_type=self._serializer_to_type(self.value_serializer),
             partitions=self.partitions,
             extra_topic_configs=self.extra_topic_configs,
         )
+    
+    def _serializer_to_type(self) -> T:
+        """Map serializer to type."""
+        if self.key_serializer == "raw":
+            return bytes
+        return None
+    
+    def _default_type(self) -> T:
+        """Return table's default value type"""
+        if self.default_selector is not None:
+            _t = self.default_selector.func()
+            if not inspect.isclass(_t):
+                raise ValueError("Default selector must return a class type.")
+            return _t
+        return self.table.default
 
     @property
     def table(self) -> KasprTableT:
