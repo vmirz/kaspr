@@ -1,7 +1,51 @@
 from kaspr.types.schemas.base import BaseSchema
 from kaspr.types.schemas.pycode import PyCodeSchema
-from kaspr.types.models import TableSpec
+from kaspr.types.models import (
+    TableSpec,
+    TableWindowSpec,
+    TableWindowHoppingSpec,
+    TableWindowTumblingSpec,
+)
 from marshmallow import fields
+
+
+class TableWindowTumblingSpecSchema(BaseSchema):
+    __model__ = TableWindowTumblingSpec
+    size = fields.Int(data_key="size", allow_none=False, required=True)
+    expires_at = fields.Str(data_key="expires_at", allow_none=True, load_default=None)
+
+
+class TableWindowHoppingSpecSchema(BaseSchema):
+    __model__ = TableWindowHoppingSpec
+
+    size = fields.Int(data_key="size", allow_none=False, required=True)
+    step = fields.Int(data_key="step", allow_none=False, required=True)
+    expires_at = fields.Str(data_key="expires_at", allow_none=True, load_default=None)
+
+
+class TableWindowSpecSchema(BaseSchema):
+    __model__ = TableWindowSpec
+
+    tumbling = fields.Nested(
+        TableWindowTumblingSpecSchema(),
+        data_key="tumbling",
+        allow_none=True,
+        load_default=None,
+    )
+    hopping = fields.Nested(
+        TableWindowHoppingSpecSchema(),
+        data_key="hopping",
+        allow_none=True,
+        load_default=None,
+    )
+    relative_to = fields.Str(data_key="relative_to", allow_none=True, load_default=None)
+    relative_to_field_selector = fields.Nested(
+        PyCodeSchema(),
+        data_key="relative_to_field_selector",
+        allow_none=True,
+        load_default=None,
+    )
+
 
 class TableSpecSchema(BaseSchema):
     __model__ = TableSpec
@@ -24,4 +68,7 @@ class TableSpecSchema(BaseSchema):
         data_key="extra_topic_configs",
         allow_none=True,
         load_default={},
+    )
+    window = fields.Nested(
+        TableWindowSpecSchema(), data_key="window", allow_none=True, load_default=None
     )

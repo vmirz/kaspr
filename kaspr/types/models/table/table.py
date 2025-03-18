@@ -1,12 +1,30 @@
 import inspect
 from typing import Callable, TypeVar, Union, Awaitable, Optional, Dict
-from kaspr.types.models.base import SpecComponent
+from kaspr.types.models.base import SpecComponent, BaseModel
 from kaspr.types.app import KasprAppT
 from kaspr.types.models.pycode import PyCode
 from kaspr.types import KasprTableT
 
 T = TypeVar("T")
 Function = Callable[[T], Union[T, Awaitable[T]]]
+
+
+class TableWindowTumblingSpec(BaseModel):
+    size: int
+    expires_at: Optional[str]
+
+
+class TableWindowHoppingSpec(BaseModel):
+    size: int
+    step: int
+    expires_at: Optional[str]
+
+
+class TableWindowSpec(BaseModel):
+    tumbling: Optional[TableWindowTumblingSpec]
+    hopping: Optional[TableWindowHoppingSpec]
+    relative_to: Optional[str]
+    relative_to_field_selector: Optional[PyCode]
 
 
 class TableSpec(SpecComponent):
@@ -18,6 +36,7 @@ class TableSpec(SpecComponent):
     value_serializer: Optional[str]
     partitions: Optional[int]
     extra_topic_configs: Optional[Dict]
+    window: Optional[TableWindowSpec]
 
     app: KasprAppT = None
 
@@ -37,13 +56,13 @@ class TableSpec(SpecComponent):
             partitions=self.partitions,
             extra_topic_configs=self.extra_topic_configs,
         )
-    
+
     def _serializer_to_type(self) -> T:
         """Map serializer to type."""
         if self.key_serializer == "raw":
             return bytes
         return None
-    
+
     def _default_type(self) -> T:
         """Return table's default value type"""
         if self.default_selector is not None:
