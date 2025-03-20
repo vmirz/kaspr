@@ -9,9 +9,9 @@ from .app import AppSpecSchema
 from .agent.processor import AgentProcessorSpecSchema
 from .pycode import PyCodeSchema
 from .agent.operations import (
-    AgentProcessorOperationSchema, 
+    AgentProcessorOperationSchema,
     AgentProcessorFilterOperatorSchema,
-    AgentProcessorMapOperatorSchema
+    AgentProcessorMapOperatorSchema,
 )
 from .webview import (
     WebViewSpecSchema,
@@ -20,9 +20,14 @@ from .webview import (
     WebViewProcessorSpecSchema,
     WebViewProcessorOperationSchema,
     WebViewProcessorTopicSendOperatorSchema,
-    WebViewProcessorMapOperatorSchema
+    WebViewProcessorMapOperatorSchema,
 )
-from .table import TableSpecSchema
+from .table import (
+    TableSpecSchema,
+    TableWindowSpecSchema,
+    TableWindowHoppingSpecSchema,
+    TableWindowTumblingSpecSchema,
+)
 
 __all__ = [
     "BaseSchema",
@@ -45,5 +50,8 @@ __all__ = [
     "WebViewProcessorOperationSchema",
     "WebViewProcessorTopicSendOperatorSchema",
     "WebViewProcessorMapOperatorSchema",
-    "TableSpecSchema"
+    "TableSpecSchema",
+    "TableWindowSpecSchema",
+    "TableWindowHoppingSpecSchema",
+    "TableWindowTumblingSpecSchema",
 ]

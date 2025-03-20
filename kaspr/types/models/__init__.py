@@ -9,9 +9,9 @@ from .app import AppSpec
 from .pycode import PyCode
 from .agent.processor import AgentProcessorSpec
 from .agent.operations import (
-    AgentProcessorOperation, 
+    AgentProcessorOperation,
     AgentProcessorFilterOperator,
-    AgentProcessorMapOperator
+    AgentProcessorMapOperator,
 )
 from .webview import (
     WebViewSpec,
@@ -20,9 +20,14 @@ from .webview import (
     WebViewProcessorSpec,
     WebViewProcessorOperation,
     WebViewProcessorTopicSendOperator,
-    WebViewProcessorMapOperator
+    WebViewProcessorMapOperator,
 )
-from .table import TableSpec
+from .table import (
+    TableSpec,
+    TableWindowSpec,
+    TableWindowHoppingSpec,
+    TableWindowTumblingSpec,
+)
 
 __all__ = [
     "BaseModel",
@@ -36,8 +41,8 @@ __all__ = [
     "AppSpec",
     "PyCode",
     "AgentProcessorSpec",
-    "AgentProcessorOperation",    
-    "AgentProcessorFilterOperator",    
+    "AgentProcessorOperation",
+    "AgentProcessorFilterOperator",
     "AgentProcessorMapOperator",
     "WebViewSpec",
     "WebViewResponseSpec",
@@ -46,5 +51,8 @@ __all__ = [
     "WebViewProcessorOperation",
     "WebViewProcessorTopicSendOperator",
     "WebViewProcessorMapOperator",
-    "TableSpec"
+    "TableSpec",
+    "TableWindowSpec",
+    "TableWindowHoppingSpec",
+    "TableWindowTumblingSpec",
 ]
