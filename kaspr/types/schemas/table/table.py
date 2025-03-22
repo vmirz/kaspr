@@ -6,13 +6,23 @@ from kaspr.types.models import (
     TableWindowHoppingSpec,
     TableWindowTumblingSpec,
 )
-from marshmallow import fields
+from marshmallow import fields, validate, ValidationError
+
+
+def validate_relative_to(value):
+    valid_values = ["stream", "now", "custom"]
+    if value.lower() not in valid_values:
+        raise ValidationError(
+            f"Invalid value for relative_to: {value}. Must be one of {valid_values}."
+        )
 
 
 class TableWindowTumblingSpecSchema(BaseSchema):
     __model__ = TableWindowTumblingSpec
     size = fields.Int(data_key="size", allow_none=False, required=True)
-    expires_at = fields.Str(data_key="expires_at", allow_none=True, load_default=None)
+    expires = fields.Str(
+        data_key="expires", allow_none=True, load_default=None
+    )  # convert 1s, 1m, 1h, 1d to timedelta type
 
 
 class TableWindowHoppingSpecSchema(BaseSchema):
@@ -20,7 +30,9 @@ class TableWindowHoppingSpecSchema(BaseSchema):
 
     size = fields.Int(data_key="size", allow_none=False, required=True)
     step = fields.Int(data_key="step", allow_none=False, required=True)
-    expires_at = fields.Str(data_key="expires_at", allow_none=True, load_default=None)
+    expires = fields.Str(
+        data_key="expires", allow_none=True, load_default=None
+    )  # convert 1s, 1m, 1h, 1d to timedelta type
 
 
 class TableWindowSpecSchema(BaseSchema):
@@ -38,10 +50,15 @@ class TableWindowSpecSchema(BaseSchema):
         allow_none=True,
         load_default=None,
     )
-    relative_to = fields.Str(data_key="relative_to", allow_none=True, load_default=None)
-    relative_to_field_selector = fields.Nested(
+    relative_to = fields.Str(
+        data_key="relative_to",
+        validate=validate_relative_to,
+        allow_none=True,
+        load_default=None,
+    )
+    relative_to_selector = fields.Nested(
         PyCodeSchema(),
-        data_key="relative_to_field_selector",
+        data_key="relative_to_selector",
         allow_none=True,
         load_default=None,
     )
@@ -65,10 +82,18 @@ class TableSpecSchema(BaseSchema):
     partitions = fields.Int(data_key="partitions", required=False, load_default=None)
     extra_topic_configs = fields.Mapping(
         keys=fields.Str(required=True),
+        values=fields.Str(required=True),
         data_key="extra_topic_configs",
         allow_none=True,
-        load_default={},
+        load_default=dict,
     )
+    options = fields.Mapping(
+        keys=fields.Str(required=True),
+        values=fields.Str(required=True),
+        data_key="options",
+        allow_none=True,
+        load_default=dict,
+    )    
     window = fields.Nested(
         TableWindowSpecSchema(), data_key="window", allow_none=True, load_default=None
     )
