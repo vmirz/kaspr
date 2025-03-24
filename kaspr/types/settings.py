@@ -97,9 +97,6 @@ KAFKA_AUTH_CADATA = _getenv("KAFKA_AUTH_CADATA", None)
 #: path is absolute.
 TABLE_DIR = _getenv("TABLE_DIR", "tables")
 
-# Prefix applied to all internal Kafka topics.
-TOPIC_PREFIX = _subenv(_getenv("TOPIC_PREFIX", "{K_APP_NAME}."))
-
 #: The default replication factor for topics created by the application.
 TOPIC_REPLICATION_FACTOR = int(_getenv("TOPIC_REPLICATION_FACTOR", 3))
 
@@ -237,7 +234,6 @@ class CustomSettings(Settings):
 
     table_dir: str = TABLE_DIR
 
-    topic_prefix: str = TOPIC_PREFIX
     topic_replication_factor: int = TOPIC_REPLICATION_FACTOR
     topic_partitions: int = TOPIC_PARTITIONS
     topic_allow_declare: bool = TOPIC_ALLOW_DECLARE
@@ -290,7 +286,6 @@ class CustomSettings(Settings):
         kafka_auth_capath: str = None,
         kafka_auth_cadata: str = None,
         table_dir: str = None,
-        topic_prefix: str = None,
         store_rocksdb_write_buffer_size: int = None,
         store_rocksdb_max_write_buffer_number: int = None,
         store_rocksdb_target_file_size_base: int = None,
@@ -369,9 +364,6 @@ class CustomSettings(Settings):
             self.worker_name_format = worker_name_format
 
         self.worker_name = self._prepare_worker_name(name=self.name)
-
-        if topic_prefix is not None:
-            self.topic_prefix = str(topic_prefix)
 
         if store_rocksdb_write_buffer_size is not None:
             self.store_rocksdb_write_buffer_size = store_rocksdb_write_buffer_size

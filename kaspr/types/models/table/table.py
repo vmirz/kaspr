@@ -42,7 +42,7 @@ class TableSpec(SpecComponent):
 
     app: KasprAppT = None
 
-    _table: KasprTableT
+    _table: KasprTableT = None
 
     def prepare_table(self) -> KasprTableT:
         """Prepare table instance."""
@@ -53,16 +53,16 @@ class TableSpec(SpecComponent):
         return _Table(
             name=self.name,
             help=self.description,
-            default_selector=self._default_type(),
+            default=self._default_type(),
             key_type=self._serializer_to_type(self.key_serializer),
             value_type=self._serializer_to_type(self.value_serializer),
             partitions=self.partitions,
             extra_topic_configs=self.extra_topic_configs,
         )
 
-    def _serializer_to_type(self) -> T:
+    def _serializer_to_type(self, serializer: str = None) -> T:
         """Map serializer to type."""
-        if self.key_serializer == "raw":
+        if serializer == "raw":
             return bytes
         return None
 
