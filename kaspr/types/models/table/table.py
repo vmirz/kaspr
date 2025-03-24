@@ -73,7 +73,7 @@ class TableSpec(SpecComponent):
             if not inspect.isclass(_t):
                 raise ValueError("Default selector must return a class type.")
             return _t
-        return self.table.default
+        return None
 
     @property
     def table(self) -> KasprTableT:
