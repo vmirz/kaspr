@@ -47,6 +47,7 @@ class AgentProcessorSpec(SpecComponent):
                         for operation in ops[1:]:
                             next_values = []
                             operator = operation.operator
+                            tables = operation.tables
                             for current_value in current_values:
                                 scope = {
                                     **init_scope,

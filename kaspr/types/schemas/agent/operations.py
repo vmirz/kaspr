@@ -35,8 +35,9 @@ class AgentProcessorOperationSchema(BaseSchema):
     )
     table_refs = fields.List(
         fields.Nested(
-            TableRefSpecSchema(), data_key="tables", required=True
+            TableRefSpecSchema(), required=True
         ),
+        data_key="tables",
         allow_none=False,
         load_default=list,
     )    
