@@ -28,6 +28,7 @@ from .table import (
     TableWindowHoppingSpec,
     TableWindowTumblingSpec,
 )
+from .tableref import TableRefSpec
 
 __all__ = [
     "BaseModel",
@@ -55,4 +56,5 @@ __all__ = [
     "TableWindowSpec",
     "TableWindowHoppingSpec",
     "TableWindowTumblingSpec",
+    "TableRefSpec",
 ]

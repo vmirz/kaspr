@@ -31,12 +31,13 @@ class AgentProcessorSpec(SpecComponent):
                 async for value in stream:
                     operation = ops[0]
                     operator = operation.operator
+                    tables = operation.tables
                     scope = {
                         **init_scope,
                         "context": {**context, "event": stream.current_event},
                     }
                     operator.with_scope(scope)
-                    value = await operator.process(value)
+                    value = await operator.process(value, **tables)
                     if value == operator.skip_value:
                         continue
                     gen = ensure_generator(value)
@@ -52,7 +53,7 @@ class AgentProcessorSpec(SpecComponent):
                                     "context": {**context, "event": stream.current_event},
                                 }
                                 operator.with_scope(scope)
-                                value = await operator.process(current_value)
+                                value = await operator.process(current_value, **tables)
                                 if value == operator.skip_value:
                                     continue
                                 # Collect all results

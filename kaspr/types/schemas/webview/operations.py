@@ -7,7 +7,7 @@ from kaspr.types.models.webview import (
 )
 from kaspr.types.schemas.pycode import PyCodeSchema
 from kaspr.types.schemas.topicout import TopicOutSpecSchema
-
+from kaspr.types.schemas.tableref import TableRefSpecSchema
 
 class WebViewProcessorTopicSendOperatorSchema(TopicOutSpecSchema):
     __model__ = WebViewProcessorTopicSendOperator
@@ -32,4 +32,11 @@ class WebViewProcessorOperationSchema(BaseSchema):
         data_key="map",
         allow_none=True,
         load_default=None,
+    )
+    table_refs = fields.List(
+        fields.Nested(
+            TableRefSpecSchema(), data_key="tables", required=True
+        ),
+        allow_none=False,
+        load_default=list,
     )
