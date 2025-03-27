@@ -13,7 +13,7 @@ else:
         ...  # noqa
 
 
-class CustomTableT(TableT):
+class KasprTableT(TableT):
     """Type for custom table."""
 
     app: _KasprAppT
@@ -24,7 +24,7 @@ class CustomTableT(TableT):
     def update_for_partition(self, 
                              *args: Any, 
                              partition: int, 
-                             callback: MessageSentCallback = None, 
+                             callback: MessageSentCallback = None,  # type: ignore
                              **kwargs: Any) -> None:
         """Update a specific partition of table"""
         ...
@@ -38,6 +38,9 @@ class CustomTableT(TableT):
     def del_for_partition(self, 
                           key, 
                           partition: int, 
-                          callback: MessageSentCallback = None):
+                          callback: MessageSentCallback = None): # type: ignore
         """Delete key in specific partition of table"""
         ...
+
+class KasprGlobalTableT(KasprTableT):
+    ...

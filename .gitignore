@@ -13,3 +13,5 @@ __pycache__/
 .ruff_cache
 # MacOS Desktop Services Store
 .DS_Store
+*.env
+tables

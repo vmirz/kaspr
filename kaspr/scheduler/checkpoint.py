@@ -123,7 +123,7 @@ class Checkpoint(CheckpointT, Service):
     async def _save_pending(self):
         """Periodically save pending checkpoints."""
 
-        interval = self.app.conf.kms_checkpoint_save_interval_seconds
+        interval = self.app.conf.scheduler_checkpoint_save_interval_seconds
         await self.app.scheduler.wait_until_topics_created()
         await self._maybe_wait()
         while not self.should_stop:

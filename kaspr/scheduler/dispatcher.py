@@ -116,7 +116,7 @@ class Dispatcher(Service):
         # default checkpoint
         default_timekey = (
             current_timekey()
-            - self.app.conf.kms_dispatcher_default_checkpoint_lookback_days
+            - self.app.conf.scheduler_dispatcher_default_checkpoint_lookback_days
             * SECONDS_PER_DAY
         )
         return TTLocation(self.partition, default_timekey)
@@ -298,7 +298,7 @@ class Dispatcher(Service):
     async def _periodic_checkpoint(self):
         """Periodically save dispatcher checkpoint."""
 
-        interval = self.app.conf.kms_dispatcher_checkpoint_interval
+        interval = self.app.conf.scheduler_dispatcher_checkpoint_interval
         await self._maybe_wait()
         while not self.should_stop:
             await self._maybe_wait()

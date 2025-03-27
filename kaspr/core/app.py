@@ -1,16 +1,12 @@
 import faust
 from datetime import datetime
-from kaspr.utils import utc_now
+from kaspr.utils.functional import utc_now
 from typing import Optional, Iterable
 from faust.app import BootStrategy
 from faust.types import ServiceT
 from mode.utils.objects import cached_property
 from mode import SyncSignal
-from kaspr.types import (
-    CustomSettings,
-    KasprAppT,
-    MessageSchedulerT,
-)
+from kaspr.types import CustomSettings, KasprAppT, MessageSchedulerT, AppBuilderT
 from kaspr.scheduler import MessageScheduler
 
 
@@ -30,12 +26,11 @@ class CustomBootStrategy(BootStrategy):
         self, app: KasprAppT, *args, enable_scheduler: bool = None, **kwargs
     ) -> None:
         super().__init__(app, *args, **kwargs)
-        
+
         self.boot_time = utc_now()
 
         if enable_scheduler is not None:
             self.enable_scheduler = enable_scheduler
-
 
     def server(self) -> Iterable[ServiceT]:
         """Return services to start when app is in scheduler mode."""
@@ -55,7 +50,7 @@ class CustomBootStrategy(BootStrategy):
 
     def _should_enable_message_scheduler(self) -> bool:
         if self.enable_scheduler is None:
-            return self.app.conf.kms_enabled
+            return self.app.conf.scheduler_enabled
         return self.enable_scheduler
 
 
@@ -78,9 +73,12 @@ class KasprApp(KasprAppT, faust.App):
     async def on_first_start(self) -> None:
         """Call first time app starts in this process."""
         await super().on_first_start()
-        
-        if self.conf.kms_enabled:
+
+        if self.conf.scheduler_enabled:
             await self.scheduler.maybe_create_topics()
+
+        if self.conf.app_builder_enabled:
+            self.builder.build()
 
     async def on_start(self) -> None:
         """Call every time app start/restarts."""
@@ -96,7 +94,6 @@ class KasprApp(KasprAppT, faust.App):
 
     def on_rebalance_start(self) -> None:
         """Call when rebalancing starts"""
-
         super().on_rebalance_start()
         self.on_rebalance_started.send()
 
@@ -104,6 +101,10 @@ class KasprApp(KasprAppT, faust.App):
         """Call when rebalancing is done."""
         super().on_rebalance_end()
 
+    def _create_directories(self) -> None:
+        super()._create_directories()
+        self.conf.definitionssdir.mkdir(exist_ok=True)
+    
     @cached_property
     def scheduler(self) -> MessageSchedulerT:
         """Kafka message scheduler service."""
@@ -112,3 +113,8 @@ class KasprApp(KasprAppT, faust.App):
             loop=self.loop,
             beacon=self.beacon,
         )
+
+    @cached_property
+    def builder(self) -> AppBuilderT:
+        """App builder."""
+        return self.conf.AppBuilder(self)

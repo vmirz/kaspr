@@ -91,7 +91,7 @@ class Janitor(Service):
         # default checkpoint
         timekey = (
             current_timekey()
-            - self.app.conf.kms_dispatcher_default_checkpoint_lookback_days
+            - self.app.conf.scheduler_dispatcher_default_checkpoint_lookback_days
             * SECONDS_PER_DAY
         )
         return TTLocation(self.partition, timekey)
@@ -105,7 +105,7 @@ class Janitor(Service):
         """
         timekey = (
             current_timekey()
-            - self.app.conf.kms_dispatcher_default_checkpoint_lookback_days
+            - self.app.conf.scheduler_dispatcher_default_checkpoint_lookback_days
             * SECONDS_PER_DAY
         )
         return TTLocation(self.partition, timekey)
@@ -113,7 +113,7 @@ class Janitor(Service):
     @property
     def highwater(self) -> Optional[TTLocation]:
         """Timetable location janitor is working to get to.
-        
+
         The janitor's highwater is (last dispatcher checkpoint - fixed offset)
         Dispatcher checkpoint may not be set, which in that case highwater will be None.
         """
@@ -137,7 +137,7 @@ class Janitor(Service):
     @cached_property
     def highwater_offset(self) -> int:
         """Static highwater offset"""
-        return self.app.conf.kms_janitor_highwater_offset_seconds
+        return self.app.conf.scheduler_janitor_highwater_offset_seconds
 
     @property
     def last_location(self) -> Optional[TTLocation]:
@@ -217,7 +217,7 @@ class Janitor(Service):
             cp.time_key,
             0 if cp.sequence < 0 else cp.sequence + 1,
         )
-        interval = self.app.conf.kms_janitor_clean_interval_seconds
+        interval = self.app.conf.scheduler_janitor_clean_interval_seconds
 
         while not self.should_stop:
             await self._maybe_wait()
@@ -227,7 +227,7 @@ class Janitor(Service):
                 else time_key
             )
             highwater = self.highwater
-            while time_key <= highwater.time_key:
+            while highwater is not None and time_key <= highwater.time_key:
                 if self.last_location and time_key == self.last_location:
                     time_key += 1
                     continue
@@ -341,7 +341,7 @@ class Janitor(Service):
     async def _periodic_checkpoint(self):
         """Periodically save dispatcher checkpoint."""
 
-        interval = self.app.conf.kms_janitor_checkpoint_interval
+        interval = self.app.conf.scheduler_janitor_checkpoint_interval
         await self._maybe_wait()
         while not self.should_stop:
             await self._maybe_wait()
