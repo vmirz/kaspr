@@ -21,22 +21,29 @@ class AgentProcessorSpec(SpecComponent):
 
     def prepare_processor(self) -> Callable[..., Awaitable[Any]]:
         operations = {op.name: op for op in self.operations}
-        output = self.output
-        
+        output = self.output    
+
         async def _aprocessor(stream: KasprStreamT):
             init_scope = self.init.execute().scope if self.init else {}
             context = {"app": self.app}
-            ops = [operations[name] for name in self.pipeline]
+            ops = []
+            for name in self.pipeline:
+                if name not in operations:
+                    raise ValueError(f"Operation '{name}' is not defined.")
+                ops.append(operations[name])
+            if not ops:
+                return
             try:
                 async for value in stream:
                     operation = ops[0]
                     operator = operation.operator
+                    tables = operation.tables
                     scope = {
                         **init_scope,
                         "context": {**context, "event": stream.current_event},
                     }
                     operator.with_scope(scope)
-                    value = await operator.process(value)
+                    value = await operator.process(value, **tables)
                     if value == operator.skip_value:
                         continue
                     gen = ensure_generator(value)
@@ -46,13 +53,14 @@ class AgentProcessorSpec(SpecComponent):
                         for operation in ops[1:]:
                             next_values = []
                             operator = operation.operator
+                            tables = operation.tables
                             for current_value in current_values:
                                 scope = {
                                     **init_scope,
                                     "context": {**context, "event": stream.current_event},
                                 }
                                 operator.with_scope(scope)
-                                value = await operator.process(current_value)
+                                value = await operator.process(current_value, **tables)
                                 if value == operator.skip_value:
                                     continue
                                 # Collect all results

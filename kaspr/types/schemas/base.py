@@ -24,7 +24,7 @@ class BaseSchema(Schema):
         ordered = True   
 
     @post_load
-    def make_object(self, data: JSON, **kwargs: Any) -> "__model__":
+    def make_object(self, data: JSON, **kwargs: Any) -> "__model__": # type: ignore
         """Build model for the given `__model__` class attribute.
         Args:
             data: The JSON diction to use to build the model.

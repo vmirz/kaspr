@@ -27,7 +27,7 @@ from .kaspr import KasprMonitor
 from faust.sensors.monitor import TPOffsetMapping
 
 from kaspr.utils.functional import utc_now
-from kaspr.types import KasprAppT, CustomTableT, DispatcherT, JanitorT, TTLocation
+from kaspr.types import KasprAppT, KasprTableT, DispatcherT, JanitorT, TTLocation
 
 
 try:
@@ -139,7 +139,7 @@ class PrometheusMonitor(KasprMonitor):
         self.app_info.labels(
             group_id=self.app.conf.name,
             kaspr_version=kaspr.__version__,
-            kms_enabled="1" if self.app.conf.kms_enabled else "0",
+            kms_enabled="1" if self.app.conf.scheduler_enabled else "0",
             **self.common_labels,
         ).set_to_current_time()
         self.health.labels(**self.common_labels).set(self.INITIALIZING)
@@ -376,7 +376,7 @@ class PrometheusMonitor(KasprMonitor):
             ],
         )
 
-        if self.app.conf.kms_enabled:
+        if self.app.conf.scheduler_enabled:
             # Scheduler metrics
             self.dispatcher_info = Gauge(
                 f"{prefix}kms_dispatcher_info",
@@ -621,7 +621,7 @@ class PrometheusMonitor(KasprMonitor):
             self.infra.disk_space_free_bytes
         )
 
-    def on_timetable_size_refreshed(self, table: CustomTableT):
+    def on_timetable_size_refreshed(self, table: KasprTableT):
         """Count of keys in Timetable is refreshed."""
         self.timetable_size.labels(**self.common_labels).set(self.count_timetable_keys)
 

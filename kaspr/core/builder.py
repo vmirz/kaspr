@@ -4,7 +4,7 @@ import yaml
 from typing import List
 from pathlib import Path
 from kaspr.types import KasprAppT, AppBuilderT
-from kaspr.types.models import AppSpec, AgentSpec, WebViewSpec
+from kaspr.types.models import AppSpec, AgentSpec, WebViewSpec, TableSpec
 from kaspr.types.schemas import AppSpecSchema
 from mode.utils.objects import cached_property
 
@@ -17,6 +17,7 @@ class AppBuilder(AppBuilderT):
     _apps: List[AppSpec] = None
     _agents: List[AgentSpec] = None
     _webviews: List[WebViewSpec] = None
+    _tables: List[TableSpec] = None
 
     def __init__(self, app: KasprAppT) -> None:
         self.app = app
@@ -53,12 +54,20 @@ class AppBuilder(AppBuilderT):
         for app in self.apps:
             webviews.extend(app.webviews_spec)
         return webviews
+    
+    def _prepare_tables(self) -> List[TableSpec]:
+        """Prepare tables from loaded definitions."""
+        tables = []
+        for app in self.apps:
+            tables.extend(app.tables_spec)
+        return
 
     def build(self) -> None:
         """Build agents, tasks, etc. from definition files."""
         for app in self.apps:
             app.agents
             app.webviews
+            app.tables
 
     @cached_property
     def apps(self) -> List[AppSpec]:
@@ -77,3 +86,9 @@ class AppBuilder(AppBuilderT):
         if self._webviews is None:
             self._webviews = self._prepare_webviews()
         return self._webviews
+    
+    @cached_property
+    def tables(self) -> List[TableSpec]:
+        if self._tables is None:
+            self._tables = self._prepare_tables()
+        return self._tables

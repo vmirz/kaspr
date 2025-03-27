@@ -8,6 +8,7 @@ from mode.utils.locks import Event
 from faust.types import TP, StreamT, EventT, TopicT
 from kaspr.types import (
     KasprAppT,
+    KasprTableT,
     MessageSchedulerT,
     CheckpointT,
     DispatcherT,
@@ -32,11 +33,11 @@ TableDataT = Sequence[Sequence[str]]
 
 json_codec = get_codec("json")
 
-KMS_ACTION_ADD = "ADD"
+SCHEDULER_ACTION_ADD = "ADD"
 
-H_KMS_ACTION = "x-kms-action"
-H_KMS_DELIVER_AT = "x-kms-deliver-at"
-H_KMS_DELIVER_TO = "x-kms-deliver-to"
+H_SCHEDULER_ACTION = "x-scheduler-action"
+H_SCHEDULER_DELIVER_AT = "x-scheduler-deliver-at"
+H_SCHEDULER_DELIVER_TO = "x-scheduler-deliver-to"
 
 
 class MessageScheduler(MessageSchedulerT, Service):
@@ -75,37 +76,6 @@ class MessageScheduler(MessageSchedulerT, Service):
         self._out_topics = {}
         super().__init__(**kwargs)
 
-        topic_prefix = app.conf.topic_prefix
-        topic_partitions = (
-            self.app.conf.kms_topic_partitions or self.app.conf.topic_partitions
-        )
-        self.topic_dlq = app.topic(f"{topic_prefix}kms-dlq", partitions=1)
-        self.topic_input = app.topic(
-            f"{topic_prefix}kms-input", partitions=topic_partitions
-        )
-        self.topic_timetable_changelog = app.topic(
-            self.timetable_changelog_topic_name,
-            compacting=True,
-            deleting=True,
-            partitions=topic_partitions,
-        )
-        self.topic_actions = app.topic(
-            f"{topic_prefix}kms-actions", partitions=topic_partitions
-        )
-        self.timetable = app.Table(
-            self.timetable_changelog_topic_name,
-            changelog_topic=self.topic_timetable_changelog,
-            options={
-                "write_buffer_size": self.app.conf.store_rocksdb_write_buffer_size,
-                "max_write_buffer_number": self.app.conf.store_rocksdb_max_write_buffer_number,
-                "target_file_size_base": self.app.conf.store_rocksdb_target_file_size_base,
-                "block_cache_size": self.app.conf.store_rocksdb_block_cache_size,
-                "block_cache_compressed_size": self.app.conf.store_rocksdb_block_cache_compressed_size,
-                "bloom_filter_size": self.app.conf.store_rocksdb_bloom_filter_size,
-                "set_cache_index_and_filter_blocks": self.app.conf.store_rocksdb_set_cache_index_and_filter_blocks,
-            },
-        )
-
         # Attach event hooks to changes to partitions so
         # we can adjust dispatchers and janitors accordingly
         self.app.on_rebalance_started.connect(self.on_rebalance_started)
@@ -116,10 +86,12 @@ class MessageScheduler(MessageSchedulerT, Service):
         )
 
         # Attach streaming agents now
-        self.app.agent(self.topic_actions, name=self.process_actions.__name__)(
+        self.app.agent(self.schedule_actions_topic, name=self.process_actions.__name__)(
             self.process_actions
         )
-        self.app.agent(self.topic_input, name=self.distribute.__name__)(self.distribute)
+        self.app.agent(self.schedule_requests_topic, name=self.distribute.__name__)(
+            self.distribute
+        )
 
     def on_init_dependencies(self):
         return [self.checkpoints, *self._dispatchers.values(), *self._janitors.values()]
@@ -143,9 +115,9 @@ class MessageScheduler(MessageSchedulerT, Service):
         await self.app.producer.maybe_start()
 
         topics = [
-            self.topic_dlq.maybe_declare(),
-            self.topic_input.maybe_declare(),
-            self.topic_actions.maybe_declare(),
+            self.schedule_rejections_topic.maybe_declare(),
+            self.schedule_requests_topic.maybe_declare(),
+            self.schedule_actions_topic.maybe_declare(),
         ]
         await asyncio.gather(*topics)
         self.topics_created.set()
@@ -226,7 +198,9 @@ class MessageScheduler(MessageSchedulerT, Service):
     async def on_partitions_assigned(self, sender: Any, assigned: Set[TP], **kwargs):
         """Called when new topic partions are assigned to worker."""
         _tt_assigned = set(
-            tp for tp in assigned if tp[0] == self.timetable_changelog_topic_name
+            tp
+            for tp in assigned
+            if tp[0] == self.timetable.changelog_topic.get_topic_name()
         )
         await self._on_timetable_partitions_assigned(_tt_assigned)
 
@@ -295,9 +269,68 @@ class MessageScheduler(MessageSchedulerT, Service):
             self.monitor.on_janitor_revoked(janitor)
             self._janitors.pop(partition)
 
+    def _schedule_requests_topic_name(self) -> str:
+        return f"{self.app.conf.id}-schedule-requests"
+
+    def _schedule_actions_topic_name(self) -> str:
+        return f"{self.app.conf.id}-schedule-actions"
+
+    def _schedule_rejections_topic_name(self) -> str:
+        return f"{self.app.conf.id}-schedule-rejections"
+
+    def prepare_schedule_requests_topic(self) -> TopicT:
+        """Prepare the requests topic."""
+        return self.app.topic(
+            self._schedule_requests_topic_name(),
+            partitions=self.app.conf.scheduler_topic_partitions,
+        )
+
+    def prepare_schedule_actions_topic(self) -> TopicT:
+        """Prepare the actions topic."""
+        return self.app.topic(
+            self._schedule_actions_topic_name(),
+            partitions=self.app.conf.scheduler_topic_partitions,
+        )
+
+    def prepare_schedule_rejections_topic(self) -> TopicT:
+        """Prepare the rejections topic."""
+        return self.app.topic(self._schedule_rejections_topic_name())
+
+    def prepare_timetable(self):
+        """Prepare the timetable table."""
+        return self.app.Table(
+            "timetable",
+            partitions=self.app.conf.scheduler_topic_partitions,
+            options={
+                "write_buffer_size": self.app.conf.store_rocksdb_write_buffer_size,
+                "max_write_buffer_number": self.app.conf.store_rocksdb_max_write_buffer_number,
+                "target_file_size_base": self.app.conf.store_rocksdb_target_file_size_base,
+                "block_cache_size": self.app.conf.store_rocksdb_block_cache_size,
+                "block_cache_compressed_size": self.app.conf.store_rocksdb_block_cache_compressed_size,
+                "bloom_filter_size": self.app.conf.store_rocksdb_bloom_filter_size,
+                "set_cache_index_and_filter_blocks": self.app.conf.store_rocksdb_set_cache_index_and_filter_blocks,
+            },
+        )
+
     @cached_property
-    def timetable_changelog_topic_name(self) -> str:
-        return f"{self.app.conf.topic_prefix}kms-timetable-changelog"
+    def schedule_requests_topic(self) -> TopicT:
+        """Topic for schedule requests."""
+        return self.prepare_schedule_requests_topic()
+
+    @cached_property
+    def schedule_actions_topic(self) -> TopicT:
+        """Topic for schedule actions."""
+        return self.prepare_schedule_actions_topic()
+
+    @cached_property
+    def schedule_rejections_topic(self) -> TopicT:
+        """Topic for schedule rejections."""
+        return self.prepare_schedule_rejections_topic()
+
+    @cached_property
+    def timetable(self) -> KasprTableT:
+        """Timetable table."""
+        return self.prepare_timetable()
 
     @property
     def dispatcher_partitions(self) -> Set[int]:
@@ -478,16 +511,16 @@ class MessageScheduler(MessageSchedulerT, Service):
         async for event in stream.events():
             event: EventT = event
             # Remove KMS related header keys
-            action: bytes = event.headers.pop(H_KMS_ACTION)
-            deliver_at: bytes = event.headers.pop(H_KMS_DELIVER_AT, None)
-            deliver_to: bytes = event.headers.pop(H_KMS_DELIVER_TO, None)
+            action: bytes = event.headers.pop(H_SCHEDULER_ACTION)
+            deliver_at: bytes = event.headers.pop(H_SCHEDULER_DELIVER_AT, None)
+            deliver_to: bytes = event.headers.pop(H_SCHEDULER_DELIVER_TO, None)
 
             _action = action.decode()
             _topic_name = deliver_to.decode()
             partition = event.message.partition
             timetable = self.app.scheduler.timetable
 
-            if _action == KMS_ACTION_ADD:
+            if _action == SCHEDULER_ACTION_ADD:
                 time_key = str(deliver_at.decode())
 
                 # a message attemping to be scheduled at or before the current timekey
@@ -537,29 +570,33 @@ class MessageScheduler(MessageSchedulerT, Service):
 
         await self.wait_until_topics_created()
         out_topics = self._out_topics
-        dlq_topic = self.topic_dlq
-        topic_actions = self.topic_actions
+        rejections_topic = self.schedule_rejections_topic
+        actions_topic = self.schedule_actions_topic
 
         async for event in stream.events():
             event: EventT = event
             partition = event.message.partition
-            action: bytes = event.headers.pop(H_KMS_ACTION, KMS_ACTION_ADD.encode())
-            deliver_at: bytes = event.headers.pop(H_KMS_DELIVER_AT, None)
-            deliver_to: bytes = event.headers.pop(H_KMS_DELIVER_TO, None)
+            action: bytes = event.headers.pop(
+                H_SCHEDULER_ACTION, SCHEDULER_ACTION_ADD.encode()
+            )
+            deliver_at: bytes = event.headers.pop(H_SCHEDULER_DELIVER_AT, None)
+            deliver_to: bytes = event.headers.pop(H_SCHEDULER_DELIVER_TO, None)
 
             if not deliver_at or not deliver_to:
                 errors = []
                 if not deliver_at:
-                    errors.append(f"Missing required header `{H_KMS_DELIVER_AT}`")
+                    errors.append(f"Missing required header `{H_SCHEDULER_DELIVER_AT}`")
                 if not deliver_to:
-                    errors.append(f"Missing required header `{H_KMS_DELIVER_TO}`")
+                    errors.append(f"Missing required header `{H_SCHEDULER_DELIVER_TO}`")
                 error_entry = {
                     "key": event.key,
                     "value": event.value,
                     "headers": event.headers,
                     "errors": errors,
                 }
-                await dlq_topic.send(key=event.key, value=json_codec.dumps(error_entry))
+                await rejections_topic.send(
+                    key=event.key, value=json_codec.dumps(error_entry)
+                )
                 continue
 
             try:
@@ -573,7 +610,9 @@ class MessageScheduler(MessageSchedulerT, Service):
                     "headers": event.headers,
                     "errors": [ex],
                 }
-                await dlq_topic.send(key=event.key, value=json_codec.dumps(error_entry))
+                await rejections_topic.send(
+                    key=event.key, value=json_codec.dumps(error_entry)
+                )
                 continue
 
             # a message attemping to be scheduled at or before the current timekey
@@ -592,21 +631,21 @@ class MessageScheduler(MessageSchedulerT, Service):
                 )
                 continue
 
-            kms_headers = {
-                H_KMS_ACTION: action,
-                H_KMS_DELIVER_AT: f"{timekey}".encode(),
-                H_KMS_DELIVER_TO: deliver_to,
+            scheduler_headers = {
+                H_SCHEDULER_ACTION: action,
+                H_SCHEDULER_DELIVER_AT: f"{timekey}".encode(),
+                H_SCHEDULER_DELIVER_TO: deliver_to,
             }
             headers = event.headers or {}
-            headers.update(kms_headers)
-            await topic_actions.send(
+            headers.update(scheduler_headers)
+            await actions_topic.send(
                 key=event.message.key, value=event.message.value, headers=headers
             )
 
     @Service.task
     async def _print_stats(self):
         """Periodically print scheduler stats to terminal."""
-        if not self.app.conf.kms_debug_stats_enabled:
+        if not self.app.conf.scheduler_debug_stats_enabled:
             return
         while not self.should_stop:
             self.log.info(self._stats_logtable())

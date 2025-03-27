@@ -6,6 +6,7 @@ from kaspr.types.models import (
     AgentProcessorMapOperator,
 )
 from kaspr.types.schemas.pycode import PyCodeSchema
+from kaspr.types.schemas.tableref import TableRefSpecSchema
 
 
 class AgentProcessorFilterOperatorSchema(PyCodeSchema):
@@ -32,3 +33,11 @@ class AgentProcessorOperationSchema(BaseSchema):
         allow_none=True,
         load_default=None,
     )
+    table_refs = fields.List(
+        fields.Nested(
+            TableRefSpecSchema(), required=True
+        ),
+        data_key="tables",
+        allow_none=False,
+        load_default=list,
+    )    
