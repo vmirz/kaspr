@@ -21,12 +21,18 @@ class AgentProcessorSpec(SpecComponent):
 
     def prepare_processor(self) -> Callable[..., Awaitable[Any]]:
         operations = {op.name: op for op in self.operations}
-        output = self.output
-        
+        output = self.output    
+
         async def _aprocessor(stream: KasprStreamT):
             init_scope = self.init.execute().scope if self.init else {}
             context = {"app": self.app}
-            ops = [operations[name] for name in self.pipeline]
+            ops = []
+            for name in self.pipeline:
+                if name not in operations:
+                    raise ValueError(f"Operation '{name}' is not defined.")
+                ops.append(operations[name])
+            if not ops:
+                return
             try:
                 async for value in stream:
                     operation = ops[0]

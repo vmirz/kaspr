@@ -17,7 +17,7 @@ class AgentProcessorSpecSchema(BaseSchema):
         PyCodeSchema(),
         data_key="init",
         allow_none=True,
-        load_default=None,
+        load_default=PyCodeSchema.default,
     )    
     operations = fields.List(
         fields.Nested(
