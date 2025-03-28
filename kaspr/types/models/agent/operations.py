@@ -47,7 +47,7 @@ class AgentProcessorOperation(SpecComponent):
                     f"Table '{table_ref.name}' is not a registered table name."
                 )
         return {
-            table_ref.arg_name: self.app.tables.get(table_ref.name)
+            table_ref.param_name: self.app.tables.get(table_ref.name)
             for table_ref in self.table_refs
         }
     

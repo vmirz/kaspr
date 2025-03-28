@@ -5,7 +5,7 @@ from kaspr.types.schemas.base import BaseSchema
 from kaspr.types.models import TableRefSpec
 from marshmallow import fields
 
-def valid_arg_name(name: str) -> bool:
+def valid_param_name(name: str) -> bool:
     """
     Check if a string is a valid Python function argument name.
     
@@ -32,4 +32,4 @@ class TableRefSpecSchema(BaseSchema):
     __model__ = TableRefSpec
 
     name = fields.String(data_key="name", required=True)
-    arg_name = fields.String(data_key="arg_name", required=True, validate=valid_arg_name)
+    param_name = fields.String(data_key="param_name", required=True, validate=valid_param_name)
