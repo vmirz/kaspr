@@ -90,7 +90,8 @@ class AgentProcessorSpec(SpecComponent):
 
     def on_error(self, e: Exception):
         """Handle errors in the processor."""
-        self.init.clear_scope()
+        if self.init:
+            self.init.clear_scope()
 
     @property
     def processor(self) -> Callable[..., Awaitable[Any]]:
