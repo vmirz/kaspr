@@ -1,6 +1,15 @@
 from .base import BaseSchema
 from .topicsrc import TopicSrcSpecSchema
 from .topicout import TopicOutSpecSchema
+from .topicselector import (
+    TopicNameSelectorSchema,
+    TopicPatternSelectorSchema,
+    TopicKeySelectorSchema,
+    TopicValueSelectorSchema,
+    TopicPartitionSelectorSchema,
+    TopicHeadersSelectorSchema,
+    TopicPredicateSchema
+)
 from .channel import ChannelSpecSchema
 from .agent.input import AgentInputSpecSchema
 from .agent.output import AgentOutputSpecSchema
@@ -34,6 +43,13 @@ __all__ = [
     "BaseSchema",
     "TopicSrcSpecSchema",
     "TopicOutSpecSchema",
+    "TopicNameSelectorSchema",
+    "TopicPatternSelectorSchema",
+    "TopicKeySelectorSchema",
+    "TopicValueSelectorSchema",
+    "TopicPartitionSelectorSchema",
+    "TopicHeadersSelectorSchema",
+    "TopicPredicateSchema",
     "ChannelSpecSchema",
     "AgentInputSpecSchema",
     "AgentOutputSpecSchema",
