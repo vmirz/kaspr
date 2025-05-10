@@ -15,7 +15,7 @@ from kaspr.types.schemas.topicselector import (
 class TopicOutSpecSchema(BaseSchema):
     __model__ = TopicOutSpec
 
-    name = fields.Str(data_key="name", allow_none=False, load_default=None)
+    name = fields.Str(data_key="name", allow_none=True, load_default=None)
     name_selector = fields.Nested(
         TopicNameSelectorSchema(),
         data_key="name_selector",
