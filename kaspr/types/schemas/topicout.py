@@ -1,40 +1,27 @@
-from marshmallow import fields
+from typing import Dict
+from marshmallow import fields, validates_schema
 from kaspr.types.schemas.base import BaseSchema
 from kaspr.types.models.topicout import TopicOutSpec
-from kaspr.types.schemas.pycode import PyCodeSchema
-from kaspr.types.models.topicout import (
-    TopicKeySelector,
-    TopicValueSelector,
-    TopicPartitionSelector,
-    TopicHeadersSelector,
-    TopicPredicate,
+from kaspr.types.schemas.topicselector import (
+    TopicNameSelectorSchema,
+    TopicKeySelectorSchema,
+    TopicValueSelectorSchema,
+    TopicPartitionSelectorSchema,
+    TopicHeadersSelectorSchema,
+    TopicPredicateSchema,
 )
-
-
-class TopicKeySelectorSchema(PyCodeSchema):
-    __model__ = TopicKeySelector
-
-
-class TopicValueSelectorSchema(PyCodeSchema):
-    __model__ = TopicValueSelector
-
-
-class TopicPartitionSelectorSchema(PyCodeSchema):
-    __model__ = TopicPartitionSelector
-
-
-class TopicHeadersSelectorSchema(PyCodeSchema):
-    __model__ = TopicHeadersSelector
-
-
-class TopicPredicateSchema(PyCodeSchema):
-    __model__ = TopicPredicate
 
 
 class TopicOutSpecSchema(BaseSchema):
     __model__ = TopicOutSpec
 
-    name = fields.Str(data_key="name", required=True)
+    name = fields.Str(data_key="name", allow_none=False, load_default=None)
+    name_selector = fields.Nested(
+        TopicNameSelectorSchema(),
+        data_key="name_selector",
+        allow_none=True,
+        load_default=None,
+    )
     ack = fields.Bool(data_key="ack", allow_none=True, load_default=False)
     key_serializer = fields.Str(
         data_key="key_serializer", allow_none=True, load_default=None
@@ -72,3 +59,12 @@ class TopicOutSpecSchema(BaseSchema):
         allow_none=True,
         load_default=None,
     )
+
+    @validates_schema
+    def validate_name(self, data: Dict, **kwargs):
+        if data.get("name") and data.get("name_selector"):
+            raise ValueError(
+                "Only one of 'name' or 'name_selector' can be provided, but not both."
+            )
+        if not data.get("name") and not data.get("name_selector"):
+            raise ValueError("One of 'name' or 'name_selector' must be provided.")

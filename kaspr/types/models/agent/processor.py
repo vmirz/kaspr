@@ -24,8 +24,10 @@ class AgentProcessorSpec(SpecComponent):
         output = self.output    
 
         async def _aprocessor(stream: KasprStreamT):
-            init_scope = self.init.execute().scope if self.init else {}
             context = {"app": self.app}
+            if self.init:
+                self.init.with_scope({"context": {**context}})
+            init_scope = self.init.execute().scope if self.init else {}
             ops = []
             for name in self.pipeline:
                 if name not in operations:
