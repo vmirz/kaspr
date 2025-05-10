@@ -2,31 +2,24 @@ from typing import Optional, List, TypeVar, Callable, Union, Awaitable, OrderedD
 from kaspr.types.models.base import SpecComponent
 from kaspr.types.app import KasprAppT
 from kaspr.types.topic import KasprTopicT
-from kaspr.types.models.pycode import PyCode
+from kaspr.types.models.topicselector import (
+    TopicNameSelector,
+    TopicKeySelector,
+    TopicValueSelector,
+    TopicPartitionSelector,
+    TopicHeadersSelector,
+    TopicPredicate,
+)
 
 T = TypeVar("T")
 Function = Callable[[T], Union[T, Awaitable[T]]]
 
 
-class TopicKeySelector(PyCode): ...
-
-
-class TopicValueSelector(PyCode): ...
-
-
-class TopicPartitionSelector(PyCode): ...
-
-
-class TopicHeadersSelector(PyCode): ...
-
-
-class TopicPredicate(PyCode): ...
-
-
 class TopicOutSpec(SpecComponent):
     """Output topic specification."""
-    
-    name: List[str]
+
+    name: Optional[str]
+    name_selector: Optional[TopicNameSelector]
     ack: Optional[bool]
     key_serializer: Optional[str]
     value_serializer: Optional[str]
@@ -38,6 +31,7 @@ class TopicOutSpec(SpecComponent):
 
     app: KasprAppT = None
     _topic: KasprTopicT = None
+    _name_selector_func: Function = None
     _key_selector_func: Function = None
     _value_selector_func: Function = None
     _partition_selector_func: Function = None
@@ -46,7 +40,7 @@ class TopicOutSpec(SpecComponent):
 
     async def send(self, value: T, **kwargs) -> Union[None, OrderedDict]:
         """Send value to topic according to spec.
-        
+
         If ack is True, returns metadata (offset, timestamp, etc).
         of the sent message.
         """
@@ -60,7 +54,7 @@ class TopicOutSpec(SpecComponent):
         )
         if self.ack:
             return (await res)._asdict()
-                
+
     def get_key(self, value: T, **kwargs) -> T:
         """Get key from value"""
         if self.key_selector_func is not None:
@@ -90,9 +84,15 @@ class TopicOutSpec(SpecComponent):
         else:
             return False
 
-    def prepare_topic(self):
+    def prepare_topic(self, **kwargs) -> KasprTopicT:
+        """Prepare topic instance"""
+        name = self.name
+        if self.name_selector:
+            name = self.name_selector_func(**kwargs)
+            if not name:
+                raise ValueError("Topic name selector function returned None")
         return self.app.topic(
-            self.name,
+            name,
             key_serializer=self.key_serializer,
             value_serializer=self.value_serializer,
         )
@@ -103,6 +103,13 @@ class TopicOutSpec(SpecComponent):
         if self._topic is None:
             self._topic = self.prepare_topic()
         return self._topic
+
+    @property
+    def name_selector_func(self):
+        """Name selector function"""
+        if self._name_selector_func is None and self.name_selector:
+            self._name_selector_func = self.name_selector.func
+        return self._name_selector_func
 
     @property
     def key_selector_func(self):

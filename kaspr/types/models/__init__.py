@@ -1,6 +1,15 @@
 from .base import BaseModel, UnknownModel
 from .topicsrc import TopicSrcSpec
 from .topicout import TopicOutSpec
+from .topicselector import (
+    TopicNameSelector,
+    TopicPatternSelector,
+    TopicKeySelector,
+    TopicValueSelector,
+    TopicPartitionSelector,
+    TopicHeadersSelector,
+    TopicPredicate
+)
 from .channel import ChannelSpec
 from .agent.input import AgentInputSpec
 from .agent.output import AgentOutputSpec
@@ -35,6 +44,13 @@ __all__ = [
     "UnknownModel",
     "TopicSrcSpec",
     "TopicOutSpec",
+    "TopicNameSelector",
+    "TopicPatternSelector",
+    "TopicKeySelector",
+    "TopicValueSelector",
+    "TopicPartitionSelector",
+    "TopicHeadersSelector",
+    "TopicPredicate",    
     "ChannelSpec",
     "AgentInputSpec",
     "AgentOutputSpec",
