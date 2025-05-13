@@ -206,6 +206,9 @@ class KasprMonitor(Monitor):
     #: #: Count of keys in Timetable
     count_timetable_keys: int
 
+    #: Number of keys in table
+    count_table_keys: Mapping[KasprTableT, int] = None
+
     def __init__(
         self,
         app: KasprAppT,
@@ -236,6 +239,7 @@ class KasprMonitor(Monitor):
         )
         self.checkpoints = {} if checkpoints is None else checkpoints
         self.count_timetable_keys = count_timetable_keys or 0
+        self.count_table_keys = defaultdict(int)
 
         super().__init__(*args, **kwargs)
 
@@ -399,22 +403,24 @@ class KasprMonitor(Monitor):
 
     @Service.task
     async def _scheduler_sampler(self) -> None:
-        async for sleep_time in self.itertimer(3.0, name="KasprMonitor.sampler"):
+        async for sleep_time in self.itertimer(5.0, name="KasprMonitor.sampler"):
             self._sample_tables()
             self._sample_cpu()
             self._sample_memory()
             self._sample_disk_space()
 
     def _sample_tables(self):
+        tt_changelog_name = None
         if self.app.conf.scheduler_enabled:
             tt_changelog_name = self.app.scheduler.timetable.changelog_topic.get_topic_name()
-        else:
-            tt_changelog_name = None
-        for _, table_state in self.tables.items():
-            table: KasprTableT = table_state.table
+        for _, table in self.app.tables.items():
+            table: KasprTableT = table
             if table.name == tt_changelog_name:
                 self.count_timetable_keys = len(table.keys())
                 self.on_timetable_size_refreshed(table)
+            else:
+                self.count_table_keys[table] = len(table.keys())
+                self.on_table_key_count_refreshed(table)
 
     def _sample_memory(self):
         vm = psutil.virtual_memory()
@@ -439,13 +445,20 @@ class KasprMonitor(Monitor):
         self.infra.disk_space_used_bytes = used
         self.on_disk_stats_refreshed()
 
-    def on_timetable_size_refreshed(table: KasprTableT):
+    def on_timetable_size_refreshed(self, table: KasprTableT):
         """Count of keys in Timetable is refreshed."""
+        ...
+
+    def on_table_key_count_refreshed(self, table: KasprTableT):
+        """Number of keys in table is refreshed."""
         ...
 
     def on_rebalance_start(self, *args, **kwargs) -> Dict:
         """Cluster rebalance in progress."""
         res = super().on_rebalance_start(*args, **kwargs)
+        # reset the count of table keys
+        self.count_table_keys = defaultdict(int)
+        self.count_timetable_keys = 0
         return res
 
     def on_rebalance_return(self, *args, **kwargs) -> None:

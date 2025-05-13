@@ -186,11 +186,19 @@ class PrometheusMonitor(KasprMonitor):
             f"{prefix}total_events_per_stream", "Events received per Stream", ["stream"]
         )
 
+        # Tables
         # On table changes get/set/del keys
         self.table_operations = Counter(
             f"{prefix}table_operations",
             "Total table operations",
             ["table", "operation", *self.common_label_keys],
+        )
+        self.table_key_count = Gauge(
+            f"{prefix}table_key_count",
+            "Total keys in table",
+            labelnames=[
+                "table", *common_label_keys,
+            ],
         )
 
         # On message send
@@ -624,6 +632,10 @@ class PrometheusMonitor(KasprMonitor):
     def on_timetable_size_refreshed(self, table: KasprTableT):
         """Count of keys in Timetable is refreshed."""
         self.timetable_size.labels(**self.common_labels).set(self.count_timetable_keys)
+
+    def on_table_key_count_refreshed(self, table: KasprTableT):
+        """Count of keys in table is refreshed."""
+        self.table_key_count.labels(table=f"table.{table.name}", **self.common_labels).set(self.count_table_keys[table])
 
     def on_message_in(self, tp: TP, offset: int, message: Message) -> None:
         """Call before message is delegated to streams."""
