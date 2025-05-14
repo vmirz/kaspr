@@ -69,6 +69,15 @@ class AppBuilder(AppBuilderT):
             app.webviews
             app.tables
 
+    async def maybe_create_topics(self) -> None:
+        """Maybe declare agent input topics."""
+        # Ensure producer has starter before creating topics.
+        await self.app.producer.maybe_start()
+        for app in self.apps:
+            for agent in app.agents_spec:
+                if agent.input.declare:
+                    await agent.input.channel.maybe_declare()
+
     @cached_property
     def apps(self) -> List[AppSpec]:
         if self._apps is None:

@@ -19,6 +19,11 @@ class AppBuilderT:
     def build(self) -> None:
         """Build agents, tasks, etc. from external definition files."""
         ...
+
+    @abc.abstractmethod
+    def maybe_create_topics(self) -> None:
+        """Maybe declare agent input topics."""
+        ...
         
     @cached_property
     def agents(self):
