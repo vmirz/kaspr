@@ -10,13 +10,14 @@ class AgentInputSpec(SpecComponent):
     """Agent input specification.
     Input can be either a topic or an in-memory channel.
     """
+    declare: Optional[bool]
     topic_spec: Optional[TopicSrcSpec]
     channel_spec: Optional[ChannelSpec]
 
     app: KasprAppT = None
     _channel: KasprChannelT = None
 
-    def prepre_channel(self) -> KasprChannelT:
+    def prepare_channel(self) -> KasprChannelT:
         return (
             self.topic_spec.topic
             if self.topic_spec and (self.topic_spec.name or self.topic_spec.pattern)
@@ -26,7 +27,7 @@ class AgentInputSpec(SpecComponent):
     @property
     def channel(self) -> KasprChannelT:
         if self._channel is None:
-            self._channel = self.prepre_channel()
+            self._channel = self.prepare_channel()
         return self._channel
 
     @property
