@@ -79,6 +79,7 @@ class KasprApp(KasprAppT, faust.App):
 
         if self.conf.app_builder_enabled:
             self.builder.build()
+            await self.builder.maybe_create_topics()
 
     async def on_start(self) -> None:
         """Call every time app start/restarts."""
