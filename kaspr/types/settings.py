@@ -92,6 +92,42 @@ KAFKA_AUTH_CAPATH = _getenv("KAFKA_AUTH_CAPATH", None)
 #: Kafka TLS authentication cert
 KAFKA_AUTH_CADATA = _getenv("KAFKA_AUTH_CADATA", None)
 
+#: Kafka client request timeout.
+#: Note: The request timeout must not be less than the broker_session_timeout.
+BROKER_REQUEST_TIMEOUT = int(_getenv("BROKER_REQUEST_TIMEOUT", 180))
+
+#: Commit offset every n messages.
+#: See also broker_commit_interval, which is how frequently we commit on a timer when 
+#: there are few messages being received.
+BROKER_COMMIT_EVERY = int(_getenv("BROKER_COMMIT_EVERY", 10_000))
+
+#: How often we commit messages that have been fully processed (acked).
+BROKER_COMMIT_INTERVAL = int(_getenv("BROKER_COMMIT_INTERVAL", 2.8))
+
+#: How often we send heartbeats to the broker, and also how often we expect to receive heartbeats from the broker.
+#: If any of these time out, you should increase this setting.
+BROKER_HEARTBEAT_INTERVAL = int(_getenv("BROKER_HEARTBEAT_INTERVAL", 3.0))
+
+#: How long to wait for a node to finish rebalancing before the broker will consider it 
+#: dysfunctional and remove it from the cluster.
+#: Increase this if you experience the cluster being in a state of constantly rebalancing,
+#: but make sure you also increase the broker_heartbeat_interval at the same time.
+#: Note: The session timeout must not be greater than the broker_request_timeout.
+BROKER_SESSION_TIMEOUT = int(_getenv("BROKER_SESSION_TIMEOUT", 120))
+
+#: The maximum number of records returned in a single call to poll(). 
+# If you find that your application needs more time to process messages you may want to
+# adjust broker_max_poll_records to tune the number of records that must be handled on 
+# every loop iteration.
+BROKER_MAX_POLL_RECORDS = int(_getenv("BROKER_MAX_POLL_RECORDS", 100))
+
+#: The maximum allowed time (in seconds) between calls to consume messages If this interval
+#: is exceeded the consumer is considered failed and the group will rebalance in order to 
+#: reassign the partitions to another consumer group member. If API methods block waiting 
+#: for messages, that time does not count against this timeout.
+#: See KIP-62 for technical details.
+BROKER_MAX_POLL_INTERVAL = int(_getenv("BROKER_MAX_POLL_INTERVAL", 1000.0))
+
 #: Table state directory path used as default
 #: This path will be treated as relative to datadir, unless the provided
 #: path is absolute.
@@ -105,6 +141,45 @@ TOPIC_PARTITIONS = int(_getenv("TOPIC_PARTITIONS", 3))
 
 #: This setting disables auto creation of internal topics.
 TOPIC_ALLOW_DECLARE = bool(_getenv("TOPIC_ALLOW_DECLARE", True))
+
+#: The number of acknowledgments the producer requires the leader to have received 
+#: before considering a request complete. This controls the durability of records 
+#: that are sent. The following settings are common: 
+#: 0: Producer will not wait for any acknowledgment from the server at all. The message 
+#: will immediately be considered sent. (Not recommended)
+#; 1: The broker leader will write the record to its local log but will respond without 
+#: awaiting full acknowledgment from all followers. In this case should the leader fail 
+#: immediately after acknowledging the record but before the followers have replicated it
+#:  then the record will be lost.
+#: -1: The broker leader will wait for the full set of in-sync replicas to acknowledge 
+#: the record. This guarantees that the record will not be lost as long as at least one
+#: in-sync replica remains alive. This is the strongest available guarantee.
+PRODUCER_ACKS = int(_getenv("PRODUCER_ACKS", -1))
+
+#: This setting control back pressure to streams and agents reading from streams.
+#: If set to 4096 (default) this means that an agent can only keep at most 4096 
+#: unprocessed items in the stream buffer. Essentially this will limit the number 
+#: of messages a stream can “prefetch”. Higher numbers gives better throughput, but
+#: do note that if your agent sends messages or update tables (which sends changelog
+#: messages). This means that if the buffer size is large, the broker_commit_interval
+#: or broker_commit_every settings must be set to commit frequently, avoiding back 
+#: pressure from building up. A buffer size of 131_072 may let you process over 30,000
+#: events a second as a baseline, but be careful with a buffer size that large when you
+#: also send messages or update tables.
+STREAM_BUFFER_MAXSIZE = int(_getenv("STREAM_BUFFER_MAXSIZE", 4096))
+
+#: Number of seconds to sleep before continuing after rebalance. We wait for a bit to allow
+#: for more nodes to join/leave before starting recovery tables and then processing streams.
+#: This to minimize the chance of errors rebalancing loops.
+STREAM_RECOVERY_DELAY = int(_getenv("STREAM_RECOVERY_DELAY", 10.0))
+
+#: This setting controls whether the worker should wait for the currently processing task in 
+#: an agent to complete before rebalancing or shutting down. On rebalance/shut down we clear
+#: the stream buffers. Those events will be reprocessed after the rebalance anyway, but we may
+#: have already started processing one event in every agent, and if we rebalance we will process
+#: that event again. By default we will wait for the currently active tasks, but if your streams
+#: are idempotent you can disable it using this setting.
+STREAM_WAIT_EMPTY = bool(_getenv("STREAM_WAIT_EMPTY", True))
 
 #: RocksDB configirations
 #: (https://github.com/EighteenZi/rocksdb_wiki/blob/master/Memory-usage-in-RocksDB.md)
@@ -232,11 +307,25 @@ class CustomSettings(Settings):
     kafka_auth_capath: str = KAFKA_AUTH_CAPATH
     kafka_auth_cadata: str = KAFKA_AUTH_CADATA
 
+    broker_request_timeout: int = BROKER_REQUEST_TIMEOUT
+    broker_commit_every: int = BROKER_COMMIT_EVERY
+    broker_commit_interval: float = BROKER_COMMIT_INTERVAL
+    broker_heartbeat_interval: float = BROKER_HEARTBEAT_INTERVAL
+    broker_session_timeout: int = BROKER_SESSION_TIMEOUT
+    broker_max_poll_records: int = BROKER_MAX_POLL_RECORDS
+    broker_max_poll_interval: int = BROKER_MAX_POLL_INTERVAL    
+
     table_dir: str = TABLE_DIR
 
     topic_replication_factor: int = TOPIC_REPLICATION_FACTOR
     topic_partitions: int = TOPIC_PARTITIONS
     topic_allow_declare: bool = TOPIC_ALLOW_DECLARE
+
+    producer_acks: int = PRODUCER_ACKS
+
+    stream_buffer_maxsize: int = STREAM_BUFFER_MAXSIZE
+    stream_recovery_delay: float = STREAM_RECOVERY_DELAY
+    stream_wait_empty: bool = STREAM_WAIT_EMPTY
 
     store_rocksdb_write_buffer_size: int = STORE_ROCKSDB_WRITE_BUFFER_SIZE
     store_rocksdb_max_write_buffer_number: int = STORE_ROCKSDB_MAX_WRITE_BUFFER_NUMBER
@@ -285,6 +374,17 @@ class CustomSettings(Settings):
         kafka_auth_cafile: str = None,
         kafka_auth_capath: str = None,
         kafka_auth_cadata: str = None,
+        broker_request_timeout: int = None,
+        broker_commit_every: int = None,
+        broker_commit_interval: float = None,
+        broker_heartbeat_interval: float = None,
+        broker_session_timeout: int = None,
+        broker_max_poll_records: int = None,
+        broker_max_poll_interval: int = None,
+        producer_acks: int = None,
+        stream_buffer_maxsize: int = None,
+        stream_recovery_delay: float = None,
+        stream_wait_empty: bool = None,
         table_dir: str = None,
         store_rocksdb_write_buffer_size: int = None,
         store_rocksdb_max_write_buffer_number: int = None,
@@ -335,6 +435,39 @@ class CustomSettings(Settings):
         if kafka_auth_cadata is not None:
             self.kafka_auth_cadata = kafka_auth_cadata
 
+        if broker_request_timeout is not None:
+            self.broker_request_timeout = broker_request_timeout
+
+        if broker_commit_every is not None:
+            self.broker_commit_every = broker_commit_every
+
+        if broker_commit_interval is not None:
+            self.broker_commit_interval = broker_commit_interval
+
+        if broker_heartbeat_interval is not None:
+            self.broker_heartbeat_interval = broker_heartbeat_interval
+
+        if broker_session_timeout is not None:
+            self.broker_session_timeout = broker_session_timeout
+
+        if broker_max_poll_records is not None:
+            self.broker_max_poll_records = broker_max_poll_records
+
+        if broker_max_poll_interval is not None:
+            self.broker_max_poll_interval = broker_max_poll_interval
+
+        if producer_acks is not None:
+            self.producer_acks = producer_acks
+
+        if stream_buffer_maxsize is not None:
+            self.stream_buffer_maxsize = stream_buffer_maxsize
+
+        if stream_recovery_delay is not None:
+            self.stream_recovery_delay = stream_recovery_delay
+        
+        if stream_wait_empty is not None:
+            self.stream_wait_empty = stream_wait_empty
+
         self.kafka_credentials = self._prepare_kafka_credentials()
 
         if table_dir is not None:
@@ -348,6 +481,17 @@ class CustomSettings(Settings):
             tabledir=self.table_dir,
             broker=self.kafka_boostrap_servers,
             broker_credentials=self.kafka_credentials,
+            broker_request_timeout=self.broker_request_timeout,
+            broker_commit_every=self.broker_commit_every,
+            broker_commit_interval=self.broker_commit_interval,
+            broker_heartbeat_interval=self.broker_heartbeat_interval,
+            broker_session_timeout=self.broker_session_timeout,
+            broker_max_poll_records=self.broker_max_poll_records,
+            broker_max_poll_interval=self.broker_max_poll_interval,
+            producer_acks=self.producer_acks,
+            stream_buffer_maxsize=self.stream_buffer_maxsize,
+            stream_recovery_delay=self.stream_recovery_delay,
+            stream_wait_empty=self.stream_wait_empty,
             web_port=self.web_port,
             **kwargs,
         )
