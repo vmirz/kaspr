@@ -156,6 +156,15 @@ TOPIC_ALLOW_DECLARE = bool(_getenv("TOPIC_ALLOW_DECLARE", True))
 #: in-sync replica remains alive. This is the strongest available guarantee.
 PRODUCER_ACKS = int(_getenv("PRODUCER_ACKS", -1))
 
+#: Name of the group instance ID used for static membership (KIP-345)
+#: If set, the consumer will use static membership, which means a rebalance will not be 
+#: immediately triggered when the consumer leaves the group.
+#: The consumer has up to `broker_session_timeout` to rejoin the group before it is 
+#: considered dead and the group is rebalanced. If not set, the consumer will use dynamic 
+#: membership, which means that it will immediately trigger a rebalance when a consumer 
+#: leaves the group.
+CONSUMER_GROUP_INSTANCE_ID = _getenv("CONSUMER_GROUP_INSTANCE_ID", None)
+
 #: This setting control back pressure to streams and agents reading from streams.
 #: If set to 4096 (default) this means that an agent can only keep at most 4096 
 #: unprocessed items in the stream buffer. Essentially this will limit the number 
@@ -323,6 +332,8 @@ class CustomSettings(Settings):
 
     producer_acks: int = PRODUCER_ACKS
 
+    consumer_group_instance_id: str = CONSUMER_GROUP_INSTANCE_ID
+
     stream_buffer_maxsize: int = STREAM_BUFFER_MAXSIZE
     stream_recovery_delay: float = STREAM_RECOVERY_DELAY
     stream_wait_empty: bool = STREAM_WAIT_EMPTY
@@ -382,6 +393,7 @@ class CustomSettings(Settings):
         broker_max_poll_records: int = None,
         broker_max_poll_interval: int = None,
         producer_acks: int = None,
+        consumer_group_instance_id: str = None,
         stream_buffer_maxsize: int = None,
         stream_recovery_delay: float = None,
         stream_wait_empty: bool = None,
@@ -459,6 +471,9 @@ class CustomSettings(Settings):
         if producer_acks is not None:
             self.producer_acks = producer_acks
 
+        if consumer_group_instance_id is not None:
+            self.consumer_group_instance_id = consumer_group_instance_id
+
         if stream_buffer_maxsize is not None:
             self.stream_buffer_maxsize = stream_buffer_maxsize
 
@@ -489,6 +504,7 @@ class CustomSettings(Settings):
             broker_max_poll_records=self.broker_max_poll_records,
             broker_max_poll_interval=self.broker_max_poll_interval,
             producer_acks=self.producer_acks,
+            consumer_group_instance_id=self.consumer_group_instance_id,
             stream_buffer_maxsize=self.stream_buffer_maxsize,
             stream_recovery_delay=self.stream_recovery_delay,
             stream_wait_empty=self.stream_wait_empty,
