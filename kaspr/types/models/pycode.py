@@ -1,6 +1,8 @@
 """PyCode model"""
 
 from typing import Union, Callable, TypeVar, Awaitable, Optional, Dict
+from types import CodeType
+from mode.utils.objects import cached_property
 from kaspr.types.models.base import SpecComponent
 from kaspr.types.code import CodeT
 
@@ -14,13 +16,16 @@ class PyCode(CodeT, SpecComponent):
     python: str
     entrypoint: Optional[str] = None
 
+    _compiled_python: CodeType
     _scope: Dict[str, T]
     _func: Function
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._compiled_python = None
         self._scope = {}
         self._func = None
+
 
     @classmethod
     def default(cls) -> "PyCode":
@@ -39,7 +44,7 @@ class PyCode(CodeT, SpecComponent):
 
     def execute(self) -> "PyCode":
         """Execute the source code"""
-        exec(self.python, self._scope)
+        exec(self.compiled_python, self._scope)
         if self.entrypoint and self.entrypoint in self._scope:
             self._func = self._scope[self.entrypoint]
             assert callable(self._func), (
@@ -58,6 +63,13 @@ class PyCode(CodeT, SpecComponent):
         # TODO: explore if we can cache the function to avoid re-execution
         self.execute()
         return self._func
+    
+    @cached_property
+    def compiled_python(self) -> CodeType:
+        """Return the compiled python code."""
+        if not self._compiled_python:
+            self._compiled_python = compile(self.python, "<string>", "exec")
+        return self._compiled_python
 
     @property
     def scope(self) -> Dict[str, T]:
