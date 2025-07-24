@@ -1,5 +1,6 @@
 import re
 import math
+from datetime import timedelta
 from inspect import signature, isawaitable, isgenerator
 from functools import wraps
 from datetime import datetime, timezone
@@ -186,3 +187,35 @@ def ensure_generator(obj) -> Iterator:
     if isgenerator(obj):
         return obj  # Already a generator
     return (obj for _ in range(1))  # Wrap non-generator in a generator
+
+def parse_time_delta(value: str) -> timedelta:
+    """
+    Converts a string like '10s', '5m', '2h', or '1d' into a datetime.timedelta object.
+    
+    Supports:
+        - s = seconds
+        - m = minutes
+        - h = hours
+        - d = days
+    
+    Raises ValueError for invalid format.
+    """
+    import re
+
+    match = re.fullmatch(r'(\d+)([smhd])', value)
+    if not match:
+        raise ValueError(f"Invalid time delta format: '{value}'")
+
+    amount, unit = match.groups()
+    amount = int(amount)
+
+    if unit == 's':
+        return timedelta(seconds=amount)
+    elif unit == 'm':
+        return timedelta(minutes=amount)
+    elif unit == 'h':
+        return timedelta(hours=amount)
+    elif unit == 'd':
+        return timedelta(days=amount)
+    else:
+        raise ValueError(f"Unknown unit '{unit}' in time delta string.")

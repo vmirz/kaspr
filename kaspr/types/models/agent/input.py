@@ -1,11 +1,30 @@
 from typing import Optional
+from datetime import timedelta
+from kaspr.utils.functional import parse_time_delta
 from kaspr.types.models.base import SpecComponent
 from kaspr.types.models.topicsrc import TopicSrcSpec
 from kaspr.types.models.channel import ChannelSpec
 from kaspr.types.app import KasprAppT
 from kaspr.types.channel import KasprChannelT
 
+class AgentInputBufferSpec(SpecComponent):
+    """Buffer specification for agent input."""
+    
+    max_size: int
+    within: str
 
+    app: KasprAppT = None
+    _timeout: timedelta = None
+
+    def prepare_timeout(self) -> KasprChannelT:
+        return parse_time_delta(self.within)
+
+    @property
+    def timeout(self) -> timedelta:
+        if self._timeout is None:
+            self._timeout = self.prepare_timeout()
+        return self._timeout
+    
 class AgentInputSpec(SpecComponent):
     """Agent input specification.
     Input can be either a topic or an in-memory channel.
@@ -13,6 +32,7 @@ class AgentInputSpec(SpecComponent):
     declare: Optional[bool]
     topic_spec: Optional[TopicSrcSpec]
     channel_spec: Optional[ChannelSpec]
+    buffer_spec: Optional[AgentInputBufferSpec]
 
     app: KasprAppT = None
     _channel: KasprChannelT = None

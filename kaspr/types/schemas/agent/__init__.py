@@ -1,5 +1,5 @@
 from .agent import AgentSpecSchema
-from .input import AgentInputSpecSchema
+from .input import AgentInputSpecSchema, AgentInputBufferSpecSchema
 from .output import AgentOutputSpecSchema
 from .operations import (
     AgentProcessorOperationSchema,
@@ -19,6 +19,7 @@ from ..topicout import (
 __all__ = [
     "AgentSpecSchema",
     "AgentInputSpecSchema",
+    "AgentInputBufferSpecSchema",
     "AgentProcessorOperationSchema",
     "AgentProcessorFilterOperatorSchema",
     "AgentProcessorMapOperatorSchema",

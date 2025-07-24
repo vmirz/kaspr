@@ -2,7 +2,7 @@ import faust
 import asyncio
 
 from asyncio import CancelledError
-from typing import AsyncIterable, List, Optional, Sequence, cast
+from typing import AsyncIterable, List, Optional, Sequence, cast, Tuple
 from mode import Seconds, want_seconds
 from mode.utils.aiter import aiter
 from mode.utils.futures import notify
@@ -24,8 +24,8 @@ class KasprStream(faust.Stream):
 
     async def take_events(
         self, max_: int, within: Seconds
-    ) -> AsyncIterable[Sequence[EventT]]:
-        """Buffer n events at a time and yield a list of buffered events.
+    ) -> AsyncIterable[Sequence[Tuple[T_co, EventT]]]:
+        """Buffer n events at a time and yield a list of buffered value/events pairs.
 
         Arguments:
             max_: Max number of messages to receive. When more than this
@@ -62,10 +62,10 @@ class KasprStream(faust.Stream):
                         await buffer_consuming
                     finally:
                         buffer_consuming = None
-                buffer_add(cast(T_co, value))
                 event = self.current_event
                 if event is None:
                     raise RuntimeError("Take buffer found current_event is None")
+                buffer_add(cast(T_co, value))
                 event_add(event)
                 if buffer_size() >= max_:
                     # signal that the buffer is full and should be emptied.
@@ -96,8 +96,7 @@ class KasprStream(faust.Stream):
                     # buffer while we read.
                     buffer_consuming = self.loop.create_future()
                     try:
-                        # yield list(buffer)
-                        yield list(events)
+                        yield list((buffer, events))
                     finally:
                         buffer.clear()
                         for event in events:

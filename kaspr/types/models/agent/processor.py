@@ -2,6 +2,7 @@ from typing import Optional, List, Awaitable, Any, Callable
 from kaspr.utils.functional import ensure_generator
 from kaspr.types.models.base import SpecComponent
 from kaspr.types.models.agent.operations import AgentProcessorOperation
+from kaspr.types.models.agent.input import AgentInputSpec
 from kaspr.types.models.agent.output import AgentOutputSpec
 from kaspr.types.models.pycode import PyCode
 from kaspr.types.app import KasprAppT
@@ -18,9 +19,11 @@ class AgentProcessorSpec(SpecComponent):
 
     _processor: Callable[..., Awaitable[Any]] = None
     _output: AgentOutputSpec = None
+    _input: AgentInputSpec = None
 
     def prepare_processor(self) -> Callable[..., Awaitable[Any]]:
         operations = {op.name: op for op in self.operations}
+        input = self.input
         output = self.output    
 
         async def _aprocessor(stream: KasprStreamT):
@@ -35,17 +38,29 @@ class AgentProcessorSpec(SpecComponent):
                 ops.append(operations[name])
             if not ops:
                 return
+            _stream = stream
+            buffered = False
+            if input.buffer_spec:
+                _stream = _stream.take_events(
+                    max_=input.buffer_spec.max_size,
+                    within=input.buffer_spec.timeout,
+                )
+                buffered = True            
             try:
-                async for value in stream:
+                async for value in _stream:
                     operation = ops[0]
                     operator = operation.operator
                     tables = operation.tables
+                    event = stream.current_event
+                    _value = value
+                    if buffered:
+                        _value, event = _value
                     scope = {
                         **init_scope,
-                        "context": {**context, "event": stream.current_event},
+                        "context": {**context, "event": event},
                     }
                     operator.with_scope(scope)
-                    value = await operator.process(value, **tables)
+                    value = await operator.process(_value, **tables)
                     if value == operator.skip_value:
                         continue
                     gen = ensure_generator(value)
@@ -59,7 +74,7 @@ class AgentProcessorSpec(SpecComponent):
                             for current_value in current_values:
                                 scope = {
                                     **init_scope,
-                                    "context": {**context, "event": stream.current_event},
+                                    "context": {**context, "event": event},
                                 }
                                 operator.with_scope(scope)
                                 value = await operator.process(current_value, **tables)
@@ -71,18 +86,8 @@ class AgentProcessorSpec(SpecComponent):
                             current_values = next_values
 
                         for value in current_values:
-                            # for sink in self.:
-                            #     if isinstance(sink, AgentT):
-                            #         await sink.send(value=value)
-                            #     elif isinstance(sink, ChannelT):
-                            #         await cast(TopicT, sink).send(value=value)
-                            #     else:
-                            #         await maybe_async(cast(Callable, sink)(value))
-                            # self.log.info(f"Processed value: {value}")
-
                             if output:
                                 await output.send(value)
-                            #yield value
 
             except Exception as e:
                 self.on_error(e)
@@ -100,6 +105,14 @@ class AgentProcessorSpec(SpecComponent):
         if self._processor is None:
             self._processor = self.prepare_processor()
         return self._processor
+    
+    @property
+    def input(self) -> AgentInputSpec:
+        return self._input
+    
+    @input.setter
+    def input(self, input: AgentInputSpec):
+        self._input = input
     
     @property
     def output(self) -> AgentOutputSpec:

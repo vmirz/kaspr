@@ -11,7 +11,7 @@ from .topicselector import (
     TopicPredicate
 )
 from .channel import ChannelSpec
-from .agent.input import AgentInputSpec
+from .agent.input import AgentInputSpec, AgentInputBufferSpec
 from .agent.output import AgentOutputSpec
 from .agent import AgentSpec
 from .app import AppSpec
@@ -53,6 +53,7 @@ __all__ = [
     "TopicPredicate",    
     "ChannelSpec",
     "AgentInputSpec",
+    "AgentInputBufferSpec",
     "AgentOutputSpec",
     "AgentSpec",
     "AppSpec",
