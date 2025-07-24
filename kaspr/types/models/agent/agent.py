@@ -21,6 +21,7 @@ class AgentSpec(SpecComponent):
     def prepare_agent(self) -> KasprAgentT:
         self.log.info("Preparing...")
         processors = self.processors
+        processors.input = self.input
         processors.output = self.output
         return self.app.agent(
             self.input.channel, name=self.name
