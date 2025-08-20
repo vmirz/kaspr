@@ -26,6 +26,7 @@ app = KasprApp(
     GlobalTable="kaspr.core.table.KasprGlobalTable",
     Stream="kaspr.core.stream.KasprStream",
     LeaderAssignor="kaspr.core.leader_assignor.KasprLeaderAssignor",
+    PartitionAssignor="kaspr.core.partition_assignor.KasprPartitionAssignor",
 )
 
 app.monitor = PrometheusMonitor(
