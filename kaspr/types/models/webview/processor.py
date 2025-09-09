@@ -73,7 +73,7 @@ class WebViewProcessorSpec(SpecComponent):
                     # a web response, so we return the last successful value.
                     return self.response.build_success(web, response_values[-1])
                 else:
-                    return self.response.build_error(web)
+                    return self.response.build_success(web)
 
             except Exception as ex:
                 error = KasprProcessingError(
