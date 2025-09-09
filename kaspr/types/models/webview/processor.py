@@ -46,6 +46,7 @@ class WebViewProcessorSpec(SpecComponent):
                 if result == operator.skip_value:
                     return
                 gen = ensure_generator(result)
+                response_values = []
                 for value in gen:
                     # Start with the initial value
                     current_values = [value]
@@ -65,8 +66,14 @@ class WebViewProcessorSpec(SpecComponent):
                             next_values.extend(ensure_generator(result))
                         # Update for the next callback
                         current_values = next_values
+                    response_values.extend(current_values)
 
-                    return self.response.build_success(web, current_values[0])
+                if len(response_values) > 0:
+                    # Processors can generate multiple values, but we can only return one value in
+                    # a web response, so we return the last successful value.
+                    return self.response.build_success(web, response_values[-1])
+                else:
+                    return self.response.build_error(web)
 
             except Exception as ex:
                 error = KasprProcessingError(
