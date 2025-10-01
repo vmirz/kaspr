@@ -33,3 +33,6 @@ app.monitor = PrometheusMonitor(
     app,
     pattern=f"{app.conf.web_metrics_base_path}/metrics",
 )
+
+# Add web endpoints
+app.web.blueprints.add('/status', 'kaspr.blueprints.status.blueprint')
