@@ -1,4 +1,4 @@
-"""HTTP endpoint showing health/status of various components the app."""
+"""HTTP endpoint showing state of various components the app."""
 
 from collections import defaultdict
 from typing import List, MutableMapping, Set
@@ -27,6 +27,7 @@ class Status(web.View):
         assignor = self.app.assignor
         return self.json(
             {
+                "leader": self.app.is_leader(),
                 "rebalancing": self.app.rebalancing,
                 "recovering": self.app.tables.recovery.in_recovery,
                 "assignment": {
