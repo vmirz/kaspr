@@ -36,3 +36,4 @@ app.monitor = PrometheusMonitor(
 
 # Add web endpoints
 app.web.blueprints.add('/status', 'kaspr.blueprints.status.blueprint')
+app.web.blueprints.add('/signal', 'kaspr.blueprints.signal.blueprint')

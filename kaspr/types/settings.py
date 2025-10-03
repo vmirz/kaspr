@@ -282,6 +282,9 @@ SCHEDULER_JANITOR_HIGHWATER_OFFSET_SECONDS = float(
 #: Base http path for serving web requests
 WEB_BASE_PATH = _getenv("WEB_BASE_PATH", "")
 
+#: Web hostname or IP address of the web server.
+WEB_HOST: str = _getenv("WEB_HOST", socket.gethostname())
+
 #: Port number between 1024 and 65535 to use for the web server.
 WEB_PORT: int = int(_getenv("WEB_PORT", "6066"))
 
@@ -363,6 +366,7 @@ class CustomSettings(Settings):
     scheduler_janitor_highwater_offset_seconds: float = SCHEDULER_JANITOR_HIGHWATER_OFFSET_SECONDS
 
     web_base_path: str = WEB_BASE_PATH
+    web_host: str = WEB_HOST
     web_port: int = WEB_PORT
     web_metrics_base_path: str = WEB_METRICS_BASE_PATH
 
@@ -415,6 +419,7 @@ class CustomSettings(Settings):
         scheduler_janitor_clean_interval_seconds: Seconds = None,
         scheduler_janitor_highwater_offset_seconds: Seconds = None,
         web_base_path: str = None,
+        web_host: str = None,
         web_port: int = None,
         web_metrics_base_path: str = None,
         definitions_dir: str = None,
@@ -488,6 +493,9 @@ class CustomSettings(Settings):
         if table_dir is not None:
             self.table_dir = table_dir
 
+        if web_host is not None:
+            self.web_host = web_host
+
         if web_port is not None:
             self.web_port = web_port
 
@@ -508,6 +516,7 @@ class CustomSettings(Settings):
             stream_buffer_maxsize=self.stream_buffer_maxsize,
             stream_recovery_delay=self.stream_recovery_delay,
             stream_wait_empty=self.stream_wait_empty,
+            web_host=self.web_host,
             web_port=self.web_port,
             **kwargs,
         )
