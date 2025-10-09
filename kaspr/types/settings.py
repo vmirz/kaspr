@@ -6,6 +6,7 @@ import psutil
 import math
 import ssl
 from pathlib import Path
+from yarl import URL
 from typing import Any, Sequence, Optional, Union, Type, cast
 from faust import SASLCredentials, SSLCredentials
 from faust.types.settings import Settings
@@ -375,6 +376,7 @@ class CustomSettings(Settings):
     _worker_name: str = None
     _kafka_credentials: CredentialsT = None
     _definitionsdir: Path = None
+    _canonical_url: URL = cast(URL, None)
 
     def __init__(
         self,
@@ -424,6 +426,7 @@ class CustomSettings(Settings):
         web_metrics_base_path: str = None,
         definitions_dir: str = None,
         app_builder_enabled: bool = None,
+        canonical_url: Union[str, URL] = None,
         AppBuilder: SymbolArg[Type[AppBuilderT]] = None,
         **kwargs,
     ):
@@ -499,6 +502,9 @@ class CustomSettings(Settings):
         if web_port is not None:
             self.web_port = web_port
 
+        if canonical_url:
+            self.canonical_url = canonical_url
+
         super().__init__(
             *args,
             tabledir=self.table_dir,
@@ -518,6 +524,7 @@ class CustomSettings(Settings):
             stream_wait_empty=self.stream_wait_empty,
             web_host=self.web_host,
             web_port=self.web_port,
+            canonical_url=self.canonical_url,
             **kwargs,
         )
 
@@ -696,3 +703,14 @@ class CustomSettings(Settings):
     @AppBuilder.setter
     def AppBuilder(self, AppBuilder: SymbolArg[Type[AppBuilderT]]) -> None:
         self._AppBuilder = symbol_by_name(AppBuilder)
+
+    @property
+    def canonical_url(self) -> URL:
+        if not self._canonical_url:
+            self._canonical_url = URL(
+                f'http://{self.web_host}:{self.web_port}')
+        return self._canonical_url
+
+    @canonical_url.setter
+    def canonical_url(self, canonical_url: Union[URL, str]) -> None:
+        self._canonical_url = URL(canonical_url)
