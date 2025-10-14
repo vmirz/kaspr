@@ -19,3 +19,9 @@ class Signal(web.View):
         """Handle signals sent to the app."""
         self.app.log.info("Received rebalance signal!")
         self.app.consumer.request_rejoin()
+        return self.json(
+            {
+                "status": "ok",
+                "message": "Rebalance requested",
+            }
+        )
