@@ -8,7 +8,7 @@ from .topicselector import (
     TopicValueSelectorSchema,
     TopicPartitionSelectorSchema,
     TopicHeadersSelectorSchema,
-    TopicPredicateSchema
+    TopicPredicateSchema,
 )
 from .channel import ChannelSpecSchema
 from .agent.input import AgentInputSpecSchema
@@ -38,6 +38,8 @@ from .table import (
     TableWindowTumblingSpecSchema,
 )
 from .tableref import TableRefSpecSchema
+from .task import TaskSpecSchema, TaskScheduleSpecSchema
+
 
 __all__ = [
     "BaseSchema",
@@ -71,5 +73,7 @@ __all__ = [
     "TableWindowSpecSchema",
     "TableWindowHoppingSpecSchema",
     "TableWindowTumblingSpecSchema",
-    "TableRefSpecSchema"
+    "TableRefSpecSchema",
+    "TaskScheduleSpecSchema",
+    "TaskSpecSchema",
 ]

@@ -10,6 +10,7 @@ from kaspr.types.agent import KasprAgentT
 class AgentSpec(SpecComponent):
     name: str
     description: Optional[str]
+    isolated_partitions: Optional[bool]
     input: AgentInputSpec
     output: AgentOutputSpec
     processors: AgentProcessorSpec
@@ -24,7 +25,9 @@ class AgentSpec(SpecComponent):
         processors.input = self.input
         processors.output = self.output
         return self.app.agent(
-            self.input.channel, name=self.name
+            self.input.channel,
+            name=self.name,
+            isolated_partitions=self.isolated_partitions,
         )(processors.processor)
 
     @property
