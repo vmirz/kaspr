@@ -38,6 +38,15 @@ from .table import (
     TableWindowTumblingSpec,
 )
 from .tableref import TableRefSpec
+from .task import (
+    TaskSpec,
+    TaskScheduleSpec,
+    TaskProcessorSpec,
+    TaskProcessorOperation,
+    TaskProcessorTopicSendOperator,
+    TaskProcessorMapOperator,
+    TaskProcessorFilterOperator,
+)
 
 __all__ = [
     "BaseModel",
@@ -74,4 +83,11 @@ __all__ = [
     "TableWindowHoppingSpec",
     "TableWindowTumblingSpec",
     "TableRefSpec",
+    "TaskSpec",
+    "TaskScheduleSpec",
+    "TaskProcessorSpec",
+    "TaskProcessorOperation",
+    "TaskProcessorTopicSendOperator",
+    "TaskProcessorMapOperator",
+    "TaskProcessorFilterOperator",
 ]
