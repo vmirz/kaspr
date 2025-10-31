@@ -1,4 +1,5 @@
 from typing import Optional, List, Awaitable, Any, Callable, Dict
+from inspect import isasyncgen
 from kaspr.utils.functional import ensure_generator
 from kaspr.types.models.base import SpecComponent
 from kaspr.types.models.task.operations import TaskProcessorOperation
@@ -27,8 +28,13 @@ class TaskProcessorSpec(SpecComponent):
 
         async def _request_processor(app, **kwargs: Any) -> Any:
             try:
-                init_scope = self.init_scope
                 context = {"app": self.app}
+                if self.init:
+                    self.init.with_scope({"context": {**context}})                
+                init_scope = self.init_scope
+                for name in self.pipeline:
+                    if name not in operations:
+                        raise ValueError(f"Operation '{name}' is not defined.")
                 ops = [operations[name] for name in self.pipeline]
                 operation = None
                 # No operations, just return
@@ -45,26 +51,56 @@ class TaskProcessorSpec(SpecComponent):
                 result = await operator.process(None, first_op=True, **kwargs)
                 if result == operator.skip_value:
                     return
-                gen = ensure_generator(result)
-                for value in gen:
-                    # Start with the initial value
-                    current_values = [value]
-                    for operation in ops[1:]:
-                        next_values = []
-                        operator = operation.operator
-                        for current_value in current_values:
-                            scope = {
-                                **init_scope,
-                                "context": {**context},
-                            }
-                            operator.with_scope(scope)
-                            result = await operator.process(current_value)
-                            if result == operator.skip_value:
-                                continue
-                            # Collect all results
-                            next_values.extend(ensure_generator(result))
-                        # Update for the next callback
-                        current_values = next_values
+                gen = ensure_generator(result, async_gen=isasyncgen(result))
+
+                if isasyncgen(gen):
+                    async for value in gen:
+                        # Start with the initial value
+                        current_values = [value]
+                        for operation in ops[1:]:
+                            next_values = []
+                            operator = operation.operator
+                            for current_value in current_values:
+                                scope = {
+                                    **init_scope,
+                                    "context": {**context},
+                                }
+                                operator.with_scope(scope)
+                                result = await operator.process(current_value)
+                                if result == operator.skip_value:
+                                    continue
+                                # Collect all results
+                                next_values.extend(
+                                    ensure_generator(
+                                        result, async_gen=isasyncgen(result)
+                                    )
+                                )
+                            # Update for the next callback
+                            current_values = next_values
+                else:
+                    for value in gen:
+                        # Start with the initial value
+                        current_values = [value]
+                        for operation in ops[1:]:
+                            next_values = []
+                            operator = operation.operator
+                            for current_value in current_values:
+                                scope = {
+                                    **init_scope,
+                                    "context": {**context},
+                                }
+                                operator.with_scope(scope)
+                                result = await operator.process(current_value)
+                                if result == operator.skip_value:
+                                    continue
+                                # Collect all results
+                                next_values.extend(
+                                    ensure_generator(
+                                        result, async_gen=isasyncgen(result)
+                                    )
+                                )
+                            # Update for the next callback
+                            current_values = next_values
 
             except Exception as e:
                 self.on_error(e)
@@ -74,7 +110,8 @@ class TaskProcessorSpec(SpecComponent):
 
     def on_error(self, e: Exception):
         """Handle errors in the processor."""
-        self.init.clear_scope()
+        if self.init:
+            self.init.clear_scope()
         self._init_scope = None
 
     @property
