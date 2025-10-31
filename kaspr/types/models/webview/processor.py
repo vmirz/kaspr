@@ -1,4 +1,5 @@
-from typing import Optional, List, Awaitable, Any, Callable
+from typing import Optional, List, Awaitable, Any, Callable, Dict
+from inspect import isasyncgen
 from kaspr.utils.functional import ensure_generator
 from kaspr.types.models.base import SpecComponent
 from kaspr.types.models.webview.operations import WebViewProcessorOperation
@@ -20,6 +21,7 @@ class WebViewProcessorSpec(SpecComponent):
 
     _processor: Callable[..., Awaitable[Any]] = None
     _response: WebViewResponseSpec = None
+    _init_scope: Dict[str, Any] = None
 
     def prepare_processor(self) -> Callable[..., Awaitable[Any]]:
         operations = {op.name: op for op in self.operations}
@@ -28,8 +30,13 @@ class WebViewProcessorSpec(SpecComponent):
             web: KasprWeb, request: KasprWebRequest, **kwargs: Any
         ) -> Any:
             try:
-                init_scope = self.init.execute().scope if self.init else {}
                 context = {"app": self.app}
+                if self.init:
+                    self.init.with_scope({"context": {**context}})                  
+                init_scope = self.init_scope
+                for name in self.pipeline:
+                    if name not in operations:
+                        raise ValueError(f"Operation '{name}' is not defined.")
                 ops = [operations[name] for name in self.pipeline]
                 operation = None
                 # No operations, return the request data
@@ -45,28 +52,65 @@ class WebViewProcessorSpec(SpecComponent):
                 result = await operator.process(request, **kwargs)
                 if result == operator.skip_value:
                     return
-                gen = ensure_generator(result)
+                gen = ensure_generator(result, async_gen=isasyncgen(result))
                 response_values = []
-                for value in gen:
-                    # Start with the initial value
-                    current_values = [value]
-                    for operation in ops[1:]:
-                        next_values = []
-                        operator = operation.operator
-                        for current_value in current_values:
-                            scope = {
-                                **init_scope,
-                                "context": {**context},
-                            }
-                            operator.with_scope(scope)
-                            result = await operator.process(current_value)
-                            if result == operator.skip_value:
-                                continue
-                            # Collect all results
-                            next_values.extend(ensure_generator(result))
-                        # Update for the next callback
-                        current_values = next_values
-                    response_values.extend(current_values)
+                if isasyncgen(gen):
+                    async for value in gen:
+                        # Start with the initial value
+                        current_values = [value]
+                        for operation in ops[1:]:
+                            next_values = []
+                            operator = operation.operator
+                            for current_value in current_values:
+                                scope = {
+                                    **init_scope,
+                                    "context": {**context},
+                                }
+                                operator.with_scope(scope)
+                                result = await operator.process(current_value)
+                                if result == operator.skip_value:
+                                    continue
+                                # Collect all results
+                                next_values.extend(
+                                    ensure_generator(
+                                        result, async_gen=isasyncgen(result)
+                                    )
+                                )
+                            # Update for the next callback
+                            current_values = next_values
+                        response_values.extend(current_values)
+
+                    if len(response_values) > 0:
+                        # Processors can generate multiple values, but we can only return one value in
+                        # a web response, so we return the last successful value.
+                        return self.response.build_success(web, response_values[-1])
+                    else:
+                        return self.response.build_success(web)
+                else:
+                    for value in gen:
+                        # Start with the initial value
+                        current_values = [value]
+                        for operation in ops[1:]:
+                            next_values = []
+                            operator = operation.operator
+                            for current_value in current_values:
+                                scope = {
+                                    **init_scope,
+                                    "context": {**context},
+                                }
+                                operator.with_scope(scope)
+                                result = await operator.process(current_value)
+                                if result == operator.skip_value:
+                                    continue
+                                # Collect all results
+                                next_values.extend(
+                                    ensure_generator(
+                                        result, async_gen=isasyncgen(result)
+                                    )
+                                )
+                            # Update for the next callback
+                            current_values = next_values
+                        response_values.extend(current_values)
 
                 if len(response_values) > 0:
                     # Processors can generate multiple values, but we can only return one value in
@@ -87,8 +131,17 @@ class WebViewProcessorSpec(SpecComponent):
 
     def on_error(self, e: Exception):
         """Handle errors in the processor."""
-        self.init.clear_scope()
+        if self.init:
+            self.init.clear_scope()
+        self._init_scope = None
 
+    @property
+    def init_scope(self) -> Dict[str, Any]:
+        """Return the initialization scope."""
+        if self._init_scope is None:
+            self._init_scope = self.init.execute().scope if self.init else {}
+        return self._init_scope
+    
     @property
     def processor(self) -> Callable[..., Awaitable[Any]]:
         if self._processor is None:
