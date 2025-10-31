@@ -1,7 +1,7 @@
 import re
 import math
 from datetime import timedelta
-from inspect import signature, isawaitable, isgenerator
+from inspect import signature, isawaitable, isgenerator, isasyncgen
 from functools import wraps
 from datetime import datetime, timezone
 from typing import Optional, Iterator, List, Mapping, Any
@@ -179,14 +179,24 @@ async def maybe_async(res: Any) -> Any:
         return await res
     return res
 
-def ensure_generator(obj) -> Iterator:
+def ensure_generator(obj, async_gen: bool = False) -> Iterator:
     """
     Ensures that the given object is a generator.
     If it's not a generator, wrap it in a generator.
+    
+    Args:
+        obj: The object to ensure is a generator
+        async_gen: If True, wrap non-generators in async generators. Defaults to False (sync generators).
     """
-    if isgenerator(obj):
-        return obj  # Already a generator
-    return (obj for _ in range(1))  # Wrap non-generator in a generator
+    if isgenerator(obj) or isasyncgen(obj):
+        return obj  # Already a generator (sync or async)
+    
+    if async_gen:
+        async def _async_gen():
+            yield obj
+        return _async_gen()
+    else:
+        return (obj for _ in range(1))  # Wrap non-generator in a sync generator
 
 def parse_time_delta(value: str) -> timedelta:
     """
