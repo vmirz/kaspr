@@ -74,50 +74,54 @@ class AgentProcessorSpec(SpecComponent):
                             current_values = [value]
                             for operation in ops[1:]:
                                 next_values = []
-                            operator = operation.operator
-                            tables = operation.tables
-                            for current_value in current_values:
-                                scope = {
-                                    **init_scope,
-                                    "context": {**context, "event": event},
-                                }
-                                operator.with_scope(scope)
-                                value = await operator.process(current_value, **tables)
-                                if value == operator.skip_value:
-                                    continue
-                                # Collect all results
-                                next_values.extend(
-                                    ensure_generator(value, async_gen=isasyncgen(value))
-                                )
-                            # Update for the next callback
-                            current_values = next_values
+                                operator = operation.operator
+                                tables = operation.tables
+                                for current_value in current_values:
+                                    scope = {
+                                        **init_scope,
+                                        "context": {**context, "event": event},
+                                    }
+                                    operator.with_scope(scope)
+                                    value = await operator.process(current_value, **tables)
+                                    if value == operator.skip_value:
+                                        continue
+                                    # Collect all results
+                                    next_values.extend(
+                                        ensure_generator(value, async_gen=isasyncgen(value))
+                                    )
+                                # Update for the next callback
+                                current_values = next_values
+
+                            for value in current_values:
+                                if output:
+                                    await output.send(value)                                
                     else:
                         for value in gen:
                             # Start with the initial value
                             current_values = [value]
                             for operation in ops[1:]:
                                 next_values = []
-                            operator = operation.operator
-                            tables = operation.tables
-                            for current_value in current_values:
-                                scope = {
-                                    **init_scope,
-                                    "context": {**context, "event": event},
-                                }
-                                operator.with_scope(scope)
-                                value = await operator.process(current_value, **tables)
-                                if value == operator.skip_value:
-                                    continue
-                                # Collect all results
-                                next_values.extend(
-                                    ensure_generator(value, async_gen=isasyncgen(value))
-                                )
-                            # Update for the next callback
-                            current_values = next_values
+                                operator = operation.operator
+                                tables = operation.tables
+                                for current_value in current_values:
+                                    scope = {
+                                        **init_scope,
+                                        "context": {**context, "event": event},
+                                    }
+                                    operator.with_scope(scope)
+                                    value = await operator.process(current_value, **tables)
+                                    if value == operator.skip_value:
+                                        continue
+                                    # Collect all results
+                                    next_values.extend(
+                                        ensure_generator(value, async_gen=isasyncgen(value))
+                                    )
+                                # Update for the next callback
+                                current_values = next_values
 
-                    for value in current_values:
-                        if output:
-                            await output.send(value)
+                            for value in current_values:
+                                if output:
+                                    await output.send(value)
 
             except Exception as e:
                 self.on_error(e)
