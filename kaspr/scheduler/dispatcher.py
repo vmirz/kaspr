@@ -66,7 +66,9 @@ class Dispatcher(Service):
     #: shutting down or resuming a rebalance.
     _unacked_deliveries: MutableSet[TTLocation]
 
-    def __init__(self, app: KasprAppT, partition: int, monitor: KasprMonitor, **kwargs: Any) -> None:
+    def __init__(
+        self, app: KasprAppT, partition: int, monitor: KasprMonitor, **kwargs: Any
+    ) -> None:
         super().__init__(**kwargs)
         self.app = app
         self.monitor = monitor
@@ -132,7 +134,7 @@ class Dispatcher(Service):
     def last_location(self) -> Optional[TTLocation]:
         """Last timekey evaluated on Timetable."""
         return self._last_location
-    
+
     @last_location.setter
     def last_location(self, loc: TTLocation):
         self._last_location = loc
@@ -243,7 +245,7 @@ class Dispatcher(Service):
                 self.last_location = location
                 # give back control so loop can handle other tasks
                 await asyncio.sleep(0)
-            gc.collect()    
+            gc.collect()
             await self.sleep(0.25)
 
     def on_message_sent(self, delivery: TTMessage) -> None:
@@ -290,7 +292,12 @@ class Dispatcher(Service):
             await topics.get(tpname).send(
                 key=message["k"],
                 value=message["v"],
-                headers=message["h"],
+                headers={
+                    k: (v if isinstance(v, bytes) else v.encode())
+                    for k, v in message["h"].items()
+                }
+                if message["h"] is not None
+                else None,
                 callback=self.on_message_sent(delivery),
             )
 
@@ -318,7 +325,7 @@ class Dispatcher(Service):
     @cached_property
     def type(self):
         return "Dispatcher"
-    
+
     @cached_property
     def name(self):
         return f"dispatcher-{self.partition}"
