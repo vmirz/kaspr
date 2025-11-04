@@ -550,7 +550,11 @@ class MessageScheduler(MessageSchedulerT, Service):
                     "v": event.value.decode()
                     if isinstance(event.value, bytes)
                     else event.value,
-                    "h": {header.decode() for header in event.headers}
+                    "h": {
+                        (k.decode() if isinstance(k, bytes) else k):
+                        (v.decode() if isinstance(v, bytes) else v)
+                        for k, v in event.headers.items()
+                    }
                     if event.headers
                     else event.headers,
                     "__kms": {"d": deliver_to.decode()},
