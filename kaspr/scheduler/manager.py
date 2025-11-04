@@ -551,8 +551,9 @@ class MessageScheduler(MessageSchedulerT, Service):
                     if isinstance(event.value, bytes)
                     else event.value,
                     "h": {
-                        header.decode() if isinstance(header, bytes) else header
-                        for header in event.headers
+                        (k.decode() if isinstance(k, bytes) else k):
+                        (v.decode() if isinstance(v, bytes) else v)
+                        for k, v in event.headers.items()
                     }
                     if event.headers
                     else event.headers,
