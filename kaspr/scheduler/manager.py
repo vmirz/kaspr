@@ -389,6 +389,29 @@ class MessageScheduler(MessageSchedulerT, Service):
             beacon=self.beacon,
         )
 
+    def _live_count_from_value(self, live_value: Any) -> int:
+        """Extract live message count from timetable live record.
+
+        Supports both legacy integer values and new dict values.
+        """
+        if isinstance(live_value, Mapping):
+            live_value = live_value.get("count", 0)
+        if live_value is None:
+            return 0
+        try:
+            return max(0, int(live_value))
+        except (TypeError, ValueError):
+            return 0
+
+    def _next_live_value(self, count: int, existing: Any = None) -> Mapping[str, Any]:
+        """Build next live record while preserving future attributes in dict payload."""
+        next_count = max(0, int(count))
+        if isinstance(existing, Mapping):
+            payload = dict(existing)
+            payload["count"] = next_count
+            return payload
+        return {"count": next_count}
+
     def _consolidate_table_keys(self, data: TableDataT) -> Iterator[List[str]]:
         """Format terminal log table to reduce noise from duplicate keys.
 
@@ -583,12 +606,18 @@ class MessageScheduler(MessageSchedulerT, Service):
                 schedule_index.del_for_partition(_request_id, partition=partition)
                 # Decrement the live count for this timekey
                 live_key = f"{loc_time_key}{TK_LIVE_SUFFIX}"
-                live_count = timetable.get_for_partition(live_key, partition=partition)
-                if live_count is not None and live_count > 0:
+                live_value = timetable.get_for_partition(live_key, partition=partition)
+                live_count = self._live_count_from_value(live_value)
+                if live_count > 0:
                     timetable.update_for_partition(
-                        {live_key: live_count - 1}, partition=partition
+                        {
+                            live_key: self._next_live_value(
+                                live_count - 1, existing=live_value
+                            )
+                        },
+                        partition=partition,
                     )
-                self.log.info(
+                self.log.dev(
                     f"Canceled scheduled message: {_request_id} at {location}"
                 )
                 continue
@@ -646,16 +675,15 @@ class MessageScheduler(MessageSchedulerT, Service):
                     else event.headers,
                     "__kms": kms_meta,
                 }
-                live_count = (
-                    timetable.get_for_partition(
-                        f"{time_key}{TK_LIVE_SUFFIX}", partition=partition
-                    )
-                    or 0
-                )
+                live_key = f"{time_key}{TK_LIVE_SUFFIX}"
+                live_value = timetable.get_for_partition(live_key, partition=partition)
+                live_count = self._live_count_from_value(live_value)
                 timetable.update_for_partition(
                     {
                         time_key: message_total + 1,
-                        f"{time_key}{TK_LIVE_SUFFIX}": live_count + 1,
+                        live_key: self._next_live_value(
+                            live_count + 1, existing=live_value
+                        ),
                         message_key: message_entry,
                     },
                     partition=partition,
