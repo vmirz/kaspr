@@ -217,14 +217,21 @@ class Dispatcher(Service):
                 await self._maybe_wait()
                 if self.should_stop:
                     break
-                messages_count = (
+                allocated_slots = (
                     timetable.get_for_partition(str(time_key), partition=partition) or 0
                 )
-                if seq < messages_count:
+                if seq < allocated_slots:
                     self.log.info(
-                        f"eval: {time_key} @ P{partition} has {messages_count} messages."
+                        f"eval: {time_key} @ P{partition} has {allocated_slots} allocated slots."
                     )
-                while seq < messages_count:
+                # NOTE: allocated_slots is the number of *allocated* sequence slots, not
+                # the number of live messages. A CANCEL removes a message entry but does
+                # not decrement this value, so canceled slots appear as gaps (None) when
+                # looked up below. This is a known tradeoff: we accept the cost of empty
+                # lookups for canceled slots to keep CANCEL simple and append-only
+                # sequence assignment intact. Use timetable key `timekey:live` for the
+                # actual count of still-scheduled messages at this second.
+                while seq < allocated_slots:
                     location = TTLocation(partition, time_key, seq)
                     await self._maybe_wait()
                     if self.should_stop:

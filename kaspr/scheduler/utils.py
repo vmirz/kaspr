@@ -4,6 +4,10 @@ from datetime import datetime, timezone
 from dataclasses import dataclass
 from kaspr.types import TTLocation
 
+# Suffix appended to a TimeKey to store the live (non-canceled) message count.
+# e.g. "1707171828:live" -> 2  (while the TimeKey scan bound may still be 3)
+TK_LIVE_SUFFIX = ":live"
+
 @dataclass(frozen=True)
 class SchedulerPart:
     janitor: str = "J"

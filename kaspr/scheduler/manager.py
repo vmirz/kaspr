@@ -25,6 +25,7 @@ from .utils import (
     prettydate,
     locdiff,
     SchedulerPart,
+    TK_LIVE_SUFFIX,
 )
 from faust.serializers.codecs import get_codec
 from faust.utils import terminal
@@ -580,6 +581,13 @@ class MessageScheduler(MessageSchedulerT, Service):
                 message_key = create_message_key(location)
                 timetable.del_for_partition(message_key, partition=partition)
                 schedule_index.del_for_partition(_request_id, partition=partition)
+                # Decrement the live count for this timekey
+                live_key = f"{loc_time_key}{TK_LIVE_SUFFIX}"
+                live_count = timetable.get_for_partition(live_key, partition=partition)
+                if live_count is not None and live_count > 0:
+                    timetable.update_for_partition(
+                        {live_key: live_count - 1}, partition=partition
+                    )
                 self.log.info(
                     f"Canceled scheduled message: {_request_id} at {location}"
                 )
@@ -638,9 +646,16 @@ class MessageScheduler(MessageSchedulerT, Service):
                     else event.headers,
                     "__kms": kms_meta,
                 }
+                live_count = (
+                    timetable.get_for_partition(
+                        f"{time_key}{TK_LIVE_SUFFIX}", partition=partition
+                    )
+                    or 0
+                )
                 timetable.update_for_partition(
                     {
                         time_key: message_total + 1,
+                        f"{time_key}{TK_LIVE_SUFFIX}": live_count + 1,
                         message_key: message_entry,
                     },
                     partition=partition,
