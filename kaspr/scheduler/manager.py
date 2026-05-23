@@ -25,6 +25,7 @@ from .utils import (
     prettydate,
     locdiff,
     SchedulerPart,
+    TK_LIVE_SUFFIX,
 )
 from faust.serializers.codecs import get_codec
 from faust.utils import terminal
@@ -34,10 +35,12 @@ TableDataT = Sequence[Sequence[str]]
 json_codec = get_codec("json")
 
 SCHEDULER_ACTION_ADD = "ADD"
+SCHEDULER_ACTION_CANCEL = "CANCEL"
 
 H_SCHEDULER_ACTION = "x-scheduler-action"
 H_SCHEDULER_DELIVER_AT = "x-scheduler-deliver-at"
 H_SCHEDULER_DELIVER_TO = "x-scheduler-deliver-to"
+H_SCHEDULER_REQUEST_ID = "x-scheduler-request-id"
 
 
 class MessageScheduler(MessageSchedulerT, Service):
@@ -84,6 +87,9 @@ class MessageScheduler(MessageSchedulerT, Service):
         self.timetable.on_table_recovery_completed.connect(
             self.on_timetable_recovery_completed
         )
+        self.schedule_index.on_table_recovery_completed.connect(
+            self.on_schedule_index_recovery_completed
+        )
 
         # Attach streaming agents now
         self.app.agent(self.schedule_actions_topic, name=self.process_actions.__name__)(
@@ -129,6 +135,11 @@ class MessageScheduler(MessageSchedulerT, Service):
         self.checkpoints.resume()
         self.resume_dispatchers()
         self.resume_janitors()
+
+    async def on_schedule_index_recovery_completed(
+            self, sender: Any, actives, standbys, **kwargs
+    ):
+        pass
 
     def on_rebalance_started(self, sender: Any, **kwargs):
         self.timetable_recovered.clear()
@@ -312,6 +323,27 @@ class MessageScheduler(MessageSchedulerT, Service):
             },
         )
 
+    def prepare_schedule_index(self):
+        """Prepare the schedule index table.
+
+        The index maps producer-supplied request IDs to their
+        Timetable location so that CANCEL can look up messages
+        without scanning.
+        """
+        return self.app.Table(
+            "timetable-index",
+            partitions=self.app.conf.scheduler_topic_partitions,
+            options={
+                "write_buffer_size": self.app.conf.store_rocksdb_write_buffer_size,
+                "max_write_buffer_number": self.app.conf.store_rocksdb_max_write_buffer_number,
+                "target_file_size_base": self.app.conf.store_rocksdb_target_file_size_base,
+                "block_cache_size": self.app.conf.store_rocksdb_block_cache_size,
+                "block_cache_compressed_size": self.app.conf.store_rocksdb_block_cache_compressed_size,
+                "bloom_filter_size": self.app.conf.store_rocksdb_bloom_filter_size,
+                "set_cache_index_and_filter_blocks": self.app.conf.store_rocksdb_set_cache_index_and_filter_blocks,
+            },            
+        )
+
     @cached_property
     def schedule_requests_topic(self) -> TopicT:
         """Topic for schedule requests."""
@@ -332,6 +364,11 @@ class MessageScheduler(MessageSchedulerT, Service):
         """Timetable table."""
         return self.prepare_timetable()
 
+    @cached_property
+    def schedule_index(self) -> KasprTableT:
+        """Reverse index mapping request IDs to Timetable locations."""
+        return self.prepare_schedule_index()
+
     @property
     def dispatcher_partitions(self) -> Set[int]:
         """Return the set of known dispatcher partitions."""
@@ -351,6 +388,29 @@ class MessageScheduler(MessageSchedulerT, Service):
             loop=self.loop,
             beacon=self.beacon,
         )
+
+    def _live_count_from_value(self, live_value: Any) -> int:
+        """Extract live message count from timetable live record.
+
+        Supports both legacy integer values and new dict values.
+        """
+        if isinstance(live_value, Mapping):
+            live_value = live_value.get("count", 0)
+        if live_value is None:
+            return 0
+        try:
+            return max(0, int(live_value))
+        except (TypeError, ValueError):
+            return 0
+
+    def _next_live_value(self, count: int, existing: Any = None) -> Mapping[str, Any]:
+        """Build next live record while preserving future attributes in dict payload."""
+        next_count = max(0, int(count))
+        if isinstance(existing, Mapping):
+            payload = dict(existing)
+            payload["count"] = next_count
+            return payload
+        return {"count": next_count}
 
     def _consolidate_table_keys(self, data: TableDataT) -> Iterator[List[str]]:
         """Format terminal log table to reduce noise from duplicate keys.
@@ -514,13 +574,56 @@ class MessageScheduler(MessageSchedulerT, Service):
             action: bytes = event.headers.pop(H_SCHEDULER_ACTION)
             deliver_at: bytes = event.headers.pop(H_SCHEDULER_DELIVER_AT, None)
             deliver_to: bytes = event.headers.pop(H_SCHEDULER_DELIVER_TO, None)
+            request_id: bytes = event.headers.pop(H_SCHEDULER_REQUEST_ID, None)
 
             _action = action.decode()
-            _topic_name = deliver_to.decode()
             partition = event.message.partition
             timetable = self.app.scheduler.timetable
+            schedule_index = self.app.scheduler.schedule_index
+
+            if _action == SCHEDULER_ACTION_CANCEL:
+                _request_id = (
+                    request_id.decode()
+                    if isinstance(request_id, bytes)
+                    else request_id
+                )
+                if not _request_id:
+                    self.log.warning("Cancel: missing request_id, skipping")
+                    continue
+                index_entry = schedule_index.get_for_partition(
+                    _request_id, partition=partition
+                )
+                if not index_entry:
+                    self.log.warning(
+                        f"Cancel: request_id {_request_id} not found"
+                    )
+                    continue
+                loc_time_key = index_entry["tk"]
+                loc_sequence = index_entry["seq"]
+                location = TTLocation(partition, loc_time_key, loc_sequence)
+                message_key = create_message_key(location)
+                timetable.del_for_partition(message_key, partition=partition)
+                schedule_index.del_for_partition(_request_id, partition=partition)
+                # Decrement the live count for this timekey
+                live_key = f"{loc_time_key}{TK_LIVE_SUFFIX}"
+                live_value = timetable.get_for_partition(live_key, partition=partition)
+                live_count = self._live_count_from_value(live_value)
+                if live_count > 0:
+                    timetable.update_for_partition(
+                        {
+                            live_key: self._next_live_value(
+                                live_count - 1, existing=live_value
+                            )
+                        },
+                        partition=partition,
+                    )
+                self.log.dev(
+                    f"Canceled scheduled message: {_request_id} at {location}"
+                )
+                continue
 
             if _action == SCHEDULER_ACTION_ADD:
+                _topic_name = deliver_to.decode()
                 time_key = str(deliver_at.decode())
 
                 # a message attemping to be scheduled at or before the current timekey
@@ -543,6 +646,19 @@ class MessageScheduler(MessageSchedulerT, Service):
                 )
                 location = TTLocation(partition, int(time_key), sequence=message_total)
                 message_key = create_message_key(location)
+
+                _request_id = None
+                if request_id:
+                    _request_id = (
+                        request_id.decode()
+                        if isinstance(request_id, bytes)
+                        else request_id
+                    )
+
+                kms_meta = {"d": deliver_to.decode()}
+                if _request_id:
+                    kms_meta["rid"] = _request_id
+
                 message_entry = {
                     "k": event.key.decode()
                     if isinstance(event.key, bytes)
@@ -557,15 +673,34 @@ class MessageScheduler(MessageSchedulerT, Service):
                     }
                     if event.headers
                     else event.headers,
-                    "__kms": {"d": deliver_to.decode()},
+                    "__kms": kms_meta,
                 }
+                live_key = f"{time_key}{TK_LIVE_SUFFIX}"
+                live_value = timetable.get_for_partition(live_key, partition=partition)
+                live_count = self._live_count_from_value(live_value)
                 timetable.update_for_partition(
                     {
                         time_key: message_total + 1,
+                        live_key: self._next_live_value(
+                            live_count + 1, existing=live_value
+                        ),
                         message_key: message_entry,
                     },
                     partition=partition,
                 )
+
+                # Store reverse index entry when request_id is provided
+                if _request_id:
+                    schedule_index.update_for_partition(
+                        {
+                            _request_id: {
+                                "tk": int(time_key),
+                                "seq": message_total,
+                            }
+                        },
+                        partition=partition,
+                    )
+
                 self.monitor.on_message_scheduled(location)
                 self.scheduled_total[partition] += 1
 
@@ -585,7 +720,39 @@ class MessageScheduler(MessageSchedulerT, Service):
             )
             deliver_at: bytes = event.headers.pop(H_SCHEDULER_DELIVER_AT, None)
             deliver_to: bytes = event.headers.pop(H_SCHEDULER_DELIVER_TO, None)
+            request_id: bytes = event.headers.pop(H_SCHEDULER_REQUEST_ID, None)
 
+            _action = action.decode() if isinstance(action, bytes) else action
+
+            # --- CANCEL: only requires request_id ---
+            if _action == SCHEDULER_ACTION_CANCEL:
+                if not request_id:
+                    error_entry = {
+                        "key": event.key,
+                        "value": event.value,
+                        "headers": event.headers,
+                        "errors": [
+                            f"Missing required header `{H_SCHEDULER_REQUEST_ID}` for CANCEL action"
+                        ],
+                    }
+                    await rejections_topic.send(
+                        key=event.key, value=json_codec.dumps(error_entry)
+                    )
+                    continue
+                scheduler_headers = {
+                    H_SCHEDULER_ACTION: action,
+                    H_SCHEDULER_REQUEST_ID: request_id,
+                }
+                headers = event.headers or {}
+                headers.update(scheduler_headers)
+                await actions_topic.send(
+                    key=event.message.key,
+                    value=event.message.value,
+                    headers=headers,
+                )
+                continue
+
+            # --- ADD (default): requires deliver_at and deliver_to ---
             if not deliver_at or not deliver_to:
                 errors = []
                 if not deliver_at:
@@ -640,6 +807,8 @@ class MessageScheduler(MessageSchedulerT, Service):
                 H_SCHEDULER_DELIVER_AT: f"{timekey}".encode(),
                 H_SCHEDULER_DELIVER_TO: deliver_to,
             }
+            if request_id:
+                scheduler_headers[H_SCHEDULER_REQUEST_ID] = request_id
             headers = event.headers or {}
             headers.update(scheduler_headers)
             await actions_topic.send(

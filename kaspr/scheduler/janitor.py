@@ -9,7 +9,7 @@ from kaspr.types import KasprAppT, CheckpointT, TTLocation, TTMessage, PT
 from kaspr.sensors.kaspr import KasprMonitor
 from mode.utils.locks import Event
 
-from .utils import create_message_key, current_timekey, SchedulerPart
+from .utils import create_message_key, current_timekey, SchedulerPart, TK_LIVE_SUFFIX
 
 SECONDS_PER_DAY = 86400
 
@@ -236,16 +236,16 @@ class Janitor(Service):
                 await self._maybe_wait()
                 if self.should_stop:
                     break
-                messages_count = (
+                allocated_slots = (
                     timetable.get_for_partition(str(time_key), partition=partition) or 0
                 )
-                if seq < messages_count:
+                if seq < allocated_slots:
                     self.log.info(
-                        f"eval: {time_key} @ P{partition} has {messages_count} messages."
+                        f"eval: {time_key} @ P{partition} has {allocated_slots} allocated slots."
                     )
                 # remove in reverse order (SEQ - 1, SEQ - 2, SEQ - 3 ... 0)
-                if messages_count:
-                    seq = messages_count - 1
+                if allocated_slots:
+                    seq = allocated_slots - 1
                     while seq >= 0:
                         location = TTLocation(partition, time_key, seq)
                         await self._maybe_wait()
@@ -336,6 +336,10 @@ class Janitor(Service):
                     partition=partition,
                     callback=self.on_changelog_sent(location),
                 )
+                # Remove the companion live-count key for this timekey, if present
+                live_key = f"{timekey}{TK_LIVE_SUFFIX}"
+                if timetable.get_for_partition(live_key, partition=partition) is not None:
+                    timetable.del_for_partition(live_key, partition=partition)
 
     @Service.task
     async def _periodic_checkpoint(self):
