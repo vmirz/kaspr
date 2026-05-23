@@ -4,6 +4,10 @@ from datetime import datetime, timezone
 from dataclasses import dataclass
 from kaspr.types import TTLocation
 
+# Suffix appended to a TimeKey to store live (non-canceled) metadata.
+# e.g. "1707171828:live" -> {"count": 2}
+TK_LIVE_SUFFIX = ":live"
+
 @dataclass(frozen=True)
 class SchedulerPart:
     janitor: str = "J"

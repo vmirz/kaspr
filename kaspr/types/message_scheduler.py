@@ -51,6 +51,11 @@ class MessageSchedulerT(ServiceT):
     def timetable(self) -> KasprTableT:
         ...            
 
+    @cached_property
+    @abc.abstractmethod
+    def schedule_index(self) -> KasprTableT:
+        ...
+
     @abc.abstractmethod
     async def maybe_create_topics(self):
         ...
