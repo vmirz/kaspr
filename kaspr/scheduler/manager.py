@@ -201,8 +201,8 @@ class MessageScheduler(MessageSchedulerT, Service):
         """
         tasks = []
         self.log.info("Waiting for janitors...")
-        for partition in self.dispatcher_partitions:
-            tasks.append(self._dispatchers[partition].wait_empty())
+        for partition in self.janitor_partitions:
+            tasks.append(self._janitors[partition].wait_empty())
         if tasks:
             await asyncio.gather(*tasks)
 
@@ -461,7 +461,7 @@ class MessageScheduler(MessageSchedulerT, Service):
                         checkpoint.time_key,
                         checkpoint.sequence,
                         prettydate(checkpoint),
-                        locdiff(dispatcher.highwater, checkpoint),
+                        locdiff(janitor.highwater, checkpoint),
                     ]
                 )
             )
