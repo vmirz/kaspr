@@ -453,6 +453,7 @@ class MessageScheduler(MessageSchedulerT, Service):
         for partition, janitor in self._janitors.items():
             pt = PT(SchedulerPart.janitor, partition)
             checkpoint = self.checkpoints.get(pt, default=janitor.default_checkpoint)
+            janitor_highwater = janitor.highwater
             _data.append(
                 tuple(
                     [
@@ -461,7 +462,9 @@ class MessageScheduler(MessageSchedulerT, Service):
                         checkpoint.time_key,
                         checkpoint.sequence,
                         prettydate(checkpoint),
-                        locdiff(janitor.highwater, checkpoint),
+                        locdiff(janitor_highwater, checkpoint)
+                        if janitor_highwater is not None
+                        else "-",
                     ]
                 )
             )
@@ -504,6 +507,7 @@ class MessageScheduler(MessageSchedulerT, Service):
         for janitor in self._janitors.values():
             last = janitor.last_location
             if last:
+                janitor_highwater = janitor.highwater
                 _data.append(
                     tuple(
                         [
@@ -512,7 +516,9 @@ class MessageScheduler(MessageSchedulerT, Service):
                             last.time_key,
                             last.sequence,
                             prettydate(last),
-                            locdiff(janitor.highwater, last),
+                            locdiff(janitor_highwater, last)
+                            if janitor_highwater is not None
+                            else "-",
                             self.monitor.janitor_state(janitor).messages_removed,
                             "-",
                             "-",
