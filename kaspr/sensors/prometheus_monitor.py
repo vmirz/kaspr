@@ -461,6 +461,13 @@ class PrometheusMonitor(KasprMonitor):
                     *common_label_keys,
                 ],
             )
+            self.messages_replace_noop = Counter(
+                f"{prefix}kms_messages_replace_noop",
+                "Total REPLACE actions that were no-ops due to identical schedules",
+                labelnames=[
+                    *common_label_keys,
+                ],
+            )
             self.messages_canceled = Counter(
                 f"{prefix}kms_messages_canceled",
                 "Total CANCEL actions that removed an existing schedule",
@@ -618,6 +625,11 @@ class PrometheusMonitor(KasprMonitor):
         """Call when a CANCEL action removes an existing schedule entry."""
         super().on_message_canceled(partition)
         self.messages_canceled.labels(**self.common_labels).inc()
+
+    def on_message_replace_noop(self, partition: int):
+        """Call when REPLACE short-circuits because schedule is identical."""
+        super().on_message_replace_noop(partition)
+        self.messages_replace_noop.labels(**self.common_labels).inc()
 
     def on_memory_stats_refreshed(self):
         """Memory usage stats updated."""

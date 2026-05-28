@@ -189,6 +189,10 @@ class KasprMonitor(Monitor):
     #: since startup by partition
     replaced_total: Mapping[int, int]
 
+    #: Number of REPLACE actions that were no-ops due to identical schedule
+    #: since startup by partition
+    replace_noop_total: Mapping[int, int]
+
     #: Number of CANCEL actions that canceled an existing schedule
     #: since startup by partition
     canceled_total: Mapping[int, int]
@@ -233,6 +237,7 @@ class KasprMonitor(Monitor):
         self.scheduled_total = defaultdict(int)
         self.instant_send_total = defaultdict(int)
         self.replaced_total = defaultdict(int)
+        self.replace_noop_total = defaultdict(int)
         self.canceled_total = defaultdict(int)
         self.infra = InfraState() if infra is None else infra
         self.dispatchers = {} if dispatchers is None else dispatchers
@@ -342,6 +347,10 @@ class KasprMonitor(Monitor):
     def on_message_canceled(self, partition: int):
         """Call when CANCEL action removes an existing schedule entry."""
         self.canceled_total[partition] += 1
+
+    def on_message_replace_noop(self, partition: int):
+        """Call when REPLACE short-circuits because schedule is identical."""
+        self.replace_noop_total[partition] += 1
 
     def on_dispatcher_paused(self, dispatcher: DispatcherT):
         """Call when dispatcher paused processing."""
