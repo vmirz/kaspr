@@ -314,6 +314,7 @@ class Janitor(Service):
             await self._maybe_wait()
             # TODO: Confirm stream is "paused" during rebalance and recovery
             timetable = self.app.scheduler.timetable
+            schedule_index = self.app.scheduler.schedule_index
             partition, timekey, sequence = (
                 location.partition,
                 location.time_key,
@@ -322,12 +323,29 @@ class Janitor(Service):
 
             if sequence >= 0:
                 message_key = create_message_key(location)
+                message = timetable.get_for_partition(message_key, partition=partition)
                 self.track_removal(location)
                 timetable.del_for_partition(
                     message_key,
                     partition=partition,
                     callback=self.on_changelog_sent(location),
                 )
+                # Remove reverse index entry if this scheduled row was keyed by request_id.
+                rid = ((message or {}).get("__kms") or {}).get("rid")
+                if rid:
+                    index_entry = schedule_index.get_for_partition(
+                        rid, partition=partition
+                    )
+                    if index_entry:
+                        idx_timekey = index_entry.get("tk")
+                        idx_sequence = index_entry.get("seq")
+                        if (
+                            idx_timekey is not None
+                            and idx_sequence is not None
+                            and int(idx_timekey) == int(timekey)
+                            and int(idx_sequence) == int(sequence)
+                        ):
+                            schedule_index.del_for_partition(rid, partition=partition)
 
             elif sequence < 0:
                 self.track_removal(location)
