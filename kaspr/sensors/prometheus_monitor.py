@@ -454,6 +454,20 @@ class PrometheusMonitor(KasprMonitor):
                     *common_label_keys,
                 ],
             )
+            self.messages_replaced = Counter(
+                f"{prefix}kms_messages_replaced",
+                "Total REPLACE actions that replaced an existing schedule",
+                labelnames=[
+                    *common_label_keys,
+                ],
+            )
+            self.messages_canceled = Counter(
+                f"{prefix}kms_messages_canceled",
+                "Total CANCEL actions that removed an existing schedule",
+                labelnames=[
+                    *common_label_keys,
+                ],
+            )
             self.active_deliveries = Gauge(
                 f"{prefix}kms_active_deliveries",
                 "Messages delievered during uptime.",
@@ -594,6 +608,16 @@ class PrometheusMonitor(KasprMonitor):
         """Call when a message is removed from Timetable."""
         super().on_message_removed(janitor, location)
         self.messages_removed.labels(**self.common_labels).inc()
+
+    def on_message_replaced(self, partition: int):
+        """Call when a REPLACE action updates an existing schedule entry."""
+        super().on_message_replaced(partition)
+        self.messages_replaced.labels(**self.common_labels).inc()
+
+    def on_message_canceled(self, partition: int):
+        """Call when a CANCEL action removes an existing schedule entry."""
+        super().on_message_canceled(partition)
+        self.messages_canceled.labels(**self.common_labels).inc()
 
     def on_memory_stats_refreshed(self):
         """Memory usage stats updated."""

@@ -185,6 +185,14 @@ class KasprMonitor(Monitor):
     #: already past due (since startup by partition)
     instant_send_total: Mapping[int, int]
 
+    #: Number of REPLACE actions that replaced an existing schedule
+    #: since startup by partition
+    replaced_total: Mapping[int, int]
+
+    #: Number of CANCEL actions that canceled an existing schedule
+    #: since startup by partition
+    canceled_total: Mapping[int, int]
+
     #: Infrastructure information
     infra: InfraState = None
 
@@ -224,6 +232,8 @@ class KasprMonitor(Monitor):
         self.process = psutil.Process(os.getpid())
         self.scheduled_total = defaultdict(int)
         self.instant_send_total = defaultdict(int)
+        self.replaced_total = defaultdict(int)
+        self.canceled_total = defaultdict(int)
         self.infra = InfraState() if infra is None else infra
         self.dispatchers = {} if dispatchers is None else dispatchers
         self.dispatchers_by_partition = (
@@ -324,6 +334,14 @@ class KasprMonitor(Monitor):
     def on_message_removed(self, janitor: JanitorT, location: TTLocation):
         """Call when a message is removed from Timetable."""
         self._janitor_or_create(janitor).messages_removed += 1
+
+    def on_message_replaced(self, partition: int):
+        """Call when REPLACE action updates an existing schedule entry."""
+        self.replaced_total[partition] += 1
+
+    def on_message_canceled(self, partition: int):
+        """Call when CANCEL action removes an existing schedule entry."""
+        self.canceled_total[partition] += 1
 
     def on_dispatcher_paused(self, dispatcher: DispatcherT):
         """Call when dispatcher paused processing."""

@@ -36,6 +36,7 @@ json_codec = get_codec("json")
 
 SCHEDULER_ACTION_ADD = "ADD"
 SCHEDULER_ACTION_CANCEL = "CANCEL"
+SCHEDULER_ACTION_REPLACE = "REPLACE"
 
 H_SCHEDULER_ACTION = "x-scheduler-action"
 H_SCHEDULER_DELIVER_AT = "x-scheduler-deliver-at"
@@ -64,6 +65,14 @@ class MessageScheduler(MessageSchedulerT, Service):
     #: already past due (since startup by partition)
     instant_send_total: Mapping[int, int]
 
+    #: Number of REPLACE actions that replaced an existing schedule
+    #: (since startup by partition)
+    replaced_total: Mapping[int, int]
+
+    #: Number of CANCEL actions that canceled an existing schedule
+    #: (since startup by partition)
+    canceled_total: Mapping[int, int]
+
     #: cached topics of delivery destinations
     _out_topics: Mapping[str, TopicT]
 
@@ -74,6 +83,8 @@ class MessageScheduler(MessageSchedulerT, Service):
         self.timetable_recovered = Event()
         self.scheduled_total = defaultdict(int)
         self.instant_send_total = defaultdict(int)
+        self.replaced_total = defaultdict(int)
+        self.canceled_total = defaultdict(int)
         self._dispatchers = {}
         self._janitors = {}
         self._out_topics = {}
@@ -412,6 +423,17 @@ class MessageScheduler(MessageSchedulerT, Service):
             return payload
         return {"count": next_count}
 
+    def _request_partition(self, topic: TopicT, request_id: Any) -> Optional[int]:
+        """Compute stable action partition for a request id."""
+        if request_id is None:
+            return None
+        value = request_id.decode() if isinstance(request_id, bytes) else request_id
+        if value is None:
+            return None
+        return self.app.producer.key_partition(
+            topic.get_topic_name(), str(value).encode()
+        ).partition
+
     def _consolidate_table_keys(self, data: TableDataT) -> Iterator[List[str]]:
         """Format terminal log table to reduce noise from duplicate keys.
 
@@ -501,6 +523,8 @@ class MessageScheduler(MessageSchedulerT, Service):
                             ).messages_delivered,
                             self.scheduled_total[partition],
                             self.instant_send_total[partition],
+                            self.replaced_total[partition],
+                            self.canceled_total[partition],
                         ]
                     )
                 )
@@ -522,6 +546,8 @@ class MessageScheduler(MessageSchedulerT, Service):
                             self.monitor.janitor_state(janitor).messages_removed,
                             "-",
                             "-",
+                            "-",
+                            "-",
                         ]
                     )
                 )
@@ -538,6 +564,8 @@ class MessageScheduler(MessageSchedulerT, Service):
                 "deliveries",
                 "total scheduled",
                 "immediate sends",
+                "replace hits",
+                "cancel hits",
             ],
         )
 
@@ -582,53 +610,70 @@ class MessageScheduler(MessageSchedulerT, Service):
             deliver_to: bytes = event.headers.pop(H_SCHEDULER_DELIVER_TO, None)
             request_id: bytes = event.headers.pop(H_SCHEDULER_REQUEST_ID, None)
 
-            _action = action.decode()
+            _action = action.decode() if isinstance(action, bytes) else action
             partition = event.message.partition
             timetable = self.app.scheduler.timetable
             schedule_index = self.app.scheduler.schedule_index
 
-            if _action == SCHEDULER_ACTION_CANCEL:
-                _request_id = (
-                    request_id.decode()
-                    if isinstance(request_id, bytes)
-                    else request_id
-                )
+            _request_id = (
+                request_id.decode()
+                if isinstance(request_id, bytes)
+                else request_id
+            )
+
+            if _action in (SCHEDULER_ACTION_CANCEL, SCHEDULER_ACTION_REPLACE):
                 if not _request_id:
-                    self.log.warning("Cancel: missing request_id, skipping")
+                    self.log.warning(f"{_action}: missing request_id, skipping")
                     continue
                 index_entry = schedule_index.get_for_partition(
                     _request_id, partition=partition
                 )
-                if not index_entry:
+                if _action == SCHEDULER_ACTION_CANCEL and not index_entry:
                     self.log.warning(
                         f"Cancel: request_id {_request_id} not found"
                     )
                     continue
-                loc_time_key = index_entry["tk"]
-                loc_sequence = index_entry["seq"]
-                location = TTLocation(partition, loc_time_key, loc_sequence)
-                message_key = create_message_key(location)
-                timetable.del_for_partition(message_key, partition=partition)
-                schedule_index.del_for_partition(_request_id, partition=partition)
-                # Decrement the live count for this timekey
-                live_key = f"{loc_time_key}{TK_LIVE_SUFFIX}"
-                live_value = timetable.get_for_partition(live_key, partition=partition)
-                live_count = self._live_count_from_value(live_value)
-                if live_count > 0:
-                    timetable.update_for_partition(
-                        {
-                            live_key: self._next_live_value(
-                                live_count - 1, existing=live_value
-                            )
-                        },
-                        partition=partition,
+                if index_entry:
+                    loc_time_key = index_entry["tk"]
+                    loc_sequence = index_entry["seq"]
+                    location = TTLocation(partition, loc_time_key, loc_sequence)
+                    message_key = create_message_key(location)
+                    timetable.del_for_partition(message_key, partition=partition)
+                    schedule_index.del_for_partition(_request_id, partition=partition)
+                    # Decrement the live count for this timekey
+                    live_key = f"{loc_time_key}{TK_LIVE_SUFFIX}"
+                    live_value = timetable.get_for_partition(
+                        live_key, partition=partition
                     )
-                self.log.dev(
-                    f"Canceled scheduled message: {_request_id} at {location}"
-                )
-                continue
+                    live_count = self._live_count_from_value(live_value)
+                    if live_count > 0:
+                        timetable.update_for_partition(
+                            {
+                                live_key: self._next_live_value(
+                                    live_count - 1, existing=live_value
+                                )
+                            },
+                            partition=partition,
+                        )
+                    self.log.dev(
+                        f"{_action}: removed existing scheduled message: {_request_id} at {location}"
+                    )
+                    if _action == SCHEDULER_ACTION_REPLACE:
+                        self.replaced_total[partition] += 1
+                        self.monitor.on_message_replaced(partition=partition)
+                    elif _action == SCHEDULER_ACTION_CANCEL:
+                        self.canceled_total[partition] += 1
+                        self.monitor.on_message_canceled(partition=partition)
 
-            if _action == SCHEDULER_ACTION_ADD:
+                if _action == SCHEDULER_ACTION_CANCEL:
+                    continue
+
+            if _action in (SCHEDULER_ACTION_ADD, SCHEDULER_ACTION_REPLACE):
+                if not deliver_at or not deliver_to:
+                    self.log.warning(
+                        f"{_action}: missing deliver_at or deliver_to, skipping"
+                    )
+                    continue
                 _topic_name = deliver_to.decode()
                 time_key = str(deliver_at.decode())
 
@@ -652,14 +697,6 @@ class MessageScheduler(MessageSchedulerT, Service):
                 )
                 location = TTLocation(partition, int(time_key), sequence=message_total)
                 message_key = create_message_key(location)
-
-                _request_id = None
-                if request_id:
-                    _request_id = (
-                        request_id.decode()
-                        if isinstance(request_id, bytes)
-                        else request_id
-                    )
 
                 kms_meta = {"d": deliver_to.decode()}
                 if _request_id:
@@ -751,10 +788,28 @@ class MessageScheduler(MessageSchedulerT, Service):
                 }
                 headers = event.headers or {}
                 headers.update(scheduler_headers)
+                _partition = self._request_partition(actions_topic, request_id)
+                send_kwargs = {"partition": _partition} if _partition is not None else {}
                 await actions_topic.send(
                     key=event.message.key,
                     value=event.message.value,
                     headers=headers,
+                    **send_kwargs,
+                )
+                continue
+
+            # --- REPLACE: request_id required ---
+            if _action == SCHEDULER_ACTION_REPLACE and not request_id:
+                error_entry = {
+                    "key": event.key,
+                    "value": event.value,
+                    "headers": event.headers,
+                    "errors": [
+                        f"Missing required header `{H_SCHEDULER_REQUEST_ID}` for REPLACE action"
+                    ],
+                }
+                await rejections_topic.send(
+                    key=event.key, value=json_codec.dumps(error_entry)
                 )
                 continue
 
@@ -817,8 +872,13 @@ class MessageScheduler(MessageSchedulerT, Service):
                 scheduler_headers[H_SCHEDULER_REQUEST_ID] = request_id
             headers = event.headers or {}
             headers.update(scheduler_headers)
+            _partition = self._request_partition(actions_topic, request_id)
+            send_kwargs = {"partition": _partition} if _partition is not None else {}
             await actions_topic.send(
-                key=event.message.key, value=event.message.value, headers=headers
+                key=event.message.key,
+                value=event.message.value,
+                headers=headers,
+                **send_kwargs,
             )
 
     @Service.task
