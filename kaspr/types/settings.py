@@ -298,7 +298,7 @@ WEB_METRICS_BASE_PATH = _getenv("WEB_METRICS_BASE_PATH", "")
 DEFINITIONS_DIR = _getenv("DEFINITIONS_DIR", "builders")
 
 #: Serializer used for keys by default when no serializer is specified.
-KEY_SERIALIZER = _getenv("KEY_SERIALIZER", "json")
+KEY_SERIALIZER = _getenv("KEY_SERIALIZER", "raw")
 
 #: Serializer used for values by default when no serializer is specified.
 VALUE_SERIALIZER = _getenv("VALUE_SERIALIZER", "json")
