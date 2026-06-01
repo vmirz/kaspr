@@ -893,7 +893,7 @@ class MessageScheduler(MessageSchedulerT, Service):
                 headers.update(scheduler_headers)
                 _partition = self._request_partition(actions_topic, request_id)
                 send_kwargs = {"partition": _partition} if _partition is not None else {}
-                print(f"Distributing message with action {_action} to partition {_partition}")
+
                 await actions_topic.send(
                     key=event.message.key,
                     value=event.message.value,
@@ -978,7 +978,7 @@ class MessageScheduler(MessageSchedulerT, Service):
             headers.update(scheduler_headers)
             _partition = self._request_partition(actions_topic, request_id)
             send_kwargs = {"partition": _partition} if _partition is not None else {}
-            print(f"Distributing message with action {_action} to partition {_partition}")
+
             await actions_topic.send(
                 key=event.message.key,
                 value=event.message.value,
