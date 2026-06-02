@@ -542,13 +542,27 @@ class PrometheusMonitor(KasprMonitor):
         self.dispatcher_info.labels(
             partition=dispatcher.partition, state=self.REVOKED, **self.common_labels
         ).set(0)
+        # Remove partition-level gauge metrics so stale values are no longer reported
+        partition = str(dispatcher.partition)
+        label_values = (*self.common_labels.values(), self.DISPATCHER, partition)
+        self.last_location_time.remove(*label_values)
+        self.last_location_seq.remove(*label_values)
+        self.location_lag.remove(*label_values)
+        self.active_deliveries.remove(*self.common_labels.values(), partition)
 
     def on_janitor_revoked(self, janitor: JanitorT):
         """Janitor revoked."""
         super().on_janitor_revoked(janitor)
-        self.dispatcher_info.labels(
+        self.janitor_info.labels(
             partition=janitor.partition, state=self.REVOKED, **self.common_labels
-        ).set(0)        
+        ).set(0)
+        # Remove partition-level gauge metrics so stale values are no longer reported
+        partition = str(janitor.partition)
+        label_values = (*self.common_labels.values(), self.JANITOR, partition)
+        self.last_location_time.remove(*label_values)
+        self.last_location_seq.remove(*label_values)
+        self.location_lag.remove(*label_values)
+        self.active_removals.remove(*self.common_labels.values(), partition)
 
 
     def on_dispatcher_checkpoint_updated(
