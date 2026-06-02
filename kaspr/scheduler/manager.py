@@ -235,6 +235,10 @@ class MessageScheduler(MessageSchedulerT, Service):
 
     async def on_partitions_revoked(self, sender: Any, revoked: Set[TP], **kwargs):
         """Called when active topic partions are revoked from worker."""
+        # Dispatchers/janitors are already paused by on_rebalance_started.
+        # Wait for any in-flight deliveries/removals to complete before
+        # flushing checkpoints so the persisted state reflects reality.
+        await self.wait_empty_dispatchers_and_janitors()
         await self.checkpoints.flush()
         await self.stop_and_revoke_all_dispatchers_and_janitors()
         self.checkpoints.pause()
