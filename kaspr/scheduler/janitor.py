@@ -54,6 +54,7 @@ class Janitor(Service):
         self.flow_active = False
         self._waiting_for_ack = None
         self._unacked_deliveries = set()
+        self._pending_removal_count = 0
 
     async def on_start(self) -> None:
         pass
@@ -256,6 +257,7 @@ class Janitor(Service):
                             message_key, partition=partition
                         )
                         if message:
+                            self._pending_removal_count += 1
                             await pending_removals.put(location)
                         self.last_location = location
                         seq -= 1
@@ -264,6 +266,7 @@ class Janitor(Service):
                     # remove the TimeKey itself
                     location = TTLocation(partition, time_key)
                     self.last_location = location
+                    self._pending_removal_count += 1
                     await pending_removals.put(location)
 
                 # reset sequence
@@ -297,6 +300,7 @@ class Janitor(Service):
                     self.log.dev(f"Removed {location}")
             notify(self._waiting_for_ack)
             self._unacked_deliveries.discard(location)
+            self._pending_removal_count -= 1
 
         return _did_send
 
@@ -361,13 +365,23 @@ class Janitor(Service):
 
     @Service.task
     async def _periodic_checkpoint(self):
-        """Periodically save dispatcher checkpoint."""
+        """Periodically save janitor checkpoint.
+
+        Only advances the checkpoint when no removals are in flight
+        (pending in channel buffer or awaiting changelog ack). This prevents
+        the checkpoint from leaping ahead of unconfirmed removals, which
+        would cause duplicate cleanup work on rebalance.
+        """
 
         interval = self.app.conf.scheduler_janitor_checkpoint_interval
         await self._maybe_wait()
         while not self.should_stop:
             await self._maybe_wait()
-            if self.last_location:
+            if (
+                self.last_location
+                and not self._unacked_deliveries
+                and self._pending_removal_count == 0
+            ):
                 self.checkpoints.update(self.pt, self.last_location)
             await self.sleep(interval)
 
