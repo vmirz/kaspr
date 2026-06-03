@@ -239,6 +239,16 @@ class MessageScheduler(MessageSchedulerT, Service):
 
     async def on_partitions_revoked(self, sender: Any, revoked: Set[TP], **kwargs):
         """Called when active topic partions are revoked from worker."""
+        # Wait for any in-flight deliveries/removals to complete
+        try:
+            await asyncio.wait_for(
+                self.wait_empty_dispatchers_and_janitors(),
+                timeout=10.0,
+            )
+        except asyncio.TimeoutError:
+            self.log.warning(
+                "Timed out waiting for scheduler's in-flight work during partition revocation"
+            )        
         await self.checkpoints.flush()
         await self.stop_and_revoke_all_dispatchers_and_janitors()
         self.checkpoints.pause()
