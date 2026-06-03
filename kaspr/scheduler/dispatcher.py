@@ -78,6 +78,7 @@ class Dispatcher(Service):
         self.flow_active = False
         self._waiting_for_ack = None
         self._unacked_deliveries = set()
+        self._pending_delivery_count = 0
 
     def on_init_dependencies(self):
         return []
@@ -241,6 +242,7 @@ class Dispatcher(Service):
                         message_key, partition=partition
                     )
                     if message:
+                        self._pending_delivery_count += 1
                         await pending_deliveries.put(TTMessage(message, location))
                     self.last_location = location
                     seq += 1
@@ -273,6 +275,7 @@ class Dispatcher(Service):
                     self.log.dev(f"Delivered {new}!")
             notify(self._waiting_for_ack)
             self._unacked_deliveries.discard(delivery.location)
+            self._pending_delivery_count -= 1
 
         return _did_send
 
@@ -310,13 +313,23 @@ class Dispatcher(Service):
 
     @Service.task
     async def _periodic_checkpoint(self):
-        """Periodically save dispatcher checkpoint."""
+        """Periodically save dispatcher checkpoint.
+
+        Only advances the checkpoint when no deliveries are in flight
+        (pending in channel buffer or awaiting producer ack). This prevents
+        the checkpoint from leaping ahead of unconfirmed deliveries, which
+        would cause message loss on rebalance.
+        """
 
         interval = self.app.conf.scheduler_dispatcher_checkpoint_interval
         await self._maybe_wait()
         while not self.should_stop:
             await self._maybe_wait()
-            if self.last_location:
+            if (
+                self.last_location
+                and not self._unacked_deliveries
+                and self._pending_delivery_count == 0
+            ):
                 self.checkpoints.update(self.pt, self.last_location)
             await self.sleep(interval)
 

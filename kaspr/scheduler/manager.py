@@ -57,6 +57,7 @@ class MessageScheduler(MessageSchedulerT, Service):
 
     topics_created: Event
     timetable_recovered: Event
+    can_distribute: Event
 
     #: Number of messages added to timetable by partition
     #: since startup
@@ -87,6 +88,7 @@ class MessageScheduler(MessageSchedulerT, Service):
         self.monitor = self.app.monitor
         self.topics_created = Event()
         self.timetable_recovered = Event()
+        self.can_distribute = Event()
         self.scheduled_total = defaultdict(int)
         self.instant_send_total = defaultdict(int)
         self.replaced_total = defaultdict(int)
@@ -150,6 +152,7 @@ class MessageScheduler(MessageSchedulerT, Service):
         self, sender: Any, actives, standbys, **kwargs
     ):
         self.timetable_recovered.set()
+        self.can_distribute.set()
         self.checkpoints.resume()
         self.resume_dispatchers()
         self.resume_janitors()
@@ -161,6 +164,7 @@ class MessageScheduler(MessageSchedulerT, Service):
 
     def on_rebalance_started(self, sender: Any, **kwargs):
         self.timetable_recovered.clear()
+        self.can_distribute.clear()
         self.checkpoints.on_rebalance_started()
         self.checkpoints.pause()
         self.pause_dispatchers()
@@ -235,6 +239,16 @@ class MessageScheduler(MessageSchedulerT, Service):
 
     async def on_partitions_revoked(self, sender: Any, revoked: Set[TP], **kwargs):
         """Called when active topic partions are revoked from worker."""
+        # Wait for any in-flight deliveries/removals to complete
+        try:
+            await asyncio.wait_for(
+                self.wait_empty_dispatchers_and_janitors(),
+                timeout=10.0,
+            )
+        except asyncio.TimeoutError:
+            self.log.warning(
+                "Timed out waiting for scheduler's in-flight work during partition revocation"
+            )        
         await self.checkpoints.flush()
         await self.stop_and_revoke_all_dispatchers_and_janitors()
         self.checkpoints.pause()
@@ -860,6 +874,10 @@ class MessageScheduler(MessageSchedulerT, Service):
 
         async for event in stream.events():
             event: EventT = event
+            # Wait until rebalance/recovery is complete before processing.
+            # This ensures producer metadata is available for partition routing.
+            if not self.can_distribute.is_set():
+                await self.wait(self.can_distribute)
             partition = event.message.partition
             action: bytes = event.headers.pop(
                 H_SCHEDULER_ACTION, SCHEDULER_ACTION_ADD.encode()
