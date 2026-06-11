@@ -5,6 +5,7 @@ from .app import KasprAppT, CustomBootStrategyT
 from .message_scheduler import MessageSchedulerT, SchedulerPartT
 from .dispatcher import DispatcherT
 from .janitor import JanitorT
+from .ticker import CronTickerT
 from .checkpoint import CheckpointT
 from .table import KasprTableT, KasprGlobalTableT
 from .builder import AppBuilderT
@@ -28,6 +29,7 @@ __all__ = [
     "SchedulerPartT",
     "DispatcherT",
     "JanitorT",
+    "CronTickerT",
     "CheckpointT",
     "KasprTableT",
     "KasprGlobalTableT",

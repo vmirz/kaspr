@@ -280,6 +280,25 @@ SCHEDULER_JANITOR_HIGHWATER_OFFSET_SECONDS = float(
     _getenv("SCHEDULER_JANITOR_HIGHWATER_OFFSET_SECONDS", 3600 * 4.0)
 )
 
+#: Enable cron scheduling support
+SCHEDULER_CRON_ENABLED = bool(_getenv("SCHEDULER_CRON_ENABLED", True))
+
+#: How often the cron ticker evaluates registry entries (seconds)
+SCHEDULER_CRON_TICK_INTERVAL_SECONDS = float(
+    _getenv("SCHEDULER_CRON_TICK_INTERVAL_SECONDS", 30.0)
+)
+
+#: Extra lookahead buffer beyond tick_interval for pre-materialization (seconds)
+SCHEDULER_CRON_TICK_BUFFER_SECONDS = float(
+    _getenv("SCHEDULER_CRON_TICK_BUFFER_SECONDS", 10.0)
+)
+
+#: Minimum allowed interval between consecutive cron fires (seconds).
+#: Cron expressions that fire more frequently will be rejected.
+SCHEDULER_CRON_MIN_INTERVAL_SECONDS = float(
+    _getenv("SCHEDULER_CRON_MIN_INTERVAL_SECONDS", 5.0)
+)
+
 #: Base http path for serving web requests
 WEB_BASE_PATH = _getenv("WEB_BASE_PATH", "")
 
@@ -371,6 +390,10 @@ class CustomSettings(Settings):
     scheduler_janitor_checkpoint_interval: float = SCHEDULER_JANITOR_CHECKPOINT_INTERVAL
     scheduler_janitor_clean_interval_seconds: float = SCHEDULER_JANITOR_CLEAN_INTERVAL_SECONDS
     scheduler_janitor_highwater_offset_seconds: float = SCHEDULER_JANITOR_HIGHWATER_OFFSET_SECONDS
+    scheduler_cron_enabled: bool = SCHEDULER_CRON_ENABLED
+    scheduler_cron_tick_interval_seconds: float = SCHEDULER_CRON_TICK_INTERVAL_SECONDS
+    scheduler_cron_tick_buffer_seconds: float = SCHEDULER_CRON_TICK_BUFFER_SECONDS
+    scheduler_cron_min_interval_seconds: float = SCHEDULER_CRON_MIN_INTERVAL_SECONDS
 
     key_serializer: str = KEY_SERIALIZER
     value_serializer: str = VALUE_SERIALIZER
@@ -429,6 +452,10 @@ class CustomSettings(Settings):
         scheduler_janitor_checkpoint_interval: float = None,
         scheduler_janitor_clean_interval_seconds: Seconds = None,
         scheduler_janitor_highwater_offset_seconds: Seconds = None,
+        scheduler_cron_enabled: bool = None,
+        scheduler_cron_tick_interval_seconds: Seconds = None,
+        scheduler_cron_tick_buffer_seconds: Seconds = None,
+        scheduler_cron_min_interval_seconds: Seconds = None,
         web_base_path: str = None,
         web_host: str = None,
         web_port: int = None,
@@ -626,6 +653,24 @@ class CustomSettings(Settings):
         if scheduler_janitor_highwater_offset_seconds is not None:
             self.scheduler_janitor_highwater_offset_seconds = want_seconds(
                 scheduler_janitor_highwater_offset_seconds
+            )
+
+        if scheduler_cron_enabled is not None:
+            self.scheduler_cron_enabled = scheduler_cron_enabled
+
+        if scheduler_cron_tick_interval_seconds is not None:
+            self.scheduler_cron_tick_interval_seconds = want_seconds(
+                scheduler_cron_tick_interval_seconds
+            )
+
+        if scheduler_cron_tick_buffer_seconds is not None:
+            self.scheduler_cron_tick_buffer_seconds = want_seconds(
+                scheduler_cron_tick_buffer_seconds
+            )
+
+        if scheduler_cron_min_interval_seconds is not None:
+            self.scheduler_cron_min_interval_seconds = want_seconds(
+                scheduler_cron_min_interval_seconds
             )
 
         if web_base_path is not None:
