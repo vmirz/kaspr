@@ -56,6 +56,16 @@ class MessageSchedulerT(ServiceT):
     def schedule_index(self) -> KasprTableT:
         ...
 
+    @cached_property
+    @abc.abstractmethod
+    def cron_registry(self) -> KasprTableT:
+        ...
+
+    @cached_property
+    @abc.abstractmethod
+    def cron_due_index(self) -> KasprTableT:
+        ...
+
     @abc.abstractmethod
     async def maybe_create_topics(self):
         ...

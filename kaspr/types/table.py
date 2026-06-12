@@ -2,7 +2,7 @@ import abc
 import typing
 from faust.types import TableT
 from faust.types.tuples import MessageSentCallback
-from typing import Any
+from typing import Any, Iterator, Tuple
 from mode import SignalT
 
 if typing.TYPE_CHECKING:
@@ -32,6 +32,20 @@ class KasprTableT(TableT):
     @abc.abstractmethod
     def get_for_partition(self, key, partition: int):
         """Get key in specific partition of table"""
+        ...
+
+    @abc.abstractmethod
+    def prefix_scan(
+        self, prefix: Any, partition: int = None
+    ) -> Iterator[Tuple[Any, Any]]:
+        """Scan keys matching a prefix, optionally within one partition."""
+        ...
+
+    @abc.abstractmethod
+    def items_for_partition(
+        self, partition: int
+    ) -> Iterator[Tuple[Any, Any]]:
+        """Iterate all (key, value) pairs in a specific partition."""
         ...
 
     @abc.abstractmethod

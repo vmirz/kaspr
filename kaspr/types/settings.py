@@ -288,9 +288,14 @@ SCHEDULER_CRON_TICK_INTERVAL_SECONDS = float(
     _getenv("SCHEDULER_CRON_TICK_INTERVAL_SECONDS", 30.0)
 )
 
-#: Extra lookahead buffer beyond tick_interval for pre-materialization (seconds)
+#: Extra lookahead buffer beyond tick interval for materializing cron fires.
 SCHEDULER_CRON_TICK_BUFFER_SECONDS = float(
-    _getenv("SCHEDULER_CRON_TICK_BUFFER_SECONDS", 10.0)
+    _getenv("SCHEDULER_CRON_TICK_BUFFER_SECONDS", 600.0)
+)
+
+#: Maximum historical window to scan for missed cron fires on recovery (seconds).
+SCHEDULER_CRON_RECOVERY_LOOKBACK_SECONDS = float(
+    _getenv("SCHEDULER_CRON_RECOVERY_LOOKBACK_SECONDS", 3600.0 * 24.0)
 )
 
 #: Minimum allowed interval between consecutive cron fires (seconds).
@@ -393,6 +398,7 @@ class CustomSettings(Settings):
     scheduler_cron_enabled: bool = SCHEDULER_CRON_ENABLED
     scheduler_cron_tick_interval_seconds: float = SCHEDULER_CRON_TICK_INTERVAL_SECONDS
     scheduler_cron_tick_buffer_seconds: float = SCHEDULER_CRON_TICK_BUFFER_SECONDS
+    scheduler_cron_recovery_lookback_seconds: float = SCHEDULER_CRON_RECOVERY_LOOKBACK_SECONDS
     scheduler_cron_min_interval_seconds: float = SCHEDULER_CRON_MIN_INTERVAL_SECONDS
 
     key_serializer: str = KEY_SERIALIZER
@@ -455,6 +461,7 @@ class CustomSettings(Settings):
         scheduler_cron_enabled: bool = None,
         scheduler_cron_tick_interval_seconds: Seconds = None,
         scheduler_cron_tick_buffer_seconds: Seconds = None,
+        scheduler_cron_recovery_lookback_seconds: Seconds = None,
         scheduler_cron_min_interval_seconds: Seconds = None,
         web_base_path: str = None,
         web_host: str = None,
@@ -668,10 +675,18 @@ class CustomSettings(Settings):
                 scheduler_cron_tick_buffer_seconds
             )
 
+        if scheduler_cron_recovery_lookback_seconds is not None:
+            self.scheduler_cron_recovery_lookback_seconds = want_seconds(
+                scheduler_cron_recovery_lookback_seconds
+            )
+
         if scheduler_cron_min_interval_seconds is not None:
             self.scheduler_cron_min_interval_seconds = want_seconds(
                 scheduler_cron_min_interval_seconds
             )
+
+        if self.scheduler_cron_enabled:
+            self._validate_cron_settings()
 
         if web_base_path is not None:
             self.web_base_path = web_base_path
@@ -682,6 +697,49 @@ class CustomSettings(Settings):
         self.AppBuilder = cast(
             Type[AppBuilderT], AppBuilder or APP_BUILDER_TYPE
         )
+
+    def _validate_cron_settings(self):
+        """Validate cron-related settings for correctness.
+
+        The key invariant is that tick_buffer_seconds must be large enough
+        that cron fires are materialized into the timetable BEFORE the
+        dispatcher checkpoint passes their time_key.
+
+        If buffer <= tick_interval, the ticker may not run again before a
+        fire's time_key is reached, causing fires to be missed entirely.
+        If buffer < min_interval, crons at the minimum interval may never
+        fall inside the materialization window.
+        """
+        tick_interval = self.scheduler_cron_tick_interval_seconds
+        buffer = self.scheduler_cron_tick_buffer_seconds
+        recovery_lookback = self.scheduler_cron_recovery_lookback_seconds
+        min_interval = self.scheduler_cron_min_interval_seconds
+
+        # Buffer must be strictly greater than tick_interval so there is
+        # always a forward-looking window even if a tick fires late.
+        if buffer <= tick_interval:
+            raise ImproperlyConfigured(
+                f"SCHEDULER_CRON_TICK_BUFFER_SECONDS ({buffer}s) must be greater than "
+                f"SCHEDULER_CRON_TICK_INTERVAL_SECONDS ({tick_interval}s). "
+                f"The buffer must exceed the tick interval so fires are pre-materialized "
+                f"before the dispatcher checkpoint reaches them."
+            )
+
+        # Buffer should cover at least 2x the minimum cron interval so that
+        # at least one upcoming fire is always within the materialization window.
+        if buffer < min_interval * 2:
+            raise ImproperlyConfigured(
+                f"SCHEDULER_CRON_TICK_BUFFER_SECONDS ({buffer}s) must be at least 2x "
+                f"SCHEDULER_CRON_MIN_INTERVAL_SECONDS ({min_interval}s = {min_interval * 2}s). "
+                f"The buffer must cover at least two fire intervals to guarantee upcoming "
+                f"fires are always pre-materialized."
+            )
+
+        if recovery_lookback <= 0:
+            raise ImproperlyConfigured(
+                f"SCHEDULER_CRON_RECOVERY_LOOKBACK_SECONDS ({recovery_lookback}s) "
+                f"must be greater than 0."
+            )
 
     def _prepare_kafka_credentials(self) -> CredentialsT:
         security_protocol = AuthProtocol(self.kafka_security_protocol)

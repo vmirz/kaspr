@@ -36,6 +36,7 @@ from .utils import (
     compute_next_fire,
     compute_fires_in_window,
     cron_min_interval,
+    due_index_key,
 )
 from faust.serializers.codecs import get_codec
 from faust.utils import terminal
@@ -124,9 +125,13 @@ class MessageScheduler(MessageSchedulerT, Service):
         self.schedule_index.on_table_recovery_completed.connect(
             self.on_schedule_index_recovery_completed
         )
-        self.cron_registry.on_table_recovery_completed.connect(
-            self.on_cron_registry_recovery_completed
-        )
+        if self.app.conf.scheduler_cron_enabled:
+            self.cron_registry.on_table_recovery_completed.connect(
+                self.on_cron_registry_recovery_completed
+            )
+            self.cron_due_index.on_table_recovery_completed.connect(
+                self.on_cron_due_index_recovery_completed
+            )
 
         # Attach streaming agents now
         self.app.agent(self.schedule_actions_topic, name=self.process_actions.__name__)(
@@ -182,6 +187,11 @@ class MessageScheduler(MessageSchedulerT, Service):
         pass
 
     async def on_cron_registry_recovery_completed(
+            self, sender: Any, actives, standbys, **kwargs
+    ):
+        pass
+
+    async def on_cron_due_index_recovery_completed(
             self, sender: Any, actives, standbys, **kwargs
     ):
         pass
@@ -294,13 +304,13 @@ class MessageScheduler(MessageSchedulerT, Service):
         """Create dispatchers and janitors for newly assigned partitions."""
         timetable_actives = self.app.assignor.assigned_actives().intersection(assigned)
         for _, partition in timetable_actives:
-            await self.wait_many(
-                [
-                    self.assign_dispatcher(partition),
-                    self.assign_janitor(partition),
-                    self.assign_ticker(partition),
-                ]
-            )
+            tasks = [
+                self.assign_dispatcher(partition),
+                self.assign_janitor(partition),
+            ]
+            if self.app.conf.scheduler_cron_enabled:
+                tasks.append(self.assign_ticker(partition))
+            await self.wait_many(tasks)
         self.log.info("Scheduler checkpoints:")
         self.log.info(self._checkpoints_logtable())
 
@@ -457,6 +467,27 @@ class MessageScheduler(MessageSchedulerT, Service):
             },
         )
 
+    def prepare_cron_due_index(self):
+        """Prepare the cron due-time index table.
+
+        Maps time-bucketed keys to cron IDs so the ticker can
+        efficiently find only crons due within a window via
+        prefix_scan. Key format: "{minute_bucket:010d}:{cron_id}".
+        """
+        return self.app.Table(
+            "cron-due-index",
+            partitions=self.app.conf.scheduler_topic_partitions,
+            options={
+                "write_buffer_size": self.app.conf.store_rocksdb_write_buffer_size,
+                "max_write_buffer_number": self.app.conf.store_rocksdb_max_write_buffer_number,
+                "target_file_size_base": self.app.conf.store_rocksdb_target_file_size_base,
+                "block_cache_size": self.app.conf.store_rocksdb_block_cache_size,
+                "block_cache_compressed_size": self.app.conf.store_rocksdb_block_cache_compressed_size,
+                "bloom_filter_size": self.app.conf.store_rocksdb_bloom_filter_size,
+                "set_cache_index_and_filter_blocks": self.app.conf.store_rocksdb_set_cache_index_and_filter_blocks,
+            },
+        )
+
     @cached_property
     def schedule_requests_topic(self) -> TopicT:
         """Topic for schedule requests."""
@@ -486,6 +517,11 @@ class MessageScheduler(MessageSchedulerT, Service):
     def cron_registry(self) -> KasprTableT:
         """Cron registry table mapping cron IDs to their definitions."""
         return self.prepare_cron_registry()
+
+    @cached_property
+    def cron_due_index(self) -> KasprTableT:
+        """Due-time index for efficient cron tick lookups."""
+        return self.prepare_cron_due_index()
 
     @property
     def dispatcher_partitions(self) -> Set[int]:
@@ -829,6 +865,11 @@ class MessageScheduler(MessageSchedulerT, Service):
                 SCHEDULER_ACTION_CRON_PAUSE,
                 SCHEDULER_ACTION_CRON_RESUME,
             ):
+                if not self.app.conf.scheduler_cron_enabled:
+                    self.log.warning(
+                        f"{_action}: cron scheduler is disabled; ignoring action"
+                    )
+                    continue
                 cron_registry = self.app.scheduler.cron_registry
                 cron_expr_raw: bytes = event.headers.pop(H_SCHEDULER_CRON_EXPR, None)
 
@@ -852,12 +893,17 @@ class MessageScheduler(MessageSchedulerT, Service):
                         continue
                     _deliver_to = self._decode_if_bytes(deliver_to)
                     now = current_timekey()
+                    message_entry = self._build_message_entry(
+                        event,
+                        destination=_deliver_to,
+                        request_id=_request_id,
+                    )
                     registry_entry = {
                         "expr": _cron_expr,
                         "dest": _deliver_to,
-                        "key": event.message.key,
-                        "value": event.message.value,
-                        "headers": event.headers,
+                        "key": message_entry["k"],
+                        "value": message_entry["v"],
+                        "headers": message_entry["h"],
                         "status": "active",
                         "materialized_until": None,
                         "last_fire": now,
@@ -866,6 +912,14 @@ class MessageScheduler(MessageSchedulerT, Service):
                     cron_registry.update_for_partition(
                         {_request_id: registry_entry}, partition=partition
                     )
+                    # Write initial due-index entry for the first fire
+                    next_fire = compute_next_fire(_cron_expr, now)
+                    if next_fire:
+                        cron_due_index = self.app.scheduler.cron_due_index
+                        cron_due_index.update_for_partition(
+                            {due_index_key(next_fire, _request_id): next_fire},
+                            partition=partition,
+                        )
                     self.log.info(
                         f"CRON_ADD: registered cron '{_cron_expr}' -> {_deliver_to} "
                         f"(id={_request_id}, partition={partition})"
@@ -882,6 +936,15 @@ class MessageScheduler(MessageSchedulerT, Service):
                         continue
                     if entry["status"] == "paused":
                         continue
+                    # Remove due-index entry
+                    cron_due_index = self.app.scheduler.cron_due_index
+                    _after = entry.get("materialized_until") or entry.get("last_fire")
+                    if _after:
+                        _next = compute_next_fire(entry["expr"], _after)
+                        if _next:
+                            cron_due_index.del_for_partition(
+                                due_index_key(_next, _request_id), partition=partition
+                            )
                     # Cancel materialized fires
                     self._cancel_materialized_fires(
                         entry, _request_id, partition, timetable, schedule_index
@@ -905,13 +968,22 @@ class MessageScheduler(MessageSchedulerT, Service):
                         continue
                     if entry["status"] == "active":
                         continue
+                    now_resume = current_timekey()
                     updated_entry = dict(entry)
                     updated_entry["status"] = "active"
                     updated_entry["materialized_until"] = None
-                    updated_entry["last_fire"] = current_timekey()
+                    updated_entry["last_fire"] = now_resume
                     cron_registry.update_for_partition(
                         {_request_id: updated_entry}, partition=partition
                     )
+                    # Re-index for next fire
+                    cron_due_index = self.app.scheduler.cron_due_index
+                    _next = compute_next_fire(entry["expr"], now_resume)
+                    if _next:
+                        cron_due_index.update_for_partition(
+                            {due_index_key(_next, _request_id): _next},
+                            partition=partition,
+                        )
                     self.log.info(f"CRON_RESUME: resumed cron_id={_request_id}")
 
                 elif _action == SCHEDULER_ACTION_CRON_CANCEL:
@@ -923,6 +995,15 @@ class MessageScheduler(MessageSchedulerT, Service):
                             f"CRON_CANCEL: cron_id {_request_id} not found"
                         )
                         continue
+                    # Remove due-index entry
+                    cron_due_index = self.app.scheduler.cron_due_index
+                    _after = entry.get("materialized_until") or entry.get("last_fire")
+                    if _after:
+                        _next = compute_next_fire(entry["expr"], _after)
+                        if _next:
+                            cron_due_index.del_for_partition(
+                                due_index_key(_next, _request_id), partition=partition
+                            )
                     # Cancel materialized fires
                     self._cancel_materialized_fires(
                         entry, _request_id, partition, timetable, schedule_index
@@ -1138,6 +1219,19 @@ class MessageScheduler(MessageSchedulerT, Service):
                 SCHEDULER_ACTION_CRON_PAUSE,
                 SCHEDULER_ACTION_CRON_RESUME,
             ):
+                if not self.app.conf.scheduler_cron_enabled:
+                    error_entry = {
+                        "key": event.key,
+                        "value": event.value,
+                        "headers": event.headers,
+                        "errors": [
+                            "Cron scheduler is disabled (SCHEDULER_CRON_ENABLED=false)"
+                        ],
+                    }
+                    await rejections_topic.send(
+                        key=event.key, value=json_codec.dumps(error_entry)
+                    )
+                    continue
                 cron_expr: bytes = event.headers.pop(H_SCHEDULER_CRON_EXPR, None)
                 # All cron actions require request_id
                 if not request_id:

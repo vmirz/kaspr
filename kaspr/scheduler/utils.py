@@ -83,3 +83,18 @@ def cron_min_interval(expr: str) -> float:
     first = cron.get_next(datetime)
     second = cron.get_next(datetime)
     return (second - first).total_seconds()
+
+
+def due_index_key(fire_epoch: int, cron_id: str) -> str:
+    """Build a due-index key from a fire epoch and cron ID.
+
+    Key format: "{minute_bucket:010d}:{cron_id}"
+    Minute bucket = fire_epoch // 60.
+    """
+    minute_bucket = fire_epoch // 60
+    return f"{minute_bucket:010d}:{cron_id}"
+
+
+def due_index_prefix(minute_bucket: int) -> str:
+    """Build the prefix for scanning a minute bucket in the due-index."""
+    return f"{minute_bucket:010d}:"
