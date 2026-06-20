@@ -293,11 +293,6 @@ SCHEDULER_CRON_TICK_BUFFER_SECONDS = float(
     _getenv("SCHEDULER_CRON_TICK_BUFFER_SECONDS", 600.0)
 )
 
-#: Maximum historical window to scan for missed cron fires on recovery (seconds).
-SCHEDULER_CRON_RECOVERY_LOOKBACK_SECONDS = float(
-    _getenv("SCHEDULER_CRON_RECOVERY_LOOKBACK_SECONDS", 3600.0 * 24.0)
-)
-
 #: Minimum allowed interval between consecutive cron fires (seconds).
 #: Cron expressions that fire more frequently will be rejected.
 SCHEDULER_CRON_MIN_INTERVAL_SECONDS = float(
@@ -398,7 +393,6 @@ class CustomSettings(Settings):
     scheduler_cron_enabled: bool = SCHEDULER_CRON_ENABLED
     scheduler_cron_tick_interval_seconds: float = SCHEDULER_CRON_TICK_INTERVAL_SECONDS
     scheduler_cron_tick_buffer_seconds: float = SCHEDULER_CRON_TICK_BUFFER_SECONDS
-    scheduler_cron_recovery_lookback_seconds: float = SCHEDULER_CRON_RECOVERY_LOOKBACK_SECONDS
     scheduler_cron_min_interval_seconds: float = SCHEDULER_CRON_MIN_INTERVAL_SECONDS
 
     key_serializer: str = KEY_SERIALIZER
@@ -461,7 +455,6 @@ class CustomSettings(Settings):
         scheduler_cron_enabled: bool = None,
         scheduler_cron_tick_interval_seconds: Seconds = None,
         scheduler_cron_tick_buffer_seconds: Seconds = None,
-        scheduler_cron_recovery_lookback_seconds: Seconds = None,
         scheduler_cron_min_interval_seconds: Seconds = None,
         web_base_path: str = None,
         web_host: str = None,
@@ -675,11 +668,6 @@ class CustomSettings(Settings):
                 scheduler_cron_tick_buffer_seconds
             )
 
-        if scheduler_cron_recovery_lookback_seconds is not None:
-            self.scheduler_cron_recovery_lookback_seconds = want_seconds(
-                scheduler_cron_recovery_lookback_seconds
-            )
-
         if scheduler_cron_min_interval_seconds is not None:
             self.scheduler_cron_min_interval_seconds = want_seconds(
                 scheduler_cron_min_interval_seconds
@@ -712,7 +700,6 @@ class CustomSettings(Settings):
         """
         tick_interval = self.scheduler_cron_tick_interval_seconds
         buffer = self.scheduler_cron_tick_buffer_seconds
-        recovery_lookback = self.scheduler_cron_recovery_lookback_seconds
         min_interval = self.scheduler_cron_min_interval_seconds
 
         # Buffer must be strictly greater than tick_interval so there is
@@ -733,12 +720,6 @@ class CustomSettings(Settings):
                 f"SCHEDULER_CRON_MIN_INTERVAL_SECONDS ({min_interval}s = {min_interval * 2}s). "
                 f"The buffer must cover at least two fire intervals to guarantee upcoming "
                 f"fires are always pre-materialized."
-            )
-
-        if recovery_lookback <= 0:
-            raise ImproperlyConfigured(
-                f"SCHEDULER_CRON_RECOVERY_LOOKBACK_SECONDS ({recovery_lookback}s) "
-                f"must be greater than 0."
             )
 
     def _prepare_kafka_credentials(self) -> CredentialsT:

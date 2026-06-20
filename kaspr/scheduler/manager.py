@@ -58,6 +58,8 @@ H_SCHEDULER_DELIVER_AT = "x-scheduler-deliver-at"
 H_SCHEDULER_DELIVER_TO = "x-scheduler-deliver-to"
 H_SCHEDULER_REQUEST_ID = "x-scheduler-request-id"
 H_SCHEDULER_CRON_EXPR = "x-scheduler-cron-expr"
+H_SCHEDULER_CRON_MISSED_FIRE_POLICY = "x-scheduler-cron-missed-fire-policy"
+H_SCHEDULER_CRON_MISSED_FIRE_POLICY = "x-scheduler-cron-missed-fire-policy"
 
 
 class MessageScheduler(MessageSchedulerT, Service):
@@ -898,6 +900,17 @@ class MessageScheduler(MessageSchedulerT, Service):
                         destination=_deliver_to,
                         request_id=_request_id,
                     )
+                    # Extract missed_fire_policy, defaulting to "replay"
+                    missed_fire_policy_raw = event.headers.pop(
+                        H_SCHEDULER_CRON_MISSED_FIRE_POLICY, None
+                    )
+                    missed_fire_policy = (
+                        missed_fire_policy_raw.decode()
+                        if isinstance(missed_fire_policy_raw, bytes)
+                        else missed_fire_policy_raw
+                    )
+                    if missed_fire_policy not in ("replay", "skip"):
+                        missed_fire_policy = "replay"
                     registry_entry = {
                         "expr": _cron_expr,
                         "dest": _deliver_to,
@@ -908,6 +921,7 @@ class MessageScheduler(MessageSchedulerT, Service):
                         "materialized_until": None,
                         "last_fire": now,
                         "created_at": now,
+                        "missed_fire_policy": missed_fire_policy,
                     }
                     cron_registry.update_for_partition(
                         {_request_id: registry_entry}, partition=partition
@@ -972,19 +986,32 @@ class MessageScheduler(MessageSchedulerT, Service):
                     updated_entry = dict(entry)
                     updated_entry["status"] = "active"
                     updated_entry["materialized_until"] = None
-                    updated_entry["last_fire"] = now_resume
+
+                    # Respect missed_fire_policy: "skip" or "replay" (default)
+                    policy = entry.get("missed_fire_policy", "replay")
+                    if policy == "skip":
+                        # Skip policy: advance last_fire to now
+                        updated_entry["last_fire"] = now_resume
+                        fire_base = now_resume
+                    else:
+                        # Replay policy: keep old last_fire, let ticker materialize gap
+                        fire_base = entry.get("last_fire", now_resume)
+
                     cron_registry.update_for_partition(
                         {_request_id: updated_entry}, partition=partition
                     )
-                    # Re-index for next fire
+                    # Re-index for next fire based on policy
                     cron_due_index = self.app.scheduler.cron_due_index
-                    _next = compute_next_fire(entry["expr"], now_resume)
+                    _next = compute_next_fire(entry["expr"], fire_base)
                     if _next:
                         cron_due_index.update_for_partition(
                             {due_index_key(_next, _request_id): _next},
                             partition=partition,
                         )
-                    self.log.info(f"CRON_RESUME: resumed cron_id={_request_id}")
+                    policy_desc = "skip" if policy == "skip" else "replay"
+                    self.log.info(
+                        f"CRON_RESUME: resumed cron_id={_request_id} (policy={policy_desc})"
+                    )
 
                 elif _action == SCHEDULER_ACTION_CRON_CANCEL:
                     entry = cron_registry.get_for_partition(

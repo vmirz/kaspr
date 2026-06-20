@@ -58,7 +58,6 @@ class CronTicker(CronTickerT, Service):
         """Periodic loop that materializes upcoming cron fires."""
         tick_interval = self.app.conf.scheduler_cron_tick_interval_seconds
         buffer = self.app.conf.scheduler_cron_tick_buffer_seconds
-        recovery_lookback = self.app.conf.scheduler_cron_recovery_lookback_seconds
 
         while not self.flow_active:
             await self.wait(self.can_resume)
@@ -68,10 +67,7 @@ class CronTicker(CronTickerT, Service):
         # On first activation, catch up any fires missed during downtime
         # before entering the regular tick loop.
         try:
-            self._catchup_missed_fires(
-                buffer=buffer,
-                lookback=recovery_lookback,
-            )
+            self._catchup_missed_fires(buffer=buffer)
         except Exception as exc:
             self.log.error(
                 f"CronTicker(partition={self.partition}): error during catch-up: {exc!r}"
@@ -94,30 +90,126 @@ class CronTicker(CronTickerT, Service):
                     f"CronTicker(partition={self.partition}): error during tick: {exc!r}"
                 )
 
-    def _catchup_missed_fires(self, buffer: float, lookback: float):
-        """Replay any cron fires missed during downtime.
+    def _catchup_missed_fires(self, buffer: float):
+        """Recover stale crons after arbitrary-length downtime.
 
-        Scans the due-index across a bounded lookback window so recovery
-        cost is proportional to crons that were actually due during
-        downtime, rather than all crons in the registry.
+        Scans the due-index for entries stranded in past minute buckets.
+        For each stale cron, checks its missed_fire_policy from the registry:
+        - "replay": materializes all missed fires through the window
+        - "skip": advances the cron to now, skipping historical fires
+
+        Keys are sorted chronologically (zero-padded bucket prefix), so
+        iteration stops as soon as a current/future bucket is reached.
         """
+        cron_due_index = self.app.scheduler.cron_due_index
+        partition = self.partition
         now = current_timekey()
-        recovery_start = max(0, int(now - lookback))
+        now_bucket = int(now) // 60
         window_end = int(now + buffer)
-        due_entries = self._collect_due_entries(
-            start_bucket=recovery_start // 60,
-            end_bucket=window_end // 60,
-            window_end=window_end,
-        )
-        if not due_entries:
+
+        # Collect stale entries (due-index keys in past minute buckets).
+        # Since keys are zero-padded "{bucket:010d}:{cron_id}", they sort
+        # chronologically. We stop as soon as we hit a current/future bucket.
+        stale_entries: List[Tuple[str, str, int]] = []
+        for key, fire_epoch in cron_due_index.items_for_partition(partition):
+            parts = key.split(":", 1)
+            if len(parts) != 2:
+                continue
+            try:
+                bucket = int(parts[0])
+            except (ValueError, TypeError):
+                continue
+            if bucket >= now_bucket:
+                break
+            stale_entries.append((key, parts[1], fire_epoch))
+
+        if not stale_entries:
             return
 
         self.log.info(
-            f"CronTicker(partition={self.partition}): recovery scanning "
-            f"minute buckets {recovery_start // 60}..{window_end // 60} "
-            f"({len(due_entries)} due entry(s))"
+            f"CronTicker(partition={partition}): recovering "
+            f"{len(stale_entries)} stale cron(s)"
         )
-        self._process_due_entries(due_entries=due_entries, window_end=window_end)
+
+        # Separate by policy and handle accordingly.
+        replay_entries: List[Tuple[str, str, int]] = []
+        skip_entries: List[Tuple[str, str]] = []
+
+        cron_registry = self.app.scheduler.cron_registry
+        for index_key, cron_id, fire_epoch in stale_entries:
+            entry = cron_registry.get_for_partition(cron_id, partition=partition)
+            if not entry or entry.get("status") != "active":
+                # Inactive cron, treat as replay (will be cleaned up).
+                replay_entries.append((index_key, cron_id, fire_epoch))
+                continue
+
+            policy = entry.get("missed_fire_policy", "replay")
+            if policy == "skip":
+                skip_entries.append((index_key, cron_id))
+            else:
+                replay_entries.append((index_key, cron_id, fire_epoch))
+
+        # Handle "skip" entries: advance them to now.
+        if skip_entries:
+            self.log.info(
+                f"CronTicker(partition={partition}): advancing {len(skip_entries)} "
+                f"cron(s) to now (missed_fire_policy=skip)"
+            )
+            self._advance_stale_entries_to_now(skip_entries)
+
+        # Handle "replay" entries: materialize all missed fires.
+        if replay_entries:
+            self.log.info(
+                f"CronTicker(partition={partition}): replaying missed fires for "
+                f"{len(replay_entries)} cron(s) (missed_fire_policy=replay)"
+            )
+            self._process_due_entries(due_entries=replay_entries, window_end=window_end)
+
+        # Materialize the current buffer window (includes freshly-recovered crons).
+        self._materialize_window(buffer)
+
+    def _advance_stale_entries_to_now(
+        self, stale_entries: List[Tuple[str, str]]
+    ) -> None:
+        """Advance stale due-index entries to now without replaying history."""
+        cron_due_index = self.app.scheduler.cron_due_index
+        cron_registry = self.app.scheduler.cron_registry
+        partition = self.partition
+        now = int(current_timekey())
+
+        index_deletes: List[str] = []
+        index_inserts: Dict[str, int] = {}
+
+        for index_key, cron_id in stale_entries:
+            entry = cron_registry.get_for_partition(cron_id, partition=partition)
+            if not entry or entry.get("status") != "active":
+                index_deletes.append(index_key)
+                continue
+
+            expr = entry.get("expr")
+            if not expr:
+                index_deletes.append(index_key)
+                continue
+
+            # Compute next fire from now, skip all historical fires.
+            next_fire = compute_next_fire(expr, now)
+
+            # Update registry so ticker doesn't try to materialize the gap.
+            updated_entry = dict(entry)
+            updated_entry["materialized_until"] = now
+            cron_registry.update_for_partition(
+                {cron_id: updated_entry}, partition=partition
+            )
+
+            index_deletes.append(index_key)
+            if next_fire:
+                index_inserts[due_index_key(next_fire, cron_id)] = next_fire
+
+        for old_key in index_deletes:
+            cron_due_index.del_for_partition(old_key, partition=partition)
+
+        if index_inserts:
+            cron_due_index.update_for_partition(index_inserts, partition=partition)
 
     def _collect_due_entries(
         self,
