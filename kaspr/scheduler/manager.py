@@ -59,7 +59,6 @@ H_SCHEDULER_DELIVER_TO = "x-scheduler-deliver-to"
 H_SCHEDULER_REQUEST_ID = "x-scheduler-request-id"
 H_SCHEDULER_CRON_EXPR = "x-scheduler-cron-expr"
 H_SCHEDULER_CRON_MISSED_FIRE_POLICY = "x-scheduler-cron-missed-fire-policy"
-H_SCHEDULER_CRON_MISSED_FIRE_POLICY = "x-scheduler-cron-missed-fire-policy"
 
 
 class MessageScheduler(MessageSchedulerT, Service):
@@ -638,11 +637,11 @@ class MessageScheduler(MessageSchedulerT, Service):
         and schedule index.
         """
         materialized_until = entry.get("materialized_until")
-        last_fire = entry.get("last_fire")
+        created_at = entry.get("created_at")
         expr = entry.get("expr")
-        if not materialized_until or not last_fire or not expr:
+        if not materialized_until or not created_at or not expr:
             return
-        fires = compute_fires_in_window(expr, last_fire, materialized_until)
+        fires = compute_fires_in_window(expr, created_at, materialized_until)
         for fire_epoch in fires:
             fire_request_id = f"{cron_id}:{fire_epoch}"
             index_entry = schedule_index.get_for_partition(
@@ -963,9 +962,11 @@ class MessageScheduler(MessageSchedulerT, Service):
                     self._cancel_materialized_fires(
                         entry, _request_id, partition, timetable, schedule_index
                     )
+                    now_pause = current_timekey()
                     updated_entry = dict(entry)
                     updated_entry["status"] = "paused"
                     updated_entry["materialized_until"] = None
+                    updated_entry["paused_at"] = now_pause
                     cron_registry.update_for_partition(
                         {_request_id: updated_entry}, partition=partition
                     )
@@ -992,20 +993,24 @@ class MessageScheduler(MessageSchedulerT, Service):
                     if policy == "skip":
                         # Skip policy: advance last_fire to now
                         updated_entry["last_fire"] = now_resume
-                        fire_base = now_resume
                     else:
-                        # Replay policy: keep old last_fire, let ticker materialize gap
-                        fire_base = entry.get("last_fire", now_resume)
+                        # Replay policy: set last_fire to pause time so ticker
+                        # only backfills the paused gap (not since creation).
+                        paused_at = entry.get("paused_at") or entry.get("last_fire")
+                        updated_entry["last_fire"] = paused_at
 
                     cron_registry.update_for_partition(
                         {_request_id: updated_entry}, partition=partition
                     )
-                    # Re-index for next fire based on policy
+                    # Write due-index key at the next fire FROM NOW so it lands
+                    # in a future bucket the ticker will scan. For replay, the
+                    # ticker sees materialized_until=None, falls back to last_fire,
+                    # and materializes the entire paused gap.
                     cron_due_index = self.app.scheduler.cron_due_index
-                    _next = compute_next_fire(entry["expr"], fire_base)
-                    if _next:
+                    next_due = compute_next_fire(entry["expr"], now_resume)
+                    if next_due:
                         cron_due_index.update_for_partition(
-                            {due_index_key(_next, _request_id): _next},
+                            {due_index_key(next_due, _request_id): next_due},
                             partition=partition,
                         )
                     policy_desc = "skip" if policy == "skip" else "replay"

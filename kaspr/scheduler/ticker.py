@@ -312,6 +312,11 @@ class CronTicker(CronTickerT, Service):
 
         Updates the cron registry entry's materialized_until and returns the
         next fire epoch for re-indexing, or None if there is no next fire.
+
+        Past fires (fire_epoch < now) are written to the timetable at the
+        current time so the Dispatcher — which only scans forward from its
+        checkpoint — will pick them up.  The original fire timestamp is
+        preserved in the ``x-scheduler-cron-fire-timestamp`` header.
         """
         cron_registry = self.app.scheduler.cron_registry
         timetable = self.app.scheduler.timetable
@@ -322,19 +327,24 @@ class CronTicker(CronTickerT, Service):
         msg_value = entry.get("value")
         msg_headers = entry.get("headers") or {}
         expr = entry.get("expr")
+        now = int(current_timekey())
 
         for fire_epoch in fires:
             fire_request_id = f"{cron_id}:{fire_epoch}"
-            time_key = str(fire_epoch)
 
             # Skip if already written
             if schedule_index.get_for_partition(fire_request_id, partition=partition):
                 continue
 
+            # For past fires, place them at the current second so the
+            # Dispatcher (which never revisits past time_keys) will find them.
+            effective_tk = fire_epoch if fire_epoch >= now else now
+            time_key = str(effective_tk)
+
             message_total = (
                 timetable.get_for_partition(time_key, partition=partition) or 0
             )
-            location = TTLocation(partition, fire_epoch, sequence=message_total)
+            location = TTLocation(partition, effective_tk, sequence=message_total)
             message_key = create_message_key(location)
 
             # Add cron fire timestamp header
@@ -362,15 +372,16 @@ class CronTicker(CronTickerT, Service):
             )
 
             schedule_index.update_for_partition(
-                {fire_request_id: {"tk": fire_epoch, "seq": message_total}},
+                {fire_request_id: {"tk": effective_tk, "seq": message_total}},
                 partition=partition,
             )
 
-        # Update registry with new materialized_until
+        # Update registry with new materialized_until and last_fire
         new_materialized = max(fires)
         next_fire = compute_next_fire(expr, new_materialized)
         updated_entry = dict(entry)
         updated_entry["materialized_until"] = new_materialized
+        updated_entry["last_fire"] = new_materialized
         cron_registry.update_for_partition(
             {cron_id: updated_entry}, partition=partition
         )
