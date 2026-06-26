@@ -80,6 +80,10 @@ class KasprTable(faust.Table):
         self.on_key_del(key, partition, callback)
         return self.data.del_for_partition(key, partition)
 
+    def items_for_partition(self, partition: int):
+        """Iterate all (key, value) pairs in a specific partition."""
+        return self.data.items_for_partition(partition)
+
 
 class KasprGlobalTable(faust.GlobalTable):
     """Implements custom behavior for faust table"""
