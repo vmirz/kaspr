@@ -388,20 +388,24 @@ class CronTicker(CronTickerT, Service):
         return next_fire
 
     def _live_count_from_value(self, live_value) -> int:
-        """Extract live count integer from timetable live-key value."""
+        """Extract live count integer from timetable live-key value.
+
+        Supports both legacy integer values and dict payloads ({"count": N}).
+        """
+        if isinstance(live_value, dict):
+            live_value = live_value.get("count", 0)
         if live_value is None:
             return 0
-        if isinstance(live_value, int):
-            return live_value
-        if isinstance(live_value, str):
-            return int(live_value.split("|")[0]) if "|" in live_value else int(live_value)
-        return 0
+        try:
+            return max(0, int(live_value))
+        except (TypeError, ValueError):
+            return 0
 
     def _next_live_value(self, count: int, existing=None):
-        """Build next live-key value preserving any trailing metadata."""
-        if existing is None or isinstance(existing, int):
-            return count
-        if isinstance(existing, str) and "|" in existing:
-            parts = existing.split("|", 1)
-            return f"{count}|{parts[1]}"
-        return count
+        """Build next live-key value preserving dict payload format and attributes."""
+        next_count = max(0, int(count))
+        if isinstance(existing, dict):
+            payload = dict(existing)
+            payload["count"] = next_count
+            return payload
+        return {"count": next_count}
