@@ -937,6 +937,7 @@ class MessageScheduler(MessageSchedulerT, Service):
                         f"CRON_ADD: registered cron '{_cron_expr}' -> {_deliver_to} "
                         f"(id={_request_id}, partition={partition})"
                     )
+                    self.monitor.on_cron_registered(partition=partition)
 
                 elif _action == SCHEDULER_ACTION_CRON_PAUSE:
                     entry = cron_registry.get_for_partition(
@@ -971,6 +972,7 @@ class MessageScheduler(MessageSchedulerT, Service):
                         {_request_id: updated_entry}, partition=partition
                     )
                     self.log.info(f"CRON_PAUSE: paused cron_id={_request_id}")
+                    self.monitor.on_cron_paused(partition=partition)
 
                 elif _action == SCHEDULER_ACTION_CRON_RESUME:
                     entry = cron_registry.get_for_partition(
@@ -1017,6 +1019,7 @@ class MessageScheduler(MessageSchedulerT, Service):
                     self.log.info(
                         f"CRON_RESUME: resumed cron_id={_request_id} (policy={policy_desc})"
                     )
+                    self.monitor.on_cron_resumed(partition=partition)
 
                 elif _action == SCHEDULER_ACTION_CRON_CANCEL:
                     entry = cron_registry.get_for_partition(
@@ -1042,6 +1045,7 @@ class MessageScheduler(MessageSchedulerT, Service):
                     )
                     cron_registry.del_for_partition(_request_id, partition=partition)
                     self.log.info(f"CRON_CANCEL: removed cron_id={_request_id}")
+                    self.monitor.on_cron_canceled(partition=partition)
 
                 continue
 
