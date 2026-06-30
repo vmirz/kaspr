@@ -1224,6 +1224,17 @@ class MessageScheduler(MessageSchedulerT, Service):
         """Transform requests into Timetable scheduling actions."""
 
         await self.wait_until_topics_created()
+
+        # Wait for initial timetable recovery before processing events.
+        # This ensures producer metadata is available for partition routing
+        # on first startup. We MUST NOT block inside the event loop while
+        # holding an unacked message, as that deadlocks wait_empty() during
+        # partition revocation (rebalance). Flow control already prevents
+        # new events from being delivered during rebalance, so the loop
+        # pauses naturally after processing any in-flight event.
+        if not self.can_distribute.is_set():
+            await self.wait(self.can_distribute)
+
         out_topics = self._out_topics
         rejections_topic = self.schedule_rejections_topic
         actions_topic = self.schedule_actions_topic
