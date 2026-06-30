@@ -197,6 +197,27 @@ class KasprMonitor(Monitor):
     #: since startup by partition
     canceled_total: Mapping[int, int]
 
+    #: Number of cron schedules registered (since startup by partition)
+    cron_registered_total: Mapping[int, int]
+
+    #: Number of cron schedules canceled (since startup by partition)
+    cron_canceled_total: Mapping[int, int]
+
+    #: Number of cron schedules paused (since startup by partition)
+    cron_paused_total: Mapping[int, int]
+
+    #: Number of cron schedules resumed (since startup by partition)
+    cron_resumed_total: Mapping[int, int]
+
+    #: Number of cron fires materialized into timetable (since startup by partition)
+    cron_fires_materialized_total: Mapping[int, int]
+
+    #: Number of missed cron fires recovered during catchup (since startup by partition)
+    cron_fires_missed_total: Mapping[int, int]
+
+    #: Number of cron fires skipped due to skip policy (since startup by partition)
+    cron_fires_skipped_total: Mapping[int, int]
+
     #: Infrastructure information
     infra: InfraState = None
 
@@ -239,6 +260,13 @@ class KasprMonitor(Monitor):
         self.replaced_total = defaultdict(int)
         self.replace_noop_total = defaultdict(int)
         self.canceled_total = defaultdict(int)
+        self.cron_registered_total = defaultdict(int)
+        self.cron_canceled_total = defaultdict(int)
+        self.cron_paused_total = defaultdict(int)
+        self.cron_resumed_total = defaultdict(int)
+        self.cron_fires_materialized_total = defaultdict(int)
+        self.cron_fires_missed_total = defaultdict(int)
+        self.cron_fires_skipped_total = defaultdict(int)
         self.infra = InfraState() if infra is None else infra
         self.dispatchers = {} if dispatchers is None else dispatchers
         self.dispatchers_by_partition = (
@@ -352,6 +380,38 @@ class KasprMonitor(Monitor):
         """Call when REPLACE short-circuits because schedule is identical."""
         self.replace_noop_total[partition] += 1
 
+    def on_cron_registered(self, partition: int):
+        """Call when a cron schedule is registered."""
+        self.cron_registered_total[partition] += 1
+
+    def on_cron_canceled(self, partition: int):
+        """Call when a cron schedule is canceled."""
+        self.cron_canceled_total[partition] += 1
+
+    def on_cron_paused(self, partition: int):
+        """Call when a cron schedule is paused."""
+        self.cron_paused_total[partition] += 1
+
+    def on_cron_resumed(self, partition: int):
+        """Call when a cron schedule is resumed."""
+        self.cron_resumed_total[partition] += 1
+
+    def on_cron_fire_materialized(self, partition: int):
+        """Call when a cron fire is materialized into the timetable."""
+        self.cron_fires_materialized_total[partition] += 1
+
+    def on_cron_fires_missed(self, partition: int, count: int = 1):
+        """Call when missed cron fires are recovered during catchup."""
+        self.cron_fires_missed_total[partition] += count
+
+    def on_cron_fires_skipped(self, partition: int, count: int = 1):
+        """Call when cron fires are skipped due to skip policy."""
+        self.cron_fires_skipped_total[partition] += count
+
+    def on_cron_ticker_tick(self, partition: int):
+        """Call when cron ticker completes a tick cycle."""
+        ...
+
     def on_dispatcher_paused(self, dispatcher: DispatcherT):
         """Call when dispatcher paused processing."""
         self._dispatcher_or_create(dispatcher).paused = True
@@ -435,6 +495,8 @@ class KasprMonitor(Monitor):
             self._sample_cpu()
             self._sample_memory()
             self._sample_disk_space()
+            if self.app.conf.scheduler_cron_enabled:
+                self._sample_cron_inventory()
 
     def _sample_tables(self):
         tt_changelog_name = None
@@ -471,6 +533,15 @@ class KasprMonitor(Monitor):
         self.infra.disk_space_total_bytes = total
         self.infra.disk_space_used_bytes = used
         self.on_disk_stats_refreshed()
+
+    def _sample_cron_inventory(self):
+        """Sample cron registry size."""
+        cron_registry = self.app.scheduler.cron_registry
+        self.on_cron_inventory_refreshed(len(cron_registry))
+
+    def on_cron_inventory_refreshed(self, total_count: int):
+        """Call when cron registry size is refreshed."""
+        ...
 
     def on_timetable_size_refreshed(self, table: KasprTableT):
         """Count of keys in Timetable is refreshed."""

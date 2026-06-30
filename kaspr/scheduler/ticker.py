@@ -89,6 +89,8 @@ class CronTicker(CronTickerT, Service):
                 self.log.error(
                     f"CronTicker(partition={self.partition}): error during tick: {exc!r}"
                 )
+            else:
+                self.monitor.on_cron_ticker_tick(partition=self.partition)
 
     def _catchup_missed_fires(self, buffer: float):
         """Recover stale crons after arbitrary-length downtime.
@@ -156,6 +158,9 @@ class CronTicker(CronTickerT, Service):
                 f"cron(s) to now (missed_fire_policy=skip)"
             )
             self._advance_stale_entries_to_now(skip_entries)
+            self.monitor.on_cron_fires_skipped(
+                partition=partition, count=len(skip_entries)
+            )
 
         # Handle "replay" entries: materialize all missed fires.
         if replay_entries:
@@ -164,6 +169,9 @@ class CronTicker(CronTickerT, Service):
                 f"{len(replay_entries)} cron(s) (missed_fire_policy=replay)"
             )
             self._process_due_entries(due_entries=replay_entries, window_end=window_end)
+            self.monitor.on_cron_fires_missed(
+                partition=partition, count=len(replay_entries)
+            )
 
         # Materialize the current buffer window (includes freshly-recovered crons).
         self._materialize_window(buffer)
@@ -375,6 +383,8 @@ class CronTicker(CronTickerT, Service):
                 {fire_request_id: {"tk": effective_tk, "seq": message_total}},
                 partition=partition,
             )
+
+            self.monitor.on_cron_fire_materialized(partition=partition)
 
         # Update registry with new materialized_until and last_fire
         new_materialized = max(fires)
