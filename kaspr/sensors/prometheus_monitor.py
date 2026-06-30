@@ -486,6 +486,54 @@ class PrometheusMonitor(KasprMonitor):
                 labelnames=[*common_label_keys, "partition"],
             )
 
+        if self.app.conf.scheduler_enabled and self.app.conf.scheduler_cron_enabled:
+            # Cron scheduler metrics
+            self.cron_registered_total = Counter(
+                f"{prefix}kms_cron_registered",
+                "Total cron schedules registered",
+                labelnames=[*common_label_keys],
+            )
+            self.cron_canceled_total = Counter(
+                f"{prefix}kms_cron_canceled",
+                "Total cron schedules canceled",
+                labelnames=[*common_label_keys],
+            )
+            self.cron_paused_total = Counter(
+                f"{prefix}kms_cron_paused",
+                "Total cron schedules paused",
+                labelnames=[*common_label_keys],
+            )
+            self.cron_resumed_total = Counter(
+                f"{prefix}kms_cron_resumed",
+                "Total cron schedules resumed",
+                labelnames=[*common_label_keys],
+            )
+            self.cron_fires_materialized_total = Counter(
+                f"{prefix}kms_cron_fires_materialized",
+                "Total cron fires materialized into timetable",
+                labelnames=[*common_label_keys],
+            )
+            self.cron_fires_missed_total = Counter(
+                f"{prefix}kms_cron_fires_missed",
+                "Total missed cron fires recovered during catchup",
+                labelnames=[*common_label_keys],
+            )
+            self.cron_fires_skipped_total = Counter(
+                f"{prefix}kms_cron_fires_skipped",
+                "Total cron fires skipped due to skip policy",
+                labelnames=[*common_label_keys],
+            )
+            self.cron_ticker_last_tick = Gauge(
+                f"{prefix}kms_cron_ticker_last_tick",
+                "Epoch timestamp of last completed tick per partition",
+                labelnames=[*common_label_keys, "partition"],
+            )
+            self.cron_registry_size = Gauge(
+                f"{prefix}kms_cron_registry_size",
+                "Total number of cron schedules in registry",
+                labelnames=[*common_label_keys],
+            )
+
     def on_app_started(self, app: KasprAppT):
         """App has initilized, completed rebalance/recovery and ready for processing."""
         super().on_app_started(app)
@@ -644,6 +692,61 @@ class PrometheusMonitor(KasprMonitor):
         """Call when REPLACE short-circuits because schedule is identical."""
         super().on_message_replace_noop(partition)
         self.messages_replace_noop.labels(**self.common_labels).inc()
+
+    def on_cron_registered(self, partition: int):
+        """Call when a cron schedule is registered."""
+        super().on_cron_registered(partition)
+        if self.app.conf.scheduler_cron_enabled:
+            self.cron_registered_total.labels(**self.common_labels).inc()
+
+    def on_cron_canceled(self, partition: int):
+        """Call when a cron schedule is canceled."""
+        super().on_cron_canceled(partition)
+        if self.app.conf.scheduler_cron_enabled:
+            self.cron_canceled_total.labels(**self.common_labels).inc()
+
+    def on_cron_paused(self, partition: int):
+        """Call when a cron schedule is paused."""
+        super().on_cron_paused(partition)
+        if self.app.conf.scheduler_cron_enabled:
+            self.cron_paused_total.labels(**self.common_labels).inc()
+
+    def on_cron_resumed(self, partition: int):
+        """Call when a cron schedule is resumed."""
+        super().on_cron_resumed(partition)
+        if self.app.conf.scheduler_cron_enabled:
+            self.cron_resumed_total.labels(**self.common_labels).inc()
+
+    def on_cron_fire_materialized(self, partition: int):
+        """Call when a cron fire is materialized into the timetable."""
+        super().on_cron_fire_materialized(partition)
+        if self.app.conf.scheduler_cron_enabled:
+            self.cron_fires_materialized_total.labels(**self.common_labels).inc()
+
+    def on_cron_fires_missed(self, partition: int, count: int = 1):
+        """Call when missed cron fires are recovered during catchup."""
+        super().on_cron_fires_missed(partition, count)
+        if self.app.conf.scheduler_cron_enabled:
+            self.cron_fires_missed_total.labels(**self.common_labels).inc(count)
+
+    def on_cron_fires_skipped(self, partition: int, count: int = 1):
+        """Call when cron fires are skipped due to skip policy."""
+        super().on_cron_fires_skipped(partition, count)
+        if self.app.conf.scheduler_cron_enabled:
+            self.cron_fires_skipped_total.labels(**self.common_labels).inc(count)
+
+    def on_cron_ticker_tick(self, partition: int):
+        """Call when cron ticker completes a tick cycle."""
+        super().on_cron_ticker_tick(partition)
+        if self.app.conf.scheduler_cron_enabled:
+            self.cron_ticker_last_tick.labels(
+                **self.common_labels, partition=str(partition)
+            ).set_to_current_time()
+
+    def on_cron_inventory_refreshed(self, total_count: int):
+        """Call when cron registry size is refreshed."""
+        if self.app.conf.scheduler_cron_enabled:
+            self.cron_registry_size.labels(**self.common_labels).set(total_count)
 
     def on_memory_stats_refreshed(self):
         """Memory usage stats updated."""
