@@ -1245,10 +1245,6 @@ class MessageScheduler(MessageSchedulerT, Service):
 
         async for event in stream.events():
             event: EventT = event
-            # Wait until rebalance/recovery is complete before processing.
-            # This ensures producer metadata is available for partition routing.
-            if not self.can_distribute.is_set():
-                await self.wait(self.can_distribute)
             partition = event.message.partition
             action: bytes = event.headers.pop(
                 H_SCHEDULER_ACTION, SCHEDULER_ACTION_ADD.encode()
