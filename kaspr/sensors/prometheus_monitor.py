@@ -654,9 +654,10 @@ class PrometheusMonitor(KasprMonitor):
         self.last_location_seq.labels(
             **self.common_labels, type=self.JANITOR, partition=partition
         ).set(last_location.sequence)
-        self.location_lag.labels(
-            **self.common_labels, type=self.JANITOR, partition=partition
-        ).set(state.lag)
+        if state.lag is not None:
+            self.location_lag.labels(
+                **self.common_labels, type=self.JANITOR, partition=partition
+            ).set(state.lag)
         self.active_removals.labels(**self.common_labels, partition=partition).set(
             state.messages_removed
         )
@@ -949,7 +950,7 @@ class PrometheusMonitor(KasprMonitor):
         self.rebalance_done_consumer_latency.observe(
             self.ms_since(state["time_return"])
         )
-        if self.tables:
+        if self.app.tables.recovery.in_recovery:
             self.health.labels(**self.common_labels).set(self.RECOVERING)
 
     def on_rebalance_end(self, app: KasprAppT, state: typing.Dict) -> None:
