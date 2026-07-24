@@ -1,4 +1,5 @@
-from typing import Optional, Dict, TypeVar, Callable, Union, Awaitable, OrderedDict, Tuple
+import asyncio
+from typing import Optional, Dict, TypeVar, Callable, Union, Awaitable, OrderedDict, Tuple, Mapping, Set
 from kaspr.types.models.base import SpecComponent
 from kaspr.types.app import KasprAppT
 from kaspr.types.topic import KasprTopicT
@@ -20,10 +21,17 @@ class TopicOutSpec(SpecComponent):
 
     name: Optional[str]
     name_selector: Optional[TopicNameSelector]
+    declare: Optional[bool]
     pass_through: Optional[bool]
     ack: Optional[bool]
     key_serializer: Optional[str]
     value_serializer: Optional[str]
+    partitions: Optional[int]
+    retention: Optional[int]
+    compacting: Optional[bool]
+    deleting: Optional[bool]
+    replicas: Optional[int]
+    config: Optional[Mapping[str, str]]
     key_selector: Optional[TopicKeySelector]
     value_selector: Optional[TopicValueSelector]
     partition_selector: Optional[TopicPartitionSelector]
@@ -31,7 +39,9 @@ class TopicOutSpec(SpecComponent):
     predicate: Optional[TopicPredicate]
 
     app: KasprAppT = None
-    _topics: Dict[str, KasprTopicT] = dict()
+    _topics: Optional[Dict[str, KasprTopicT]] = None
+    _declared_topics: Optional[Set[str]] = None
+    _declare_lock: Optional[asyncio.Lock] = None
     _name_selector_func: Function = None
     _key_selector_func: Function = None
     _value_selector_func: Function = None
@@ -45,7 +55,10 @@ class TopicOutSpec(SpecComponent):
         If ack is True, returns metadata (offset, timestamp, etc).
         of the sent message.
         """
-        res = await self.get_topic(value).send(
+        topic_name = self.get_topic_name(value, **kwargs)
+        topic = self.get_topic(value, topic_name=topic_name, **kwargs)
+        await self.maybe_declare_topic(topic_name, topic)
+        res = await topic.send(
             key_serializer=self.key_serializer,
             value_serializer=self.value_serializer,
             key=self.get_key(value, **kwargs),
@@ -91,7 +104,7 @@ class TopicOutSpec(SpecComponent):
         if self.headers_selector_func is not None:
             return self.headers_selector_func(value, **kwargs)
 
-    def should_skip(self, value: T, **kwargs) -> bool:
+    def should_skip(self, value: Optional[T] = None, **kwargs) -> bool:
         """Check if value should be skipped"""
         if self.predicate_func is not None:
             return not self.predicate_func(value, **kwargs)
@@ -104,13 +117,37 @@ class TopicOutSpec(SpecComponent):
             name,
             key_serializer=self.key_serializer,
             value_serializer=self.value_serializer,
+            partitions=getattr(self, "partitions", None),
+            retention=getattr(self, "retention", None),
+            compacting=getattr(self, "compacting", None),
+            deleting=getattr(self, "deleting", None),
+            replicas=getattr(self, "replicas", None),
+            config=getattr(self, "config", None),
         )
 
-    def get_topic(self, value: T, **kwargs) -> KasprTopicT:
+    async def maybe_declare_topic(self, name: str, topic: KasprTopicT) -> None:
+        """Declare a producer topic at most once per topic name."""
+        if not getattr(self, "declare", False):
+            return
+        if self._declared_topics is None:
+            self._declared_topics = set()
+        if name in self._declared_topics:
+            return
+        if self._declare_lock is None:
+            self._declare_lock = asyncio.Lock()
+        async with self._declare_lock:
+            if name in self._declared_topics:
+                return
+            await topic.maybe_declare()
+            self._declared_topics.add(name)
+
+    def get_topic(self, value: T, topic_name: Optional[str] = None, **kwargs) -> KasprTopicT:
         """Get topic instance"""
-        name = self.get_topic_name(value, **kwargs)
+        name = topic_name or self.get_topic_name(value, **kwargs)
         if not name or type(name) is not str:
             raise ValueError(f"Invalid topic name `{name}`")
+        if self._topics is None:
+            self._topics = {}
         if name not in self._topics:
             self._topics[name] = self.prepare_topic(name, **kwargs)
         return self._topics[name]
