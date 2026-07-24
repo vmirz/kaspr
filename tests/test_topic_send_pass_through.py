@@ -42,6 +42,10 @@ class DummyTopic:
     def __init__(self, should_fail=False):
         self.should_fail = should_fail
         self.calls = []
+        self.maybe_declare_calls = 0
+
+    async def maybe_declare(self):
+        self.maybe_declare_calls += 1
 
     async def send(self, **kwargs):
         if self.should_fail:
@@ -54,8 +58,10 @@ class DummyApp:
     def __init__(self, topic):
         self._topic = topic
         self.tables = {}
+        self.created_topics = []
 
     def topic(self, name, **kwargs):
+        self.created_topics.append((name, kwargs))
         if isinstance(self._topic, dict):
             return self._topic[name]
         return self._topic
@@ -90,10 +96,17 @@ def make_topic_spec(topic, **kwargs):
     params = {
         "name": "materialization-requests",
         "name_selector": None,
+        "declare": False,
         "pass_through": False,
         "ack": False,
         "key_serializer": None,
         "value_serializer": None,
+        "partitions": None,
+        "retention": None,
+        "compacting": None,
+        "deleting": None,
+        "replicas": None,
+        "config": None,
         "key_selector": None,
         "value_selector": None,
         "partition_selector": None,
@@ -181,6 +194,44 @@ def test_topic_send_pass_through_allows_none_value():
             "partition": None,
             "headers": None,
         }
+    ]
+
+
+def test_topic_send_declares_output_topic_once_lazily_with_spec_options():
+    payload = {
+        "response": {"status": "accepted"},
+        "request_event": {"materialization_id": "mat-123", "phase": "requested"},
+    }
+    topic = DummyTopic()
+    spec = make_topic_spec(
+        topic,
+        declare=True,
+        partitions=12,
+        retention=3600,
+        compacting=True,
+        deleting=False,
+        replicas=3,
+        config={"cleanup.policy": "compact"},
+    )
+
+    asyncio.run(spec.send(payload))
+    asyncio.run(spec.send(payload))
+
+    assert topic.maybe_declare_calls == 1
+    assert spec.app.created_topics == [
+        (
+            "materialization-requests",
+            {
+                "key_serializer": None,
+                "value_serializer": None,
+                "partitions": 12,
+                "retention": 3600,
+                "compacting": True,
+                "deleting": False,
+                "replicas": 3,
+                "config": {"cleanup.policy": "compact"},
+            },
+        )
     ]
 
 
