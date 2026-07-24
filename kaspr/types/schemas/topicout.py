@@ -22,6 +22,7 @@ class TopicOutSpecSchema(BaseSchema):
         allow_none=True,
         load_default=None,
     )
+    declare = fields.Bool(data_key="declare", allow_none=True, load_default=False)
     pass_through = fields.Bool(
         data_key="pass_through", allow_none=True, load_default=False
     )
@@ -31,6 +32,18 @@ class TopicOutSpecSchema(BaseSchema):
     )
     value_serializer = fields.Str(
         data_key="value_serializer", allow_none=True, load_default=None
+    )
+    partitions = fields.Int(data_key="partitions", allow_none=True, load_default=None)
+    retention = fields.Int(data_key="retention", allow_none=True, load_default=None)
+    compacting = fields.Bool(data_key="compacting", allow_none=True, load_default=None)
+    deleting = fields.Bool(data_key="deleting", allow_none=True, load_default=None)
+    replicas = fields.Int(data_key="replicas", allow_none=True, load_default=None)
+    config = fields.Mapping(
+        keys=fields.Str(required=True),
+        values=fields.Str(required=True),
+        data_key="config",
+        allow_none=True,
+        load_default=dict,
     )
     key_selector = fields.Nested(
         TopicKeySelectorSchema(),
