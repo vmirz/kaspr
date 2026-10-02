@@ -275,7 +275,7 @@ STORE_ROCKSDB_BLOCK_CACHE_COMPRESSED_SIZE = int(
 #: actually reading the file, which can significantly improve
 #: read performance. Defaults to 3.
 STORE_ROCKSDB_BLOOM_FILTER_SIZE = int(
-    _getenv("STORE_ROCKSDB_BLOCK_CACHE_COMPRESSED_SIZE", 3)
+    _getenv("STORE_ROCKSDB_BLOOM_FILTER_SIZE", 3)
 )
 #: If set to true, index and filter blocks will be stored in block cache,
 #: together with all other data blocks.
