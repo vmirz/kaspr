@@ -504,11 +504,12 @@ class KasprMonitor(Monitor):
             tt_changelog_name = self.app.scheduler.timetable.changelog_topic.get_topic_name()
         for _, table in self.app.tables.items():
             table: KasprTableT = table
+            # Not len(table): that scans every key of a RocksDB table on the event loop.
             if table.name == tt_changelog_name:
-                self.count_timetable_keys = len(table.keys())
+                self.count_timetable_keys = table.size_estimate()
                 self.on_timetable_size_refreshed(table)
             else:
-                self.count_table_keys[table] = len(table.keys())
+                self.count_table_keys[table] = table.size_estimate()
                 self.on_table_key_count_refreshed(table)
 
     def _sample_memory(self):
