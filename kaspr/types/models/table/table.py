@@ -5,6 +5,7 @@ from kaspr.types.models.base import SpecComponent, BaseModel
 from kaspr.types.app import KasprAppT
 from kaspr.types.models.pycode import PyCode
 from kaspr.types import KasprTableT
+from kaspr.utils.rocksdb import rocksdb_table_options
 
 T = TypeVar("T")
 Function = Callable[[T], Union[T, Awaitable[T]]]
@@ -58,6 +59,7 @@ class TableSpec(SpecComponent):
             value_type=self._serializer_to_type(self.value_serializer),
             partitions=self.partitions,
             extra_topic_configs=self.extra_topic_configs,
+            options=rocksdb_table_options(self.app.conf, self.options),
         )
 
     def _serializer_to_type(self, serializer: str = None) -> T:

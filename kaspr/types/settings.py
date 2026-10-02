@@ -52,9 +52,37 @@ def _subenv(input: str):
     return input
 
 
+#: Files exposing the memory limit of the container (cgroup v2, then v1).
+CGROUP_MEMORY_LIMIT_FILES: Sequence[str] = (
+    "/sys/fs/cgroup/memory.max",
+    "/sys/fs/cgroup/memory/memory.limit_in_bytes",
+)
+
+
+def _cgroup_memory_limit(
+    paths: Sequence[str] = CGROUP_MEMORY_LIMIT_FILES,
+) -> Optional[int]:
+    """Return the container memory limit in bytes, or None if there isn't one."""
+    for path in paths:
+        try:
+            with open(path) as f:
+                value = f.read().strip()
+        except OSError:
+            continue
+        if value.isdigit():
+            return int(value)
+    return None
+
+
 def _getmem():
-    """Return total available memory (RAM) in bytes"""
-    return psutil.virtual_memory().total
+    """Return total memory (RAM) available to this process in bytes.
+
+    Inside a container psutil reports the memory of the host, so the
+    container limit is used when there is one.
+    """
+    total = psutil.virtual_memory().total
+    limit = _cgroup_memory_limit()
+    return min(total, limit) if limit else total
 
 
 # ------------------------------------------------
@@ -220,7 +248,8 @@ STORE_ROCKSDB_TARGET_FILE_SIZE_BASE = int(
     _getenv("STORE_ROCKSDB_TARGET_FILE_SIZE_BASE", 64 << 20)
 )
 
-#: Size for caching uncompressed data.
+#: Size for caching uncompressed data. The cache is shared by all tables
+#: and partitions of the app.
 #: Defauls to about 1/3 of your total memory budget
 STORE_ROCKSDB_BLOCK_CACHE_SIZE = int(
     _getenv("STORE_ROCKSDB_BLOCK_CACHE_SIZE", math.floor(_getmem() / 3))
