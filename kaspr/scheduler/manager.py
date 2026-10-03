@@ -21,6 +21,7 @@ from kaspr.types import (
 )
 from kaspr.sensors.kaspr import KasprMonitor
 from kaspr.utils.functional import iso_datestr_to_datetime
+from kaspr.utils.rocksdb import rocksdb_table_options
 from .checkpoint import Checkpoint
 from .dispatcher import Dispatcher
 from .janitor import Janitor
@@ -416,15 +417,7 @@ class MessageScheduler(MessageSchedulerT, Service):
         return self.app.Table(
             "timetable",
             partitions=self.app.conf.scheduler_topic_partitions,
-            options={
-                "write_buffer_size": self.app.conf.store_rocksdb_write_buffer_size,
-                "max_write_buffer_number": self.app.conf.store_rocksdb_max_write_buffer_number,
-                "target_file_size_base": self.app.conf.store_rocksdb_target_file_size_base,
-                "block_cache_size": self.app.conf.store_rocksdb_block_cache_size,
-                "block_cache_compressed_size": self.app.conf.store_rocksdb_block_cache_compressed_size,
-                "bloom_filter_size": self.app.conf.store_rocksdb_bloom_filter_size,
-                "set_cache_index_and_filter_blocks": self.app.conf.store_rocksdb_set_cache_index_and_filter_blocks,
-            },
+            options=rocksdb_table_options(self.app.conf),
         )
 
     def prepare_schedule_index(self):
@@ -437,15 +430,7 @@ class MessageScheduler(MessageSchedulerT, Service):
         return self.app.Table(
             "timetable-index",
             partitions=self.app.conf.scheduler_topic_partitions,
-            options={
-                "write_buffer_size": self.app.conf.store_rocksdb_write_buffer_size,
-                "max_write_buffer_number": self.app.conf.store_rocksdb_max_write_buffer_number,
-                "target_file_size_base": self.app.conf.store_rocksdb_target_file_size_base,
-                "block_cache_size": self.app.conf.store_rocksdb_block_cache_size,
-                "block_cache_compressed_size": self.app.conf.store_rocksdb_block_cache_compressed_size,
-                "bloom_filter_size": self.app.conf.store_rocksdb_bloom_filter_size,
-                "set_cache_index_and_filter_blocks": self.app.conf.store_rocksdb_set_cache_index_and_filter_blocks,
-            },            
+            options=rocksdb_table_options(self.app.conf),
         )
 
     def prepare_cron_registry(self):
@@ -457,15 +442,7 @@ class MessageScheduler(MessageSchedulerT, Service):
         return self.app.Table(
             "cron-registry",
             partitions=self.app.conf.scheduler_topic_partitions,
-            options={
-                "write_buffer_size": self.app.conf.store_rocksdb_write_buffer_size,
-                "max_write_buffer_number": self.app.conf.store_rocksdb_max_write_buffer_number,
-                "target_file_size_base": self.app.conf.store_rocksdb_target_file_size_base,
-                "block_cache_size": self.app.conf.store_rocksdb_block_cache_size,
-                "block_cache_compressed_size": self.app.conf.store_rocksdb_block_cache_compressed_size,
-                "bloom_filter_size": self.app.conf.store_rocksdb_bloom_filter_size,
-                "set_cache_index_and_filter_blocks": self.app.conf.store_rocksdb_set_cache_index_and_filter_blocks,
-            },
+            options=rocksdb_table_options(self.app.conf),
         )
 
     def prepare_cron_due_index(self):
@@ -478,15 +455,7 @@ class MessageScheduler(MessageSchedulerT, Service):
         return self.app.Table(
             "cron-due-index",
             partitions=self.app.conf.scheduler_topic_partitions,
-            options={
-                "write_buffer_size": self.app.conf.store_rocksdb_write_buffer_size,
-                "max_write_buffer_number": self.app.conf.store_rocksdb_max_write_buffer_number,
-                "target_file_size_base": self.app.conf.store_rocksdb_target_file_size_base,
-                "block_cache_size": self.app.conf.store_rocksdb_block_cache_size,
-                "block_cache_compressed_size": self.app.conf.store_rocksdb_block_cache_compressed_size,
-                "bloom_filter_size": self.app.conf.store_rocksdb_bloom_filter_size,
-                "set_cache_index_and_filter_blocks": self.app.conf.store_rocksdb_set_cache_index_and_filter_blocks,
-            },
+            options=rocksdb_table_options(self.app.conf),
         )
 
     @cached_property
