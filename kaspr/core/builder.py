@@ -64,7 +64,7 @@ class AppBuilder(AppBuilderT):
         tables = []
         for app in self.apps:
             tables.extend(app.tables_spec)
-        return
+        return tables
 
     def _prepare_joins(self) -> List[JoinSpec]:
         """Prepare joins from loaded definitions."""

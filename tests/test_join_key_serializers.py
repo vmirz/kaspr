@@ -182,3 +182,13 @@ def test_build_verifies_after_every_definition(monkeypatch):
 
     with pytest.raises(ImproperlyConfigured):
         builder.build()
+
+
+def test_builder_lists_the_loaded_tables():
+    app = _app()
+    builder = AppBuilder(app)
+    specs = [SimpleNamespace(name="orders"), SimpleNamespace(name="products")]
+    builder._apps = [SimpleNamespace(tables_spec=specs[:1]),
+                     SimpleNamespace(tables_spec=specs[1:])]
+
+    assert builder.tables == specs
