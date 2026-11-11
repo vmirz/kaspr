@@ -1,8 +1,9 @@
 """Build stream processors from external definition files."""
 
 import yaml
-from typing import List
+from typing import Dict, List
 from pathlib import Path
+from faust.exceptions import ImproperlyConfigured
 from kaspr.types import KasprAppT, AppBuilderT
 from kaspr.types.models import AppSpec, AgentSpec, WebViewSpec, TableSpec, TaskSpec
 from kaspr.types.models.join import JoinSpec
@@ -63,7 +64,7 @@ class AppBuilder(AppBuilderT):
         tables = []
         for app in self.apps:
             tables.extend(app.tables_spec)
-        return
+        return tables
 
     def _prepare_joins(self) -> List[JoinSpec]:
         """Prepare joins from loaded definitions."""
@@ -90,6 +91,32 @@ class AppBuilder(AppBuilderT):
         # Register WebViews once across all loaded definitions so
         # same-path handlers with different methods are combined globally.
         WebViewSpec.prepare_webviews(self.webviews)
+
+        # After everything is built: an agent's joins may be defined in
+        # another definition file.
+        self.verify_serializers()
+
+    def verify_serializers(self) -> None:
+        """Warn about tables whose serializers differ from their agents'
+        input topics', and refuse to build an app whose joined tables would
+        store rows where the join cannot find them.
+
+        Raises:
+            ImproperlyConfigured: An agent's input topic and a joined table
+                it uses have different key serializers.
+        """
+        joins_by_table: Dict[str, List[str]] = {}
+        for join in self.joins:
+            for table in (join.left_table, join.right_table):
+                names = joins_by_table.setdefault(table, [])
+                if join.name not in names:
+                    names.append(join.name)
+        problems = []
+        for agent in self.agents:
+            agent.warn_serializer_mismatches(joined=joins_by_table)
+            problems.extend(agent.join_key_mismatches(joins_by_table))
+        if problems:
+            raise ImproperlyConfigured("\n".join(problems))
 
     async def maybe_create_topics(self) -> None:
         """Maybe declare agent input topics."""
