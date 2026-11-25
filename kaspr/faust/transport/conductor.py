@@ -121,11 +121,13 @@ class ConductorCompiler:  # pragma: no cover
                     if full:
                         for _, dest_chan in full:
                             on_topic_buffer_full(dest_chan)
+                        puts = [asyncio.ensure_future(dest_chan.put(dest_event))
+                                for dest_event, dest_chan in full]
                         await asyncio.wait(
-                            [asyncio.ensure_future(dest_chan.put(dest_event))
-                             for dest_event, dest_chan in full],
-                            return_when=asyncio.ALL_COMPLETED,
-                        )
+                            puts, return_when=asyncio.ALL_COMPLETED)
+                        for put in puts:
+                            if put.cancelled():  # the queue was cleared
+                                message.drop()
                 except KeyDecodeError as exc:
                     remaining = channels - delivered
                     message.ack(app.consumer, n=len(remaining))

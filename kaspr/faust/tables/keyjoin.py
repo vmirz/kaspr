@@ -185,6 +185,7 @@ class KeyJoinProcessor(Service, KeyJoinT):
         """
         return self.app.Table(
             self._previous_fk_store_name(),
+            key_type=self.left_table.key_type,
             partitions=self.left_table.partitions,
             help='FK join previous FK tracker (internal)',
         )
@@ -452,7 +453,8 @@ class KeyJoinProcessor(Service, KeyJoinT):
         result = self.app.create_event(key, value, None, message)
         message.incref(len(subscribers))
         for subscriber in subscribers:
-            await self._deliver(subscriber.queue, result)
+            if not await self._deliver(subscriber.queue, result):
+                message.drop()
 
     async def _deliver(self, queue: asyncio.Queue, event: EventT) -> bool:
         """Put ``event`` on a subscriber's queue; False if it is dropped.

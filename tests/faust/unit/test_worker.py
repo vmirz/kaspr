@@ -59,7 +59,7 @@ class test_Worker:
                 assert worker._shutdown_immediately
                 assert worker.spinner.stopped
                 ensure_future.assert_called_with(
-                    CoroEq(worker._stop_on_signal))
+                    CoroEq(worker._stop_on_signal), loop=worker.loop)
                 coro = ensure_future.call_args[0][0]
         asyncio.ensure_future(coro).cancel()  # silence warning
 
@@ -78,7 +78,7 @@ class test_Worker:
             assert worker._shutdown_immediately
             assert worker.spinner.stopped
             ensure_future.assert_called_with(
-                CoroEq(worker._stop_on_signal))
+                CoroEq(worker._stop_on_signal), loop=worker.loop)
             coro = ensure_future.call_args[0][0]
         asyncio.ensure_future(coro).cancel()  # silence warning
 

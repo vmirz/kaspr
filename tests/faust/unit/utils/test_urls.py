@@ -83,3 +83,23 @@ def test_urllist_URLs_no_scheme():
         URL('foo://bar.com'),
         URL('foo://example.com'),
     ]
+
+
+@pytest.mark.parametrize('value', [
+    'kafka://a:9092,b:9092',
+    'kafka://a:9092;b:9092',
+    'kafka://a:9092, kafka://b:9092',
+    'a:9092,b:9092',
+    ' a:9092 ; b:9092, ',
+    ['a:9092', 'b:9092'],
+    [URL('kafka://a:9092'), 'b:9092'],
+])
+def test_urllist_host_and_port(value):
+    urls = urllist(value, default_scheme='kafka')
+    assert urls == [URL('kafka://a:9092'), URL('kafka://b:9092')]
+    assert [(u.host, u.port) for u in urls] == [('a', 9092), ('b', 9092)]
+
+
+def test_urllist_no_urls_raises():
+    with pytest.raises(ValueError):
+        urllist(' , ')

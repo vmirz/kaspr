@@ -178,6 +178,7 @@ class test_App:
 
     async def assert_stop_consumer(self, app):
         consumer = app._consumer = Mock(
+            stop_flow=AsyncMock(),
             wait_empty=AsyncMock(),
         )
         consumer.assignment.return_value = set()
@@ -279,6 +280,7 @@ class test_App:
     async def test_on_partitions_revoked(self, *, app):
         app.on_partitions_revoked = Mock(send=AsyncMock())
         consumer = app.consumer = Mock(
+            stop_flow=AsyncMock(),
             wait_empty=AsyncMock(),
             transactions=Mock(
                 on_partitions_revoked=AsyncMock(),
@@ -310,13 +312,18 @@ class test_App:
     @pytest.mark.asyncio
     async def test_on_partitions_revoked__no_assignment(self, *, app):
         app.on_partitions_revoked = Mock(send=AsyncMock())
-        app.consumer = Mock()
+        app.consumer = Mock(stop_flow=AsyncMock())
         app.tables = Mock()
+        app.flow_control = Mock()
+        app._producer = Mock(flush=AsyncMock())
         revoked = {TP('foo', 0), TP('bar', 1)}
         app.consumer.assignment.return_value = set()
         await app._on_partitions_revoked(revoked)
 
         app.on_partitions_revoked.send.assert_called_once_with(revoked)
+        app.consumer.stop_flow.assert_called_once_with()
+        app.flow_control.suspend.assert_called_once_with()
+        app.flow_control.clear.assert_called_once_with()
 
     @pytest.mark.asyncio
     async def test_on_partitions_revoked__crashes(self, *, app):

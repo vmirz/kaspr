@@ -169,6 +169,7 @@ class test_Recovery:
         )
         app.assignor = Mock(assigned_standbys=Mock(return_value={TP2}))
         recovery._is_changelog_tp = Mock(return_value=True)
+        tables._changelogs = {}
         app._fetcher = Mock(maybe_start=AsyncMock())
         app.on_rebalance_complete = Mock(send=AsyncMock())
         app.on_rebalance_end = Mock()
