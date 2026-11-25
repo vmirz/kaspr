@@ -1,7 +1,8 @@
-"""Faust is part of the kaspr package."""
+"""Faust and mode are part of the kaspr package."""
 
 import ast
 import importlib
+import importlib.util
 import os
 import re
 import subprocess
@@ -9,7 +10,7 @@ import sys
 from pathlib import Path
 
 import kaspr
-from kaspr import faust
+from kaspr import faust, mode
 from kaspr.faust.models.base import registry
 
 REPO = Path(__file__).resolve().parents[1]
@@ -44,19 +45,20 @@ def imports(path):
             yield node.module
 
 
-def test_nothing_imports_faust_as_a_package_of_its_own():
-    """It would work wherever twm-faust is still installed, and not in the image."""
+def test_nothing_imports_them_as_packages_of_their_own():
+    """It would work wherever twm-faust or mode-streaming is still installed, and not in the image."""
     sources = [*(REPO / "kaspr").rglob("*.py"), *(REPO / "tests").rglob("*.py")]
-    assert not [str(p) for p in sources if any(name.split(".")[0] == "faust" for name in imports(p))]
+    assert not [str(p) for p in sources if any(name.split(".")[0] in ("faust", "mode") for name in imports(p))]
 
 
-def test_no_requirement_installs_faust():
+def test_no_requirement_installs_them():
     requirements = [REPO / "requirements.txt", REPO / "requirements-dev.txt"]
-    assert "faust" not in re.sub(r"#.*", "", "".join(p.read_text() for p in requirements))
+    installed = re.sub(r"#.*", "", "".join(p.read_text() for p in requirements))
+    assert not re.search(r"faust|\bmode\b", installed)
 
 
 def test_one_version():
-    assert faust.__version__ == kaspr.__version__
+    assert faust.__version__ == mode.__version__ == kaspr.__version__
     assert kaspr.__version__.startswith(".".join(map(str, faust.version_info[:3])))
 
 
@@ -80,10 +82,31 @@ def run(tmp_path, *command):
     return result.stdout
 
 
-def test_autodiscovery_stays_out_of_faust(tmp_path):
-    """Every Kaspr command imports the modules of kaspr first; Faust's would run its command-line."""
+def test_autodiscovery_stays_out_of_them(tmp_path):
+    """Every Kaspr command imports the modules of kaspr first; Faust's would run its command-line,
+    and mode's event loops patch the process."""
     assert "Agents" in run(tmp_path, "-m", "kaspr", "agents")
 
 
 def test_faust_command_line(tmp_path):
     assert "Faust" in run(tmp_path, "-m", "kaspr.faust", "--version")
+
+
+def test_mode_loads_its_names_from_the_package():
+    for name in mode.__all__:
+        assert getattr(mode, name).__module__.startswith(("kaspr.mode.", "typing"))
+
+
+def test_mode_finds_its_loops_in_the_package():
+    from kaspr.mode.loop import LOOPS
+
+    assert all(importlib.util.find_spec(path) for path in LOOPS.values() if path)
+
+
+def test_autodiscovery_does_not_import_modes_loops(tmp_path):
+    """Importing one replaces the event loop of the process, where its package is installed."""
+    code = (
+        "import sys; from kaspr.app import app; app.discover(); "
+        "print([m for m in sys.modules if m.startswith('kaspr.mode.loop')])"
+    )
+    assert run(tmp_path, "-c", code).strip() == "[]"

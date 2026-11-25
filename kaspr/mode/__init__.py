@@ -1,7 +1,5 @@
 """AsyncIO Service-based programming."""
 
-__version__ = "0.0.1"
-
 import sys
 import typing
 
@@ -9,6 +7,8 @@ import typing
 # - See werkzeug/__init__.py for the rationale behind this.
 from types import ModuleType
 from typing import Any, Mapping, Sequence
+
+from kaspr import __version__
 
 # -eof meta-
 

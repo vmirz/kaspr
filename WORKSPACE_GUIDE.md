@@ -61,7 +61,7 @@ kaspr ← kaspr-operator ← kaspr-helm
                        ← kaspr-docs
 ```
 
-- **kaspr** contains its engine, Faust (`kaspr/faust/`), and depends on `aiokafka`, `mode-streaming`, `aiohttp`, `rocksdict`, `prometheus-client`, `marshmallow`
+- **kaspr** contains its engine, Faust (`kaspr/faust/`), with the services it is made of, mode (`kaspr/mode/`), and depends on `aiokafka`, `aiohttp`, `rocksdict`, `prometheus-client`, `marshmallow`
 - **kaspr-operator** depends on `kopf`, `kubernetes-asyncio`, `marshmallow`, `mmh3`, `prometheus-client`
 - **kaspr-docs** uses `nextra` (Next.js documentation framework)
 - **kaspr-helm** deploys the operator image and CRDs
@@ -85,7 +85,7 @@ The typical flow when adding a new feature:
 **Path:** `/kaspr/`  
 **Package:** `kaspr`  
 **Python:** ≥ 3.10  
-**Key Dependencies:** `aiokafka`, `mode-streaming`, `aiohttp`, `rocksdict`, `prometheus-client`, `marshmallow`, `python-benedict`, `pyyaml`
+**Key Dependencies:** `aiokafka`, `aiohttp`, `rocksdict`, `prometheus-client`, `marshmallow`, `python-benedict`, `pyyaml`
 
 ### What Kaspr Does
 
@@ -122,6 +122,7 @@ kaspr/
 ├── agents.py                # Example FK join agent code
 ├── exceptions.py            # Custom exceptions
 ├── faust/                   # The engine (see The Engine: Faust)
+├── mode/                    # The engine's services: lifecycle, supervision, timers, logging
 ├── core/
 │   ├── app.py               # KasprApp(faust.App) — main app class (121 lines)
 │   ├── agent.py             # KasprAgent(faust.Agent) — custom agent
@@ -254,7 +255,7 @@ The processor pipeline (`AgentProcessorSpec.prepare_processor()`) is the heart o
 **Path:** `kaspr/faust/`, tests in `tests/faust/`  
 **Package:** `kaspr.faust`. Robinhood's Faust, in the fork released as `twm-faust` until 1.18.0  
 **Python:** ≥ 3.10  
-**Key Dependencies:** `aiokafka`, `mode-streaming`, `aiohttp`, `rocksdict` (optional), `croniter`
+**Key Dependencies:** `aiokafka`, `aiohttp`, `rocksdict` (optional), `croniter`
 
 #### Architecture & Key Concepts
 
@@ -334,7 +335,7 @@ kaspr/faust/
 
 - **Type interfaces in `kaspr/faust/types/`**: Every major class has an abstract interface (e.g., `AgentT`, `StreamT`, `TableT`). Implementations are in the corresponding modules.
 - **Plugin system via `App` constructor**: Custom implementations are injected via string paths: `Agent="kaspr.core.agent.KasprAgent"`, `Table="kaspr.core.table.KasprTable"`, etc.
-- **Service lifecycle via `mode`**: All services extend `mode.Service` with `on_start()`, `on_stop()`, `on_started()` lifecycle hooks.
+- **Service lifecycle via `kaspr.mode`** (`kaspr/mode/`, tests in `tests/mode/`): All services extend `kaspr.mode.Service` with `on_start()`, `on_stop()`, `on_started()` lifecycle hooks.
 - **Changelog-backed tables**: Every table has a Kafka changelog topic. State is recovered on rebalance by replaying the changelog.
 - **Processing guarantee**: Supports `exactly_once` via Kafka transactions.
 
