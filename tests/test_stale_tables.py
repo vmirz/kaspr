@@ -7,9 +7,9 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from faust.stores.memory import Store as MemoryStore
-from faust.stores.rocksdb import Store as RocksDBStore
-from faust.types import TP
+from kaspr.faust.stores.memory import Store as MemoryStore
+from kaspr.faust.stores.rocksdb import Store as RocksDBStore
+from kaspr.faust.types import TP
 
 from kaspr.core.app import KasprApp
 from kaspr.types import settings

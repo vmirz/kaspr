@@ -1,5 +1,5 @@
 import typing
-from faust.types import ServiceT
+from kaspr.faust.types import ServiceT
 from mode.utils.locks import Event
 
 if typing.TYPE_CHECKING:

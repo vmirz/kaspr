@@ -1,4 +1,4 @@
-from faust.types.channels import ChannelT
+from kaspr.faust.types.channels import ChannelT
 
 
 class KasprChannelT(ChannelT):

@@ -4,7 +4,7 @@ from mode import Service
 from mode.utils.objects import cached_property
 from mode.utils.futures import notify
 from typing import Any, Mapping, MutableSet, Optional, Set
-from faust.types import ChannelT, StreamT, TopicT, FutureMessage, RecordMetadata
+from kaspr.faust.types import ChannelT, StreamT, TopicT, FutureMessage, RecordMetadata
 from kaspr.types import KasprAppT, CheckpointT, TTLocation, TTMessage, PT
 from kaspr.sensors.kaspr import KasprMonitor
 from mode.utils.locks import Event

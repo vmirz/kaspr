@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Set, Tuple
 
-from faust.stores.rocksdb import Store as RocksDBStore
+from kaspr.faust.stores.rocksdb import Store as RocksDBStore
 
 from kaspr.utils.logging import get_logger
 

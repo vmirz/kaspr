@@ -1,7 +1,7 @@
 import abc
 import typing
-from faust.types import TableT
-from faust.types.tuples import MessageSentCallback
+from kaspr.faust.types import TableT
+from kaspr.faust.types.tuples import MessageSentCallback
 from typing import Any, Iterator, Tuple
 from mode import SignalT
 

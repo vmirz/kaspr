@@ -1,8 +1,8 @@
 from mode import Service
 from typing import Any, Mapping, Optional
 from kaspr.types import KasprAppT, TTLocation, CheckpointT, PT
-from faust.serializers.codecs import get_codec
-from faust.types import FutureMessage, RecordMetadata
+from kaspr.faust.serializers.codecs import get_codec
+from kaspr.faust.types import FutureMessage, RecordMetadata
 from mode.utils.locks import Event
 from kaspr.sensors.kaspr import KasprMonitor
 from kaspr.scheduler.utils import SchedulerPart

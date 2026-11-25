@@ -1,5 +1,5 @@
-from faust.types.web import Request, Response, Web
-from faust.web.views import View
+from kaspr.faust.types.web import Request, Response, Web
+from kaspr.faust.web.views import View
 
 
 class KasprWeb(Web):
