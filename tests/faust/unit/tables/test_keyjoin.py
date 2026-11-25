@@ -8,7 +8,7 @@ from kaspr.faust.exceptions import KeyPlacementError
 from kaspr.faust.tables.keyjoin import KeyJoinProcessor
 from kaspr.faust.types.joins import JoinedValue, SubscriptionInstruction
 
-from tests.faust.helpers import new_event
+from tests.faust.helpers import message, new_event
 
 SUBSCRIBE_AND_RESPOND = SubscriptionInstruction.SUBSCRIBE_AND_RESPOND.value
 SUBSCRIBE_ONLY = SubscriptionInstruction.SUBSCRIBE_ONLY.value
@@ -353,6 +353,20 @@ class test_raw_keys:
 
         [call] = processor.response_topic.send_soon.call_args_list
         assert call.kwargs['key'] == 'order1'
+
+    @pytest.mark.asyncio
+    async def test_previous_fk_changelog_reads_back_the_key_it_wrote(self, app):
+        """A member recovers this table whenever it takes its partitions."""
+        orders = app.Table('orders', partitions=4, key_type=bytes)
+        products = app.Table('products', partitions=4, key_type=bytes)
+        changelog = KeyJoinProcessor(
+            app=app, left_table=orders, right_table=products,
+            extractor=lambda order: order['product_id'],
+        ).previous_fk_store.changelog_topic
+        key, _ = changelog.prepare_key(b'order1', None)
+        record = message(key=key, value=b'"prod1"')
+        event = await changelog.decode(record, propagate=True)
+        assert (event.key, event.value) == (b'order1', 'prod1')
 
     def test_text_left_key_is_sent_as_the_raw_key(self, app):
         left = app.Table('orders', partitions=4, key_type=bytes)

@@ -185,6 +185,7 @@ class KeyJoinProcessor(Service, KeyJoinT):
         """
         return self.app.Table(
             self._previous_fk_store_name(),
+            key_type=self.left_table.key_type,
             partitions=self.left_table.partitions,
             help='FK join previous FK tracker (internal)',
         )
