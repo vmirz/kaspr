@@ -855,6 +855,7 @@ class Consumer(Service, ConsumerT):
         """Wait for all messages that started processing to be acked."""
         wait_count = 0
         T = traced_from_parent_span()
+        self._clean_unacked_messages()
         while not self.should_stop and self._unacked_messages:
             wait_count += 1
             if not wait_count % 10:  # pragma: no cover
@@ -877,10 +878,11 @@ class Consumer(Service, ConsumerT):
         await T(self.commit_and_end_transactions)()
 
     def _clean_unacked_messages(self) -> None:
-        # remove actually acked messages from weakset.
+        # remove messages that no stream is going to ack from weakset:
+        # actually acked, or dropped by the streams that have not acked them.
         self._unacked_messages -= {
             message for message in self._unacked_messages
-            if message.acked
+            if not message.pending
         }
 
     async def commit_and_end_transactions(self) -> None:

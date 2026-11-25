@@ -1,7 +1,7 @@
 from itertools import count
 
-import aredis
 import pytest
+import redis.asyncio as aioredis
 from kaspr import faust
 from kaspr.faust.exceptions import ImproperlyConfigured
 from kaspr.faust.web import Blueprint, View
@@ -237,19 +237,16 @@ async def test_cached_view__redis(expected_backend, *,
 ])
 async def test_redis__url(scheme, host, port, password, db, settings,
                           *, app, mocked_redis):
-    settings = dict(settings or {})
-    settings.setdefault('connect_timeout', None)
-    settings.setdefault('stream_timeout', None)
-    settings.setdefault('max_connections', None)
-    settings.setdefault('max_connections_per_node', None)
+    settings = settings or {}
     await app.cache.connect()
     mocked_redis.assert_called_once_with(
         host=host,
         port=port,
         password=password,
         db=db,
-        skip_full_coverage_check=True,
-        **settings)
+        socket_connect_timeout=settings.get('connect_timeout'),
+        socket_timeout=settings.get('stream_timeout'),
+        max_connections=settings.get('max_connections'))
 
 
 @pytest.mark.asyncio
@@ -267,13 +264,13 @@ async def test_redis__using_starting_(app, mocked_redis):
 
 
 @pytest.fixture()
-def no_aredis(monkeypatch):
-    monkeypatch.setattr('kaspr.faust.web.cache.backends.redis.aredis', None)
+def no_redis(monkeypatch):
+    monkeypatch.setattr('kaspr.faust.web.cache.backends.redis.aioredis', None)
 
 
 @pytest.mark.asyncio
 @pytest.mark.app(cache='redis://')
-async def test_redis__aredis_is_not_installed(*, app, no_aredis):
+async def test_redis__is_not_installed(*, app, no_redis):
     cache = app.cache
     with pytest.raises(ImproperlyConfigured):
         async with cache:
@@ -294,7 +291,7 @@ async def test_redis__start_twice_same_client(*, app, mocked_redis):
 @pytest.mark.asyncio
 @pytest.mark.app(cache='redis://')
 async def test_redis_get__irrecoverable_errors(*, app, mocked_redis):
-    from aredis.exceptions import AuthenticationError
+    from redis.exceptions import AuthenticationError
     mocked_redis.return_value.get.coro.side_effect = AuthenticationError()
 
     with pytest.raises(app.cache.Unavailable):
@@ -312,7 +309,7 @@ async def test_redis_get__irrecoverable_errors(*, app, mocked_redis):
 ])
 async def test_redis_invalidating_error(operation, delete_error, *,
                                         app, mocked_redis):
-    from aredis.exceptions import DataError
+    from redis.exceptions import DataError
     mocked_op = getattr(mocked_redis.return_value, operation)
     mocked_op.coro.side_effect = DataError()
     if delete_error:
@@ -342,7 +339,7 @@ async def test_memory_delete(*, app):
 @pytest.mark.asyncio
 @pytest.mark.app(cache='redis://')
 async def test_redis_get__operational_error(*, app, mocked_redis):
-    from aredis.exceptions import TimeoutError
+    from redis.exceptions import TimeoutError
     mocked_redis.return_value.get.coro.side_effect = TimeoutError()
 
     with pytest.raises(app.cache.Unavailable):
@@ -381,7 +378,7 @@ class test_RedisScheme:
         backend = Backend(app, url=url)
         assert isinstance(backend, redis.CacheBackend)
         client = backend._new_client()
-        assert isinstance(client, aredis.StrictRedis)
+        assert isinstance(client, aioredis.Redis)
         pool = client.connection_pool
         assert pool.connection_kwargs['host'] == backend.url.host
         assert pool.connection_kwargs['port'] == backend.url.port
@@ -394,7 +391,6 @@ class test_RedisScheme:
         backend = Backend(app, url=url)
         assert isinstance(backend, redis.CacheBackend)
         client = backend._new_client()
-        assert isinstance(client, aredis.StrictRedisCluster)
-        pool = client.connection_pool
-        assert {'host': backend.url.host,
-                'port': 3636} in pool.nodes.startup_nodes
+        assert isinstance(client, aioredis.RedisCluster)
+        assert list(client.nodes_manager.startup_nodes) == [
+            f'{backend.url.host}:3636']

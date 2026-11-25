@@ -1,6 +1,7 @@
 import asyncio
 import aiokafka
 from kaspr import faust
+import inspect
 import opentracing
 import pytest
 import random
@@ -310,7 +311,10 @@ class test_verify_event_path_base(AIOKafkaConsumerThreadFixtures):
         self._cthread.time_started = t
 
     def _set_last_request(self, last_request):
-        self.__consumer.records_last_request[self._aiotp] = last_request
+        # where aiokafka keeps the time of the last fetch
+        timestamp = None if last_request is None else last_request * 1000
+        self.__consumer._fetcher._subscriptions.subscription.assignment \
+            .state_value.return_value.timestamp = timestamp
 
     def _set_last_response(self, last_response):
         self.__consumer.records_last_response[self._aiotp] = last_response
@@ -351,9 +355,7 @@ class test_verify_event_path_base(AIOKafkaConsumerThreadFixtures):
         cthread._consumer = _consumer
 
         # patch AIOKafkaConsumer.records_last_request to self.last_request
-        _consumer.records_last_request = {}
-        if self.last_request is not None:
-            self._set_last_request(self.last_request)
+        self._set_last_request(self.last_request)
 
         # patch AIOKafkaConsumer.records_last_response to self.last_response
         _consumer.records_last_response = {}
@@ -408,27 +410,6 @@ class test_VEP_no_fetch_since_start(test_verify_event_path_base):
         )
 
 
-class test_VEP_no_response_since_start(test_verify_event_path_base):
-
-    def test_just_started(self, *, cthread, _consumer, now, tp, logger):
-        self._set_last_request(now - 5.0)
-        self._set_started(now - 2.0)
-        assert cthread.verify_event_path(now, tp) is None
-        logger.error.assert_not_called()
-
-    def test_timed_out(self, *, cthread, _consumer, now, tp, logger):
-        assert cthread.verify_event_path(now, tp) is None
-        self._set_last_request(now - 5.0)
-        self._set_started(
-            now - cthread.tp_fetch_response_timeout_secs * 2,
-        )
-        assert cthread.verify_event_path(now, tp) is None
-        logger.error.assert_called_with(
-            mod.SLOW_PROCESSING_NO_RESPONSE_SINCE_START,
-            ANY, ANY,
-        )
-
-
 class test_VEP_no_recent_fetch(test_verify_event_path_base):
 
     def test_recent_fetch(self, *, cthread, now, tp, logger):
@@ -443,25 +424,6 @@ class test_VEP_no_recent_fetch(test_verify_event_path_base):
         assert cthread.verify_event_path(now, tp) is None
         logger.error.assert_called_with(
             mod.SLOW_PROCESSING_NO_RECENT_FETCH,
-            ANY, ANY,
-        )
-
-
-class test_VEP_no_recent_response(test_verify_event_path_base):
-
-    def test_recent_response(self, *, cthread, now, tp, logger):
-        self._set_last_request(now - 10.0)
-        self._set_last_response(now - 2.0)
-        assert cthread.verify_event_path(now, tp) is None
-        logger.error.assert_not_called()
-
-    def test_timed_out(self, *, cthread, now, tp, logger):
-        self._set_last_request(now - 10.0)
-        self._set_last_response(
-            now - cthread.tp_fetch_response_timeout_secs * 2)
-        assert cthread.verify_event_path(now, tp) is None
-        logger.error.assert_called_with(
-            mod.SLOW_PROCESSING_NO_RECENT_RESPONSE,
             ANY, ANY,
         )
 
@@ -724,22 +686,20 @@ class test_AIOKafkaConsumerThread(AIOKafkaConsumerThreadFixtures):
 
     def assert_create_worker_consumer(self, cthread, app,
                                       in_transaction=False,
-                                      isolation_level='read_uncommitted',
-                                      api_version=None):
-        loop = Mock(name='loop')
+                                      isolation_level='read_uncommitted'):
         transport = cthread.transport
         conf = app.conf
         cthread.consumer.in_transaction = in_transaction
         auth_settings = credentials_to_aiokafka_auth(
             conf.broker_credentials, conf.ssl_context)
         with patch('aiokafka.AIOKafkaConsumer') as AIOKafkaConsumer:
-            c = cthread._create_worker_consumer(transport, loop)
+            c = cthread._create_worker_consumer(transport)
             assert c is AIOKafkaConsumer.return_value
             max_poll_interval = conf.broker_max_poll_interval
             AIOKafkaConsumer.assert_called_once_with(
-                api_version=app.conf.consumer_api_version,
                 client_id=conf.broker_client_id,
                 group_id=conf.id,
+                group_instance_id=conf.consumer_group_instance_id,
                 bootstrap_servers=server_list(
                     transport.url, transport.default_port),
                 partition_assignment_strategy=[cthread._assignor],
@@ -757,22 +717,16 @@ class test_AIOKafkaConsumerThread(AIOKafkaConsumerThreadFixtures):
                 heartbeat_interval_ms=int(
                     conf.broker_heartbeat_interval * 1000.0),
                 isolation_level=isolation_level,
-                traced_from_parent_span=cthread.traced_from_parent_span,
-                start_rebalancing_span=cthread.start_rebalancing_span,
-                start_coordinator_span=cthread.start_coordinator_span,
-                on_generation_id_known=cthread.on_generation_id_known,
-                flush_spans=cthread.flush_spans,
                 **auth_settings,
             )
 
     def test__create_client_consumer(self, *, cthread, app):
-        loop = Mock(name='loop')
         transport = cthread.transport
         conf = app.conf
         auth_settings = credentials_to_aiokafka_auth(
             conf.broker_credentials, conf.ssl_context)
         with patch('aiokafka.AIOKafkaConsumer') as AIOKafkaConsumer:
-            c = cthread._create_client_consumer(transport, loop)
+            c = cthread._create_client_consumer(transport)
             max_poll_interval = conf.broker_max_poll_interval
             assert c is AIOKafkaConsumer.return_value
             AIOKafkaConsumer.assert_called_once_with(
@@ -915,9 +869,13 @@ class test_AIOKafkaConsumerThread(AIOKafkaConsumerThreadFixtures):
 
     def test_close(self, *, cthread, _consumer):
         cthread._consumer = _consumer
-        cthread.close()
-        _consumer.set_close.assert_called_once_with()
-        _consumer._coordinator.set_close.assert_called_once_with()
+        with patch('asyncio.run_coroutine_threadsafe') as run:
+            cthread.close()
+        assert _consumer._closed
+        run.assert_has_calls([
+            call(_consumer._client.close(), cthread.app.loop),
+            call(_consumer._coordinator.close(), cthread.app.loop),
+        ])
 
     def test_close__no_consumer(self, *, cthread):
         cthread._consumer = None
@@ -1427,18 +1385,20 @@ class test_Producer:
                 **kwargs,
             )
 
-    def test__new_producer__default(self, *, producer):
+    @pytest.mark.asyncio
+    async def test__new_producer__default(self, *, producer):
         p = producer._new_producer()
         assert isinstance(p, aiokafka.AIOKafkaProducer)
 
-    def test__new_producer__in_transaction(self, *, producer):
+    @pytest.mark.asyncio
+    async def test__new_producer__in_transaction(self, *, producer):
         producer.app.in_transaction = True
         p = producer._new_producer()
-        assert isinstance(p, aiokafka.MultiTXNProducer)
+        assert isinstance(p, mod.MultiTXNProducer)
 
     def test__producer_type(self, *, producer, app):
         app.in_transaction = True
-        assert producer._producer_type is aiokafka.MultiTXNProducer
+        assert producer._producer_type is mod.MultiTXNProducer
         app.in_transaction = False
         assert producer._producer_type is aiokafka.AIOKafkaProducer
 
@@ -1661,6 +1621,14 @@ class test_Producer:
             headers=None,
             transactional_id='tid',
         )
+
+    @pytest.mark.asyncio
+    async def test_send__no_transaction(self, producer, _producer):
+        await producer.send('topic', 'k', 'v', 3, 100, None)
+        _producer.send.assert_called_once()
+        args, kwargs = _producer.send.call_args
+        inspect.signature(aiokafka.AIOKafkaProducer.send).bind(
+            _producer, *args, **kwargs)
 
     @pytest.mark.asyncio
     async def test_send__no_timestamp(self, producer, _producer):

@@ -1,4 +1,5 @@
 import abc
+import logging
 from datetime import datetime
 from decimal import Decimal
 from typing import ClassVar, Dict, List, Mapping, Optional, Set, Tuple
@@ -1503,7 +1504,7 @@ def test_lazy_creation():
     assert LazyX._pending_finalizers is None
 
 
-def test_Sensitive(*, capsys):
+def test_Sensitive(*, capsys, monkeypatch):
 
     class Foo(Record):
         name: str
@@ -1544,6 +1545,9 @@ def test_Sensitive(*, capsys):
     with pytest.raises(SecurityError):
         f'Name={x.name} Phone={x.phone_number}'
 
+    # not with pytest's handlers: they raise the errors that logging prints
+    monkeypatch.setattr(logger, 'propagate', False)
+    monkeypatch.setattr(logger, 'handlers', [logging.StreamHandler()])
     logger.critical('User foo error %s', x.phone_number)
     stderr_content = capsys.readouterr()
     assert 'Logging error' in stderr_content.err

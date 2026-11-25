@@ -7,8 +7,10 @@ from mode.utils.mocks import AsyncMock, Mock, patch
 
 from kaspr.faust import App, Channel, Topic
 from kaspr.faust.transport.consumer import Consumer
-from kaspr.faust.transport.conductor import Conductor
+from kaspr.faust.transport.conductor import Conductor, ConductorCompiler
 from kaspr.faust.types import Message, TP
+
+from tests.faust.helpers import message
 
 TP1 = TP('foo', 0)
 TP2 = TP('foo', 1)
@@ -251,3 +253,30 @@ class test_Conductor:
 
     def test_shortlabel(self, *, con):
         assert shortlabel(con)
+
+
+class test_ConductorCompiler:
+
+    @pytest.mark.asyncio
+    async def test_cleared_queue(self, *, app):
+        app.producer.buffer.wait_until_ebb = AsyncMock()
+        app.flow_control.resume()
+        topic = app.topic('foo', value_serializer='json')
+        stream = topic.clone(is_iterator=True, maxsize=1)
+        on_message = ConductorCompiler().build(Conductor(app), TP1, {stream})
+        queued, waiting = [
+            message(topic='foo', value=b'1', offset=n) for n in (1, 2)]
+
+        await on_message(queued)
+        blocked = asyncio.ensure_future(on_message(waiting))
+        await asyncio.sleep(0.01)
+        assert not blocked.done()
+        assert queued.pending and waiting.pending
+
+        app.flow_control.suspend()
+        app.flow_control.clear()
+        await asyncio.wait_for(blocked, timeout=1)
+        assert stream.queue.empty()
+        # no stream will ack them, nor are they acked
+        assert not queued.pending and not waiting.pending
+        assert not queued.acked and not waiting.acked

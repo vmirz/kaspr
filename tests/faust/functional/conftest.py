@@ -96,14 +96,14 @@ def logging(request):
 
 @pytest.fixture()
 def mocked_redis(*, event_loop, monkeypatch):
-    import aredis
+    import redis.asyncio as aioredis
 
     storage = CacheStorage()
 
     client_cls = Mock(
-        name='StrictRedis',
+        name='Redis',
         return_value=Mock(
-            autospec=aredis.StrictRedis,
+            autospec=aioredis.Redis,
             ping=AsyncMock(),
             get=AsyncMock(side_effect=storage.get),
             set=AsyncMock(side_effect=storage.set),
@@ -113,7 +113,7 @@ def mocked_redis(*, event_loop, monkeypatch):
         ),
     )
     client_cls.storage = storage
-    monkeypatch.setattr('aredis.StrictRedis', client_cls)
+    monkeypatch.setattr('redis.asyncio.Redis', client_cls)
     return client_cls
 
 

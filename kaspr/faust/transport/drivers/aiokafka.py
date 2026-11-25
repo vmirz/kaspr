@@ -1672,6 +1672,10 @@ class Producer(base.Producer):
         if headers is not None and not self.allow_headers:
             headers = None
         timestamp_ms = int(timestamp * 1000.0) if timestamp else timestamp
+        # Only MultiTXNProducer.send takes the argument.
+        transaction = {}
+        if transactional_id is not None:
+            transaction['transactional_id'] = transactional_id
         try:
             return cast(Awaitable[RecordMetadata], await producer.send(
                 topic, value,
@@ -1679,7 +1683,7 @@ class Producer(base.Producer):
                 partition=partition,
                 timestamp_ms=timestamp_ms,
                 headers=headers,
-                transactional_id=transactional_id,
+                **transaction,
             ))
         except KafkaError as exc:
             raise ProducerSendError(f'Error while sending: {exc!r}') from exc

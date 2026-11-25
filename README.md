@@ -25,7 +25,6 @@ python -m pytest
 ```
 
 - Faust is part of the package: import it as `kaspr.faust`. `kaspr/__init__.py` holds the one version, which a change to either bumps.
-- `tests/faust/known_failures.txt` lists tests of the engine that have not followed the code. A test that passes again leaves the list.
 - The engine uses these packages where they are installed: `aiodns>=1.1`, `aiomonitor>=0.4.4`, `charset-normalizer>=3.0`, `ciso8601`, `confluent-kafka>=2.0`, `datadog`, `orjson>=3.0`, `python-rocksdb>=0.6.7`, `redis>=4.0`, `setproctitle>=1.1`, `statsd~=3.3.0`, `uvloop>=0.8.1`.
 
 ## License
