@@ -1,0 +1,1050 @@
+"""Tests for faust.tables.keyjoin — Key Join Processor."""
+import asyncio
+
+import pytest
+from mode.utils.mocks import AsyncMock, Mock
+
+from faust.exceptions import KeyPlacementError
+from faust.tables.keyjoin import KeyJoinProcessor
+from faust.types.joins import JoinedValue, SubscriptionInstruction
+
+from t.helpers import new_event
+
+SUBSCRIBE_AND_RESPOND = SubscriptionInstruction.SUBSCRIBE_AND_RESPOND.value
+SUBSCRIBE_ONLY = SubscriptionInstruction.SUBSCRIBE_ONLY.value
+UNSUBSCRIBE_ONLY = SubscriptionInstruction.UNSUBSCRIBE_ONLY.value
+
+
+def _make_processor(app, *, inner=True):
+    """Create a KeyJoinProcessor with mock tables."""
+    left_table = Mock(name='left_table')
+    left_table.name = 'orders'
+    left_table.key_type = str
+    left_table.key_serializer = 'raw'
+    left_table.partitions = 8
+
+    right_table = Mock(name='right_table')
+    right_table.name = 'products'
+    right_table.key_type = str
+    right_table.key_serializer = 'raw'
+    right_table.partitions = 8
+
+    extractor = Mock(
+        name='extractor', side_effect=lambda v: v.get('product_id'))
+
+    return KeyJoinProcessor(
+        app=app,
+        left_table=left_table,
+        right_table=right_table,
+        extractor=extractor,
+        inner=inner,
+    )
+
+
+class _MockStore(dict):
+    """Dict subclass with prefix_scan support for testing."""
+
+    def prefix_scan(self, prefix):
+        for key, value in list(self.items()):
+            if str(key).startswith(prefix):
+                yield key, value
+
+
+def _with_topics(proc):
+    proc._subscription_store = _MockStore()
+    proc._previous_fk = {}
+    proc._subscription_topic = Mock(
+        name='subscription_topic', send=AsyncMock(), send_soon=Mock())
+    proc._response_topic = Mock(
+        name='response_topic', send=AsyncMock(), send_soon=Mock())
+    # The output channel is real: an agent reading it is its subscriber.
+    proc.subscriber = proc._output_channel.clone(is_iterator=True)
+    proc.app.flow_control.resume()
+    return proc
+
+
+@pytest.fixture()
+def processor(app):
+    return _with_topics(_make_processor(app))
+
+
+def _subscription_calls(proc):
+    return [c.kwargs for c in proc.subscription_topic.send_soon.call_args_list]
+
+
+def _answers(proc):
+    """Responses sent with send_soon: by the left side, or right changes."""
+    return [c.kwargs for c in proc.response_topic.send_soon.call_args_list]
+
+
+def _response_event(app, left_pk, message, offset=1):
+    """A response as the response stream hands it over: one reference."""
+    event = new_event(app, key=left_pk, value=message,
+                      topic='responses', offset=offset)
+    event.message.incref()
+    return event
+
+
+async def _respond(proc, left_pk, message, offset=1):
+    """Hand ``proc`` a response; return the response's event."""
+    event = _response_event(proc.app, left_pk, message, offset=offset)
+    await proc._process_response(left_pk, message, event)
+    return event
+
+
+def _emitted(proc, subscriber=None):
+    """The events the output channel delivered to a subscriber."""
+    queue = (subscriber or proc.subscriber).queue
+    events = []
+    while not queue.empty():
+        events.append(queue.get_nowait())
+    return events
+
+
+def _results(proc):
+    return [(e.key, e.value) for e in _emitted(proc)]
+
+
+class test_compute_hash:
+
+    def test_same_value_same_hash(self):
+        value = {'name': 'widget', 'price': 9.99}
+        assert (KeyJoinProcessor.compute_hash(value) ==
+                KeyJoinProcessor.compute_hash(value))
+
+    def test_different_values_different_hashes(self):
+        assert (KeyJoinProcessor.compute_hash({'a': 1}) !=
+                KeyJoinProcessor.compute_hash({'a': 2}))
+
+    def test_none_is_zero(self):
+        assert KeyJoinProcessor.compute_hash(None) == 0
+
+    def test_text_and_its_bytes_hash_alike(self):
+        assert (KeyJoinProcessor.compute_hash('hello') ==
+                KeyJoinProcessor.compute_hash(b'hello'))
+
+
+class test_subscription_store:
+
+    def test_prefix_scan_yields_left_keys_of_one_foreign_key(self, processor):
+        processor._subscription_store = _MockStore({
+            'fk1\x00lpk1': {'hash': 1},
+            'fk1\x00lpk2': {'hash': 2},
+            'fk2\x00lpk3': {'hash': 3},
+        })
+        found = dict(processor.prefix_scan('fk1'))
+        assert found == {'lpk1': {'hash': 1}, 'lpk2': {'hash': 2}}
+
+    def test_prefix_scan_no_matches(self, processor):
+        processor._subscription_store = _MockStore({'fk1\x00lpk1': {}})
+        assert list(processor.prefix_scan('fk_missing')) == []
+
+
+class test_left_table_change:
+
+    def test_new_record_subscribes_and_asks_for_a_response(self, processor):
+        value = {'product_id': 'prod1', 'qty': 5}
+        processor._on_left_table_change('order1', value)
+
+        [sent] = _subscription_calls(processor)
+        assert sent['key'] == 'prod1'
+        assert sent['value'] == {
+            'left_pk': 'order1',
+            'hash': KeyJoinProcessor.compute_hash(value),
+            'instruction': SUBSCRIBE_AND_RESPOND,
+        }
+        assert processor.previous_fk_store['order1'] == 'prod1'
+
+    def test_same_foreign_key_resubscribes_only(self, processor):
+        processor.previous_fk_store['order1'] = 'prod1'
+        processor._on_left_table_change(
+            'order1', {'product_id': 'prod1', 'qty': 6})
+
+        [sent] = _subscription_calls(processor)
+        assert sent['key'] == 'prod1'
+        assert sent['value']['instruction'] == SUBSCRIBE_AND_RESPOND
+        # It had a foreign key: no match now retracts its result.
+        assert sent['value']['retract'] is True
+
+    def test_foreign_key_change_unsubscribes_old_subscribes_new(
+            self, processor):
+        processor.previous_fk_store['order1'] = 'prod1'
+        processor._on_left_table_change(
+            'order1', {'product_id': 'prod2', 'qty': 3})
+
+        unsubscribe, subscribe = _subscription_calls(processor)
+        assert unsubscribe['key'] == 'prod1'
+        assert unsubscribe['value']['instruction'] == UNSUBSCRIBE_ONLY
+        assert subscribe['key'] == 'prod2'
+        assert subscribe['value']['instruction'] == SUBSCRIBE_AND_RESPOND
+        assert subscribe['value']['retract'] is True
+        assert processor.previous_fk_store['order1'] == 'prod2'
+
+    def test_deletion_unsubscribes_forgets_and_retracts(self, processor):
+        processor.previous_fk_store['order1'] = 'prod1'
+        processor._on_left_table_change('order1', None, is_delete=True)
+
+        [sent] = _subscription_calls(processor)
+        assert sent['key'] == 'prod1'
+        assert sent['value']['instruction'] == UNSUBSCRIBE_ONLY
+        assert 'order1' not in processor.previous_fk_store
+        assert _answers(processor) == [{'key': 'order1', 'value': {
+            'right_value': None, 'hash': 0, 'retract': True}}]
+
+    def test_deletion_of_unknown_record_sends_nothing(self, processor):
+        processor._on_left_table_change('order1', None, is_delete=True)
+        processor.subscription_topic.send_soon.assert_not_called()
+        assert _answers(processor) == []
+
+    def test_missing_foreign_key_sends_nothing(self, processor):
+        # A keyless record on the compacted subscription topic is refused
+        # by the broker, together with the batch it shares. An inner join
+        # has no result for the row, and had none.
+        processor._on_left_table_change('order1', {'product_id': None})
+
+        processor.subscription_topic.send_soon.assert_not_called()
+        assert 'order1' not in processor.previous_fk_store
+        assert _answers(processor) == []
+
+    def test_foreign_key_removed_unsubscribes_forgets_and_retracts(
+            self, processor):
+        value = {'product_id': None}
+        processor.previous_fk_store['order1'] = 'prod1'
+        processor._on_left_table_change('order1', value)
+
+        [sent] = _subscription_calls(processor)
+        assert sent['key'] == 'prod1'
+        assert sent['value']['instruction'] == UNSUBSCRIBE_ONLY
+        assert 'order1' not in processor.previous_fk_store
+        assert _answers(processor) == [{'key': 'order1', 'value': {
+            'right_value': None,
+            'hash': KeyJoinProcessor.compute_hash(value),
+            'retract': True}}]
+
+    def test_left_join_missing_foreign_key_answers_itself(self, processor):
+        processor.inner = False
+        value = {'product_id': None}
+        processor._on_left_table_change('order1', value)
+
+        processor.subscription_topic.send_soon.assert_not_called()
+        assert _answers(processor) == [{'key': 'order1', 'value': {
+            'right_value': None,
+            'hash': KeyJoinProcessor.compute_hash(value)}}]
+
+    def test_left_join_foreign_key_removed_answers_itself(self, processor):
+        processor.inner = False
+        processor.previous_fk_store['order1'] = 'prod1'
+        processor._on_left_table_change('order1', {'product_id': None})
+
+        [sent] = _subscription_calls(processor)
+        assert sent['value']['instruction'] == UNSUBSCRIBE_ONLY
+        [answer] = _answers(processor)
+        assert 'retract' not in answer['value']
+
+    def test_left_join_deletion_retracts_every_row(self, processor):
+        # Even one without a foreign key: its result was (left, None).
+        processor.inner = False
+        processor._on_left_table_change('order1', None, is_delete=True)
+
+        assert _answers(processor) == [{'key': 'order1', 'value': {
+            'right_value': None, 'hash': 0, 'retract': True}}]
+
+    def test_foreign_key_restored_subscribes_again(self, processor):
+        processor._on_left_table_change('order1', {'product_id': None})
+        processor._on_left_table_change('order1', {'product_id': 'prod1'})
+
+        [sent] = _subscription_calls(processor)
+        assert sent['key'] == 'prod1'
+        assert sent['value']['instruction'] == SUBSCRIBE_AND_RESPOND
+        assert processor.previous_fk_store['order1'] == 'prod1'
+
+
+class test_partitioning:
+    """The producer partitions every send by the key's bytes.
+
+    Those are the bytes the table stores the key under, so a subscription
+    lands on the partition of the right table that holds its foreign key,
+    and a response on the partition of the left table that holds its
+    record, with nothing asked of the record being processed.
+    """
+
+    @pytest.mark.parametrize('key_type,key', [
+        (None, 'prod1'),
+        (None, 42),
+        (bytes, b'prod1'),
+    ])
+    def test_subscription_key_is_the_right_table_key(
+            self, app, key_type, key):
+        left = app.Table('orders', partitions=4)
+        right = app.Table('products', partitions=4, key_type=key_type)
+        join = KeyJoinProcessor(app, left, right, extractor=lambda v: v)
+
+        sent, _ = join.subscription_topic.prepare_key(key, None)
+        assert sent == app.serializers.dumps_key(
+            right.key_type, key, serializer=right.key_serializer)
+
+    @pytest.mark.parametrize('key_type,key', [
+        (None, 'order1'),
+        (None, 7),
+        (bytes, b'order1'),
+    ])
+    def test_response_key_is_the_left_table_key(self, app, key_type, key):
+        left = app.Table('orders', partitions=4, key_type=key_type)
+        right = app.Table('products', partitions=4)
+        join = KeyJoinProcessor(app, left, right, extractor=lambda v: v)
+
+        sent, _ = join.response_topic.prepare_key(key, None)
+        assert sent == app.serializers.dumps_key(
+            left.key_type, key, serializer=left.key_serializer)
+
+    def test_internal_topics_have_their_tables_partitions(self, app):
+        left = app.Table('orders', partitions=6)
+        right = app.Table('products', partitions=4)
+        join = KeyJoinProcessor(app, left, right, extractor=lambda v: v)
+
+        assert join.subscription_topic.partitions == 4
+        assert join.response_topic.partitions == 6
+
+    @pytest.mark.asyncio
+    async def test_sends_name_no_partition(self, app, processor):
+        processor._subscription_store = _MockStore({'prod1\x00order1': {}})
+        processor.right_table.get = Mock(return_value={'name': 'Widget'})
+
+        processor._on_left_table_change('order2', {'product_id': 'prod1'})
+        await processor._process_subscription('prod1', {
+            'left_pk': 'order2', 'hash': 1,
+            'instruction': SUBSCRIBE_AND_RESPOND})
+        processor._on_right_table_change('prod1', {'name': 'Widget'})
+
+        for send in (processor.subscription_topic.send_soon,
+                     processor.response_topic.send,
+                     processor.response_topic.send_soon):
+            assert send.call_args_list
+            for call in send.call_args_list:
+                assert set(call.kwargs) == {'key', 'value'}
+        app.producer.key_partition.assert_not_called()
+
+
+class test_raw_keys:
+    """A table with raw keys holds bytes; the join's messages hold text."""
+
+    def test_subscription_carries_the_left_key_as_text(self, processor):
+        processor._on_left_table_change(b'order1', {'product_id': b'prod1'})
+
+        [sent] = _subscription_calls(processor)
+        assert sent['key'] == b'prod1'
+        assert sent['value']['left_pk'] == 'order1'
+
+    @pytest.mark.asyncio
+    async def test_subscription_is_stored_under_text(self, processor):
+        processor.right_table.get = Mock(return_value={'name': 'Widget'})
+        await processor._process_subscription(b'prod1', {
+            'left_pk': 'order1', 'hash': 1,
+            'instruction': SUBSCRIBE_AND_RESPOND})
+
+        assert processor.subscription_store == {
+            'prod1\x00order1': {'hash': 1}}
+
+    def test_right_change_finds_subscribers_stored_under_text(
+            self, processor):
+        processor._subscription_store = _MockStore({
+            'prod1\x00order1': {'hash': 1}})
+        processor._on_right_table_change(b'prod1', {'name': 'Widget'})
+
+        [call] = processor.response_topic.send_soon.call_args_list
+        assert call.kwargs['key'] == 'order1'
+
+    def test_text_left_key_is_sent_as_the_raw_key(self, app):
+        left = app.Table('orders', partitions=4, key_type=bytes)
+        right = app.Table('products', partitions=4)
+        join = KeyJoinProcessor(app, left, right, extractor=lambda v: v)
+
+        sent, _ = join.response_topic.prepare_key('order1', None)
+        assert sent == b'order1'
+
+
+class _processing:
+    """Run the block as if a stream were processing ``event``."""
+
+    def __init__(self, event):
+        self.event = event
+
+    def __enter__(self):
+        import weakref
+        from faust.streams import _current_event
+        self._token = _current_event.set(weakref.ref(self.event))
+        return self.event
+
+    def __exit__(self, *exc_info):
+        from faust.streams import _current_event
+        _current_event.reset(self._token)
+
+
+class test_placement:
+    """A joined table refuses a row the join would not find.
+
+    The join reaches a row on the partition its key's bytes hash to; a
+    table writes a row on the partition of the record being processed.
+    """
+
+    PARTITIONS = 4
+
+    @pytest.fixture()
+    def join(self, app):
+        from aiokafka.partitioner import DefaultPartitioner
+        app.producer.partitioner = DefaultPartitioner()
+        orders = app.Table('orders', partitions=self.PARTITIONS)
+        products = app.Table('products', partitions=self.PARTITIONS)
+        join = KeyJoinProcessor(
+            app, orders, products, extractor=lambda v: v['product_id'])
+        join.crash = AsyncMock(name='crash')
+        return join
+
+    def _home(self, app, key_bytes, count=PARTITIONS):
+        partitions = list(range(count))
+        return app.producer.partitioner(key_bytes, partitions, partitions)
+
+    def _event(self, app, partition):
+        from t.helpers import new_event
+        return new_event(app, topic='source', partition=partition, offset=7)
+
+    @pytest.mark.asyncio
+    async def test_row_where_the_join_reads_it_is_written(self, app, join):
+        home = self._home(app, b'"prod1"')
+        with _processing(self._event(app, home)) as event:
+            join.right_table['prod1'] = {'name': 'Widget'}
+
+        assert join.right_table.data['prod1'] == {'name': 'Widget'}
+        assert event.message.refcount == 0
+        join.crash.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_misplaced_row_is_refused(self, app, join):
+        home = self._home(app, b'"prod1"')
+        elsewhere = (home + 1) % self.PARTITIONS
+        with _processing(self._event(app, elsewhere)):
+            with pytest.raises(KeyPlacementError):
+                join.right_table['prod1'] = {'name': 'Widget'}
+
+        assert 'prod1' not in join.right_table.data
+        app.producer.send_soon.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_misplaced_row_stops_the_app(self, app, join):
+        import asyncio
+        home = self._home(app, b'"prod1"')
+        with _processing(self._event(app, (home + 1) % self.PARTITIONS)):
+            with pytest.raises(KeyPlacementError) as raised:
+                join.right_table['prod1'] = {'name': 'Widget'}
+        await asyncio.sleep(0)
+
+        join.crash.assert_called_once_with(raised.value)
+
+    @pytest.mark.asyncio
+    async def test_misplaced_record_is_kept_from_commit(self, app, join):
+        # The stream's ack leaves one reference: the offset stays
+        # uncommitted, and the record is read again after the restart.
+        home = self._home(app, b'"prod1"')
+        with _processing(self._event(app, (home + 1) % self.PARTITIONS)) \
+                as event:
+            event.message.incref()  # the stream's reference
+            with pytest.raises(KeyPlacementError):
+                join.right_table['prod1'] = {'name': 'Widget'}
+            assert not event.ack()
+
+        assert event.message.refcount == 1
+        assert not event.message.acked
+
+    @pytest.mark.asyncio
+    async def test_misplaced_delete_is_refused(self, app, join):
+        home = self._home(app, b'"prod1"')
+        with _processing(self._event(app, home)):
+            join.right_table['prod1'] = {'name': 'Widget'}
+        with _processing(self._event(app, (home + 1) % self.PARTITIONS)):
+            with pytest.raises(KeyPlacementError):
+                del join.right_table['prod1']
+
+        assert 'prod1' in join.right_table.data
+
+    @pytest.mark.asyncio
+    async def test_left_rows_are_checked_too(self, app, join):
+        home = self._home(app, b'"order1"')
+        with _processing(self._event(app, (home + 1) % self.PARTITIONS)):
+            with pytest.raises(KeyPlacementError) as raised:
+                join.left_table['order1'] = {'product_id': 'prod1'}
+
+        message = str(raised.value)
+        assert "'orders' is joined with 'products'" in message
+        assert f'from partition {home}' in message
+        assert "key serializer 'json'" in message
+
+    @pytest.mark.asyncio
+    async def test_raw_keys_are_hashed_as_written(self, app):
+        from aiokafka.partitioner import DefaultPartitioner
+        app.producer.partitioner = DefaultPartitioner()
+        orders = app.Table('orders', partitions=4, key_type=bytes)
+        products = app.Table('products', partitions=4, key_type=bytes)
+        KeyJoinProcessor(app, orders, products, extractor=lambda v: v)
+        home = self._home(app, b'prod1')
+
+        with _processing(self._event(app, home)):
+            products[b'prod1'] = b'Widget'
+
+        assert products.data[b'prod1'] == b'Widget'
+
+    @pytest.mark.asyncio
+    async def test_partition_count_is_the_topics(self, app, join):
+        # Metadata says 8: the producer partitions over 8, not the 4
+        # the table was declared with.
+        app.consumer.topic_partitions = Mock(return_value=8)
+        home = self._home(app, b'"prod1"', count=8)
+        with _processing(self._event(app, home)):
+            join.right_table['prod1'] = {'name': 'Widget'}
+
+        assert 'prod1' in join.right_table.data
+
+    @pytest.mark.asyncio
+    async def test_tables_outside_joins_are_not_checked(self, app, join):
+        other = app.Table('other', partitions=self.PARTITIONS)
+        home = self._home(app, b'"prod1"')
+        with _processing(self._event(app, (home + 1) % self.PARTITIONS)):
+            other['prod1'] = 1
+
+        assert other.data['prod1'] == 1
+
+
+class test_process_subscription:
+
+    @pytest.fixture()
+    def processor(self, processor):
+        processor.right_table.get = Mock(return_value={'name': 'Widget'})
+        return processor
+
+    @pytest.mark.asyncio
+    async def test_subscribe_and_respond_stores_and_responds(self, processor):
+        await processor._process_subscription('prod1', {
+            'left_pk': 'order1', 'hash': 7,
+            'instruction': SUBSCRIBE_AND_RESPOND,
+        })
+
+        assert processor.subscription_store['prod1\x00order1'] == {'hash': 7}
+        processor.response_topic.send.assert_called_once()
+        sent = processor.response_topic.send.call_args.kwargs
+        assert sent['key'] == 'order1'
+        assert sent['value'] == {'right_value': {'name': 'Widget'}, 'hash': 7}
+
+    @pytest.mark.asyncio
+    async def test_unsubscribe_only_removes_without_response(self, processor):
+        processor.subscription_store['prod1\x00order1'] = {'hash': 7}
+        await processor._process_subscription('prod1', {
+            'left_pk': 'order1', 'hash': 0, 'instruction': UNSUBSCRIBE_ONLY,
+        })
+
+        assert 'prod1\x00order1' not in processor.subscription_store
+        processor.response_topic.send.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_subscribe_only_stores_without_response(self, processor):
+        await processor._process_subscription('prod1', {
+            'left_pk': 'order1', 'hash': 7, 'instruction': SUBSCRIBE_ONLY,
+        })
+
+        assert 'prod1\x00order1' in processor.subscription_store
+        processor.response_topic.send.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_response_says_to_retract_as_asked(self, processor):
+        processor.right_table.get = Mock(return_value=None)
+        await processor._process_subscription('prod9', {
+            'left_pk': 'order1', 'hash': 7,
+            'instruction': SUBSCRIBE_AND_RESPOND, 'retract': True,
+        })
+
+        sent = processor.response_topic.send.call_args.kwargs
+        assert sent['value'] == {
+            'right_value': None, 'hash': 7, 'retract': True}
+
+
+class test_right_table_change:
+
+    @pytest.fixture()
+    def processor(self, processor):
+        processor._subscription_store = _MockStore({
+            'prod1\x00order1': {'hash': 1},
+            'prod1\x00order2': {'hash': 2},
+        })
+        return processor
+
+    def test_update_responds_to_every_subscriber(self, processor):
+        processor._on_right_table_change('prod1', {'name': 'Updated'})
+
+        sent = {c.kwargs['key']: c.kwargs['value'] for c in
+                processor.response_topic.send_soon.call_args_list}
+        assert sent == {
+            'order1': {'right_value': {'name': 'Updated'}, 'hash': 1},
+            'order2': {'right_value': {'name': 'Updated'}, 'hash': 2},
+        }
+
+    def test_update_without_subscribers_sends_nothing(self, processor):
+        processor._on_right_table_change('prod_no_subs', {'name': 'Widget'})
+        processor.response_topic.send_soon.assert_not_called()
+
+    def test_deletion_responds_with_no_right_value(self, processor):
+        processor._on_right_table_change('prod1', None, is_delete=True)
+
+        calls = processor.response_topic.send_soon.call_args_list
+        assert len(calls) == 2
+        assert all(c.kwargs['value']['right_value'] is None for c in calls)
+
+    def test_deletion_retracts_and_an_update_does_not(self, processor):
+        processor._on_right_table_change('prod1', None, is_delete=True)
+        processor._on_right_table_change('prod1', {'name': 'Back'})
+
+        deleted, updated = (
+            [c.kwargs['value'] for c in
+             processor.response_topic.send_soon.call_args_list][i:i + 2]
+            for i in (0, 2))
+        assert all(v['retract'] is True for v in deleted)
+        assert all('retract' not in v for v in updated)
+
+
+class test_process_response:
+
+    LEFT = {'product_id': 'prod1', 'qty': 5}
+
+    @pytest.fixture()
+    def processor(self, processor):
+        processor.left_table.get = Mock(return_value=self.LEFT)
+        return processor
+
+    def _response(self, right_value, hash=None):
+        if hash is None:
+            hash = KeyJoinProcessor.compute_hash(self.LEFT)
+        return {'right_value': right_value, 'hash': hash}
+
+    @pytest.mark.asyncio
+    async def test_current_hash_emits_joined_value(self, processor):
+        await _respond(processor, 'order1', self._response({'name': 'Widget'}))
+
+        assert _results(processor) == [
+            ('order1', JoinedValue(left=self.LEFT, right={'name': 'Widget'}))]
+
+    @pytest.mark.asyncio
+    async def test_stale_hash_discards(self, processor):
+        await _respond(
+            processor, 'order1', self._response({'name': 'Widget'}, hash=1))
+        assert _results(processor) == []
+
+    @pytest.mark.asyncio
+    async def test_deleted_left_record_discards(self, processor):
+        processor.left_table.get = Mock(return_value=None)
+        await _respond(processor, 'order1', self._response({'name': 'Widget'}))
+        assert _results(processor) == []
+
+    @pytest.mark.asyncio
+    async def test_inner_join_skips_missing_right_value(self, processor):
+        await _respond(processor, 'order1', self._response(None))
+        assert _results(processor) == []
+
+    @pytest.mark.asyncio
+    async def test_left_join_emits_missing_right_value(self, processor):
+        processor.inner = False
+        await _respond(processor, 'order1', self._response(None))
+        assert _results(processor) == [
+            ('order1', JoinedValue(left=self.LEFT, right=None))]
+
+    @pytest.mark.asyncio
+    async def test_inner_join_retracts_when_asked(self, processor):
+        await _respond(
+            processor, 'order1', {**self._response(None), 'retract': True})
+        assert _results(processor) == [('order1', None)]
+
+    @pytest.mark.asyncio
+    async def test_left_join_answers_rather_than_retracts(self, processor):
+        # The row is there: its result has no right value.
+        processor.inner = False
+        await _respond(
+            processor, 'order1', {**self._response(None), 'retract': True})
+        assert _results(processor) == [
+            ('order1', JoinedValue(left=self.LEFT, right=None))]
+
+    @pytest.mark.asyncio
+    async def test_deleted_row_is_retracted(self, processor):
+        processor.left_table.get = Mock(return_value=None)
+        await _respond(processor, 'order1', {
+            'right_value': None, 'hash': 0, 'retract': True})
+        assert _results(processor) == [('order1', None)]
+
+    @pytest.mark.asyncio
+    async def test_retraction_of_a_recreated_row_is_stale(self, processor):
+        await _respond(processor, 'order1', {
+            'right_value': None, 'hash': 0, 'retract': True})
+        assert _results(processor) == []
+
+    @pytest.mark.asyncio
+    async def test_retraction_carries_the_response(self, processor):
+        response = await _respond(
+            processor, 'order1', {**self._response(None), 'retract': True})
+        [retraction] = _emitted(processor)
+
+        response.ack()
+        assert not response.message.acked
+        retraction.ack()
+        assert response.message.acked
+
+
+class _Wire:
+    """The join's topics: each message is processed in the order sent."""
+
+    def __init__(self, proc, lefts, rights):
+        self.proc, self.lefts, self.rights = proc, lefts, rights
+        proc.left_table.get = Mock(side_effect=lefts.get)
+        proc.right_table.get = Mock(side_effect=rights.get)
+        self.pending = []
+        proc._subscription_topic.send_soon = Mock(
+            side_effect=lambda **kw: self.pending.append(('subscribe', kw)))
+        proc._response_topic.send_soon = Mock(
+            side_effect=lambda **kw: self.pending.append(('respond', kw)))
+        proc._response_topic.send = AsyncMock(
+            side_effect=lambda **kw: self.pending.append(('respond', kw)))
+
+    async def left(self, key, value):
+        if value is None:
+            self.proc._on_left_key_del(key)
+            del self.lefts[key]
+        else:
+            self.lefts[key] = value
+            self.proc._on_left_key_set(key, value)
+        return await self._drain()
+
+    async def right(self, key, value):
+        if value is None:
+            self.proc._on_right_key_del(key)
+            del self.rights[key]
+        else:
+            self.rights[key] = value
+            self.proc._on_right_key_set(key, value)
+        return await self._drain()
+
+    async def _drain(self):
+        while self.pending:
+            kind, kw = self.pending.pop(0)
+            if kind == 'subscribe':
+                await self.proc._process_subscription(kw['key'], kw['value'])
+            else:
+                await _respond(self.proc, kw['key'], kw['value'])
+        return [(key, value if value is None else
+                 (value.left['id'], value.right and value.right['name']))
+                for key, value in _results(self.proc)]
+
+
+class test_join_results:
+    """What each join emits as its tables change."""
+
+    PEN = {'name': 'Pen'}
+    INK = {'name': 'Ink'}
+
+    @pytest.fixture()
+    def wire(self, processor):
+        return _Wire(processor, lefts={}, rights={})
+
+    def _order(self, id, product_id):
+        return {'id': id, 'product_id': product_id}
+
+    @pytest.mark.asyncio
+    async def test_left_join(self, wire):
+        wire.proc.inner = False
+        assert await wire.right('p1', self.PEN) == []
+        assert await wire.left('o1', self._order('o1', 'p1')) == [
+            ('o1', ('o1', 'Pen'))]
+        assert await wire.left('o2', self._order('o2', 'p9')) == [
+            ('o2', ('o2', None))]
+        assert await wire.left('o3', self._order('o3', None)) == [
+            ('o3', ('o3', None))]
+        assert await wire.left('o1', self._order('o1', None)) == [
+            ('o1', ('o1', None))]
+        assert await wire.right('p9', self.INK) == [('o2', ('o2', 'Ink'))]
+        assert await wire.left('o2', None) == [('o2', None)]
+        assert await wire.left('o3', None) == [('o3', None)]
+        assert await wire.right('p9', None) == []
+
+    @pytest.mark.asyncio
+    async def test_inner_join(self, wire):
+        assert await wire.right('p1', self.PEN) == []
+        assert await wire.left('o1', self._order('o1', 'p1')) == [
+            ('o1', ('o1', 'Pen'))]
+        assert await wire.left('o2', self._order('o2', 'p9')) == []
+        assert await wire.left('o3', self._order('o3', None)) == []
+        assert await wire.left('o1', self._order('o1', None)) == [
+            ('o1', None)]
+        assert await wire.right('p9', self.INK) == [('o2', ('o2', 'Ink'))]
+        assert await wire.right('p9', None) == [('o2', None)]
+        assert await wire.left('o2', self._order('o2', 'p1')) == [
+            ('o2', ('o2', 'Pen'))]
+        assert await wire.left('o2', None) == [('o2', None)]
+        assert await wire.left('o3', None) == []
+
+    @pytest.mark.asyncio
+    async def test_inner_join_retracts_on_a_missing_new_key(self, wire):
+        await wire.right('p1', self.PEN)
+        await wire.left('o1', self._order('o1', 'p1'))
+        assert await wire.left('o1', self._order('o1', 'p9')) == [
+            ('o1', None)]
+
+    @pytest.mark.asyncio
+    async def test_new_unmatched_row_is_not_retracted(self, wire):
+        assert await wire.left('o1', self._order('o1', 'p9')) == []
+
+
+class test_end_to_end:
+
+    @pytest.fixture()
+    def processor(self, processor):
+        processor.right_table.get = Mock(
+            return_value={'name': 'Widget', 'price': 9.99})
+        return processor
+
+    @pytest.mark.asyncio
+    async def test_left_change_joins_through_subscription(self, processor):
+        left_value = {'product_id': 'prod1', 'qty': 5}
+        processor._on_left_table_change('order1', left_value)
+        [sent] = _subscription_calls(processor)
+
+        await processor._process_subscription(sent['key'], sent['value'])
+        assert 'prod1\x00order1' in processor.subscription_store
+
+        response = processor.response_topic.send.call_args.kwargs
+        processor.left_table.get = Mock(return_value=left_value)
+        await _respond(processor, response['key'], response['value'])
+
+        assert _results(processor) == [('order1', JoinedValue(
+            left=left_value, right={'name': 'Widget', 'price': 9.99}))]
+
+    @pytest.mark.asyncio
+    async def test_right_update_reaches_every_subscriber(self, processor):
+        lefts = {'order1': {'product_id': 'prod1', 'qty': 5},
+                 'order2': {'product_id': 'prod1', 'qty': 3}}
+        for pk, value in lefts.items():
+            processor.subscription_store[f'prod1\x00{pk}'] = {
+                'hash': KeyJoinProcessor.compute_hash(value)}
+        processor.left_table.get = Mock(side_effect=lefts.get)
+
+        processor._on_right_table_change('prod1', {'name': 'Updated'})
+        for c in processor.response_topic.send_soon.call_args_list:
+            await _respond(processor, c.kwargs['key'], c.kwargs['value'])
+
+        assert sorted(key for key, _ in _results(processor)) == [
+            'order1', 'order2']
+
+    @pytest.mark.asyncio
+    async def test_response_to_an_older_version_is_discarded(self, processor):
+        first = {'product_id': 'prod1', 'qty': 5}
+        processor._on_left_table_change('order1', first)
+        [sent] = _subscription_calls(processor)
+        await processor._process_subscription(sent['key'], sent['value'])
+        response = processor.response_topic.send.call_args.kwargs
+
+        second = {'product_id': 'prod1', 'qty': 10}
+        processor._on_left_table_change('order1', second)
+        processor.left_table.get = Mock(return_value=second)
+        await _respond(processor, response['key'], response['value'])
+
+        assert _results(processor) == []
+
+
+class test_output_acks:
+    """A response is committed only once its result is acked downstream."""
+
+    LEFT = {'product_id': 'prod1', 'qty': 5}
+
+    @pytest.fixture()
+    def processor(self, processor):
+        processor.left_table.get = Mock(return_value=self.LEFT)
+        return processor
+
+    def _response(self):
+        return {'right_value': {'name': 'Widget'},
+                'hash': KeyJoinProcessor.compute_hash(self.LEFT)}
+
+    @pytest.mark.asyncio
+    async def test_result_carries_the_response(self, processor):
+        response = await _respond(processor, 'order1', self._response())
+
+        [result] = _emitted(processor)
+        assert result.message is response.message
+        assert result.key == 'order1'
+
+    @pytest.mark.asyncio
+    async def test_response_waits_for_the_result_ack(self, processor):
+        response = await _respond(processor, 'order1', self._response())
+        [result] = _emitted(processor)
+
+        response.ack()  # the response stream is done with it
+        assert not response.message.acked
+        result.ack()  # the agent reading the output is done with it
+        assert response.message.acked
+
+    @pytest.mark.asyncio
+    async def test_every_subscriber_acks(self, processor):
+        second = processor._output_channel.clone(is_iterator=True)
+        response = await _respond(processor, 'order1', self._response())
+        [first_result] = _emitted(processor)
+        [second_result] = _emitted(processor, second)
+
+        response.ack()
+        first_result.ack()
+        assert not response.message.acked
+        second_result.ack()
+        assert response.message.acked
+
+    @pytest.mark.asyncio
+    async def test_without_subscribers_nothing_is_held(self, processor):
+        del processor.subscriber
+        import gc
+        gc.collect()
+        response = await _respond(processor, 'order1', self._response())
+
+        response.ack()
+        assert response.message.acked
+
+    @pytest.mark.asyncio
+    async def test_discarded_response_is_not_held(self, processor):
+        response = await _respond(
+            processor, 'order1', {'right_value': None, 'hash': 1})
+
+        response.ack()
+        assert response.message.acked
+
+    @pytest.mark.asyncio
+    async def test_result_is_dropped_while_the_flow_is_suspended(
+            self, processor):
+        # A rebalance: waiting for the flow would hold the response the
+        # rebalance waits for.
+        processor.app.flow_control.suspend()
+        response = await asyncio.wait_for(
+            _respond(processor, 'order1', self._response()), timeout=1)
+
+        assert _emitted(processor) == []
+        response.ack()
+        assert not response.message.acked
+
+    @pytest.mark.asyncio
+    async def test_put_cleared_by_a_rebalance_drops_the_result(self, app):
+        processor = _with_topics(_make_processor(app))
+        processor._output_channel = app.channel(maxsize=1)
+        processor.subscriber = processor._output_channel.clone(
+            is_iterator=True)
+        processor.left_table.get = Mock(return_value=self.LEFT)
+        await _respond(processor, 'order0', self._response(), offset=0)
+
+        blocked = asyncio.ensure_future(
+            _respond(processor, 'order1', self._response()))
+        await asyncio.sleep(0.01)
+        assert not blocked.done()
+        app.flow_control.suspend()
+        app.flow_control.clear()
+        response = await asyncio.wait_for(blocked, timeout=1)
+
+        assert _emitted(processor) == []
+        response.ack()
+        assert not response.message.acked
+
+    @pytest.mark.asyncio
+    async def test_stopping_cancels_a_blocked_put(self, app):
+        processor = _with_topics(_make_processor(app))
+        processor._output_channel = app.channel(maxsize=1)
+        processor.subscriber = processor._output_channel.clone(
+            is_iterator=True)
+        processor.left_table.get = Mock(return_value=self.LEFT)
+        await _respond(processor, 'order0', self._response(), offset=0)
+
+        blocked = asyncio.ensure_future(
+            _respond(processor, 'order1', self._response()))
+        await asyncio.sleep(0.01)
+        blocked.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await blocked
+        assert processor.subscriber.queue._putters == type(
+            processor.subscriber.queue._putters)()
+
+
+class test_wiring:
+
+    @pytest.mark.asyncio
+    async def test_on_start_registers_callbacks(self, processor):
+        processor.add_future = Mock(
+            name='add_future', side_effect=lambda coro: coro.close())
+        await processor.on_start()
+
+        processor.left_table.register_on_key_set.assert_called_once_with(
+            processor._on_left_key_set)
+        processor.left_table.register_on_key_del.assert_called_once_with(
+            processor._on_left_key_del)
+        processor.right_table.register_on_key_set.assert_called_once_with(
+            processor._on_right_key_set)
+        processor.right_table.register_on_key_del.assert_called_once_with(
+            processor._on_right_key_del)
+
+    @pytest.mark.asyncio
+    async def test_on_stop_unregisters_callbacks(self, processor):
+        await processor.on_stop()
+
+        processor.left_table.unregister_on_key_set.assert_called_once_with(
+            processor._on_left_key_set)
+        processor.left_table.unregister_on_key_del.assert_called_once_with(
+            processor._on_left_key_del)
+        processor.right_table.unregister_on_key_set.assert_called_once_with(
+            processor._on_right_key_set)
+        processor.right_table.unregister_on_key_del.assert_called_once_with(
+            processor._on_right_key_del)
+
+    def test_left_key_set_delegates(self, processor):
+        processor._on_left_table_change = Mock(name='_on_left_table_change')
+        processor._on_left_key_set('order1', {'product_id': 'prod1'})
+        processor._on_left_table_change.assert_called_once_with(
+            'order1', {'product_id': 'prod1'})
+
+    def test_left_key_del_delegates_with_is_delete(self, processor):
+        processor._on_left_table_change = Mock(name='_on_left_table_change')
+        processor._on_left_key_del('order1')
+        processor._on_left_table_change.assert_called_once_with(
+            'order1', None, is_delete=True)
+
+    def test_right_key_set_delegates(self, processor):
+        processor._on_right_table_change = Mock(name='_on_right_table_change')
+        processor._on_right_key_set('prod1', {'name': 'Widget'})
+        processor._on_right_table_change.assert_called_once_with(
+            'prod1', {'name': 'Widget'})
+
+    def test_right_key_del_delegates_with_is_delete(self, processor):
+        processor._on_right_table_change = Mock(name='_on_right_table_change')
+        processor._on_right_key_del('prod1')
+        processor._on_right_table_change.assert_called_once_with(
+            'prod1', None, is_delete=True)
+
+    def test_table_callbacks_send_soon(self, processor):
+        # Table callbacks are synchronous: they cannot await a send.
+        processor._subscription_store = _MockStore({'prod1\x00order1': {}})
+        processor._on_left_table_change('order2', {'product_id': 'prod1'})
+        processor._on_right_table_change('prod1', {'name': 'Widget'})
+        processor.subscription_topic.send.assert_not_called()
+        processor.response_topic.send.assert_not_called()
+        processor.subscription_topic.send_soon.assert_called()
+        processor.response_topic.send_soon.assert_called()
+
+
+class test_deprecated_aliases:
+
+    def test_ForeignKeyJoin_warns(self):
+        from faust.joins import ForeignKeyJoin, KeyJoin
+        with pytest.warns(DeprecationWarning, match='KeyJoin'):
+            join = ForeignKeyJoin(Mock(), Mock(), extractor=Mock())
+        assert isinstance(join, KeyJoin)
+
+    def test_foreign_key_join_method_warns(self, app):
+        left = app.Table('left_dep', default=None)
+        right = app.Table('right_dep', default=None)
+        left.partitions = 4
+        right.partitions = 4
+        with pytest.warns(DeprecationWarning, match='key_join'):
+            left.foreign_key_join(right, extractor=lambda v: v)
