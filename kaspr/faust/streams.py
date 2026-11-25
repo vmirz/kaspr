@@ -6,6 +6,7 @@ import typing
 import weakref
 
 from asyncio import CancelledError
+from contextlib import suppress
 from contextvars import ContextVar
 from typing import (
     Any,
@@ -147,9 +148,8 @@ class Stream(StreamT[T_co], Service):
         self._on_start = on_start
 
         # attach beacon to channel, or if iterable attach to current task.
-        task = current_task()
-        if task is not None:
-            self.task_owner = task
+        with suppress(RuntimeError):  # no running event loop
+            self.task_owner = current_task()
 
         # Generate message handler
         self._on_stream_event_in = self.app.sensors.on_stream_event_in
