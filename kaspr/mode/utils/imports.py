@@ -6,6 +6,7 @@ import sys
 import typing
 import warnings
 from contextlib import contextmanager, suppress
+from importlib.metadata import entry_points
 from types import ModuleType
 from typing import (
     Any,
@@ -367,15 +368,8 @@ def load_extension_class_names(
     [('msgpack', 'faust_msgpack:msgpack')]
     ```
     """
-    try:
-        from pkg_resources import iter_entry_points
-    except ImportError:
-        return
-
-    for ep in iter_entry_points(namespace):
-        yield RawEntrypointExtension(
-            ep.name, ":".join([ep.module_name, ep.attrs[0]])
-        )
+    for ep in entry_points(group=namespace):
+        yield RawEntrypointExtension(ep.name, ":".join([ep.module, ep.attr]))
 
 
 @contextmanager
