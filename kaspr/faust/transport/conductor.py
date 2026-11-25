@@ -17,8 +17,8 @@ from typing import (
     Tuple,
     cast,
 )
-from mode import Service, get_logger
-from mode.utils.futures import notify
+from kaspr.mode import Service, get_logger
+from kaspr.mode.utils.futures import notify
 
 from kaspr.faust.exceptions import KeyDecodeError, ValueDecodeError
 from kaspr.faust.types import AppT, EventT, K, Message, TP, V

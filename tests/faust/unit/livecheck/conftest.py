@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 import pytest
-from mode.utils.mocks import ContextMock, patch
+from kaspr.mode.utils.mocks import ContextMock, patch
 from kaspr.faust.livecheck.models import TestExecution
 from kaspr.faust.livecheck.runners import TestRunner
 

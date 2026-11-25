@@ -2,7 +2,7 @@ import pytest
 from kaspr.faust import Event
 from kaspr.faust.stores.memory import Store
 from kaspr.faust.types import TP
-from mode.utils.mocks import Mock
+from kaspr.mode.utils.mocks import Mock
 
 
 class test_Store:

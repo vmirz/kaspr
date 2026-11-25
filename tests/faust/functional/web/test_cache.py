@@ -7,7 +7,7 @@ from kaspr.faust.exceptions import ImproperlyConfigured
 from kaspr.faust.web import Blueprint, View
 from kaspr.faust.web.cache import backends
 from kaspr.faust.web.cache.backends import redis
-from mode.utils.mocks import Mock
+from kaspr.mode.utils.mocks import Mock
 
 DEFAULT_TIMEOUT = 361.363
 VIEW_B_TIMEOUT = 64.3

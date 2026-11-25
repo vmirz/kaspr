@@ -6,8 +6,8 @@ from copy import copy
 from typing import Dict, IO, NamedTuple, Union
 from kaspr.faust.web.cache.backends.memory import CacheStorage
 from kaspr.faust.utils.tracing import set_current_span
-from mode.utils.logging import setup_logging
-from mode.utils.mocks import AsyncMock, Mock
+from kaspr.mode.utils.logging import setup_logging
+from kaspr.mode.utils.mocks import AsyncMock, Mock
 
 
 class AppMarks(NamedTuple):

@@ -11,7 +11,7 @@ from kaspr.faust.tables.sets import (
     SetTableManager,
     SetWindowSet,
 )
-from mode.utils.mocks import AsyncMock, Mock, call
+from kaspr.mode.utils.mocks import AsyncMock, Mock, call
 
 
 @pytest.fixture()

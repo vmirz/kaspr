@@ -18,9 +18,9 @@ from typing import (
     no_type_check,
 )
 
-from mode import Seconds, get_logger
-from mode.utils.futures import stampede
-from mode.utils.queues import ThrowableQueue
+from kaspr.mode import Seconds, get_logger
+from kaspr.mode.utils.futures import stampede
+from kaspr.mode.utils.queues import ThrowableQueue
 
 from .channels import SerializedChannel
 from .events import Event

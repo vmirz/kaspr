@@ -1,5 +1,5 @@
-from mode import Service, label
-from mode.utils.mocks import AsyncMock, Mock, call
+from kaspr.mode import Service, label
+from kaspr.mode.utils.mocks import AsyncMock, Mock, call
 import pytest
 
 

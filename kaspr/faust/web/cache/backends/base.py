@@ -3,8 +3,8 @@ import abc
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator, ClassVar, Optional, Tuple, Type, Union
 
-from mode import Service
-from mode.utils.logging import get_logger
+from kaspr.mode import Service
+from kaspr.mode.utils.logging import get_logger
 from yarl import URL
 
 from kaspr.faust.types import AppT

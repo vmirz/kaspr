@@ -1,5 +1,5 @@
-from mode import Service
-from mode.utils.locks import Event
+from kaspr.mode import Service
+from kaspr.mode.utils.locks import Event
 from typing import Any, Dict, List, Optional, Tuple
 from kaspr.types import KasprAppT, CronTickerT, TTLocation
 from kaspr.sensors.kaspr import KasprMonitor

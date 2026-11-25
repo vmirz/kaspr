@@ -5,7 +5,7 @@ import pytest
 from kaspr.faust import joins
 from kaspr.faust.exceptions import Skip
 from contextlib import ExitStack
-from mode.utils.mocks import AsyncMock, Mock, patch
+from kaspr.mode.utils.mocks import AsyncMock, Mock, patch
 from sortedcontainers import SortedSet
 from tests.faust.helpers import new_event
 

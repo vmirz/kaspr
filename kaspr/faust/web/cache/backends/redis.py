@@ -5,8 +5,8 @@ import typing
 from enum import Enum
 from typing import Any, Mapping, Optional, Type, Union
 
-from mode.utils.compat import want_bytes
-from mode.utils.objects import cached_property
+from kaspr.mode.utils.compat import want_bytes
+from kaspr.mode.utils.objects import cached_property
 from yarl import URL
 
 from kaspr.faust.exceptions import ImproperlyConfigured

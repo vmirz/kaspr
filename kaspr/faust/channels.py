@@ -22,9 +22,9 @@ from typing import (
 )
 from weakref import WeakSet
 
-from mode import Seconds, get_logger, want_seconds
-from mode.utils.futures import maybe_async, stampede
-from mode.utils.queues import ThrowableQueue
+from kaspr.mode import Seconds, get_logger, want_seconds
+from kaspr.mode.utils.futures import maybe_async, stampede
+from kaspr.mode.utils.queues import ThrowableQueue
 
 from .types import (
     AppT,

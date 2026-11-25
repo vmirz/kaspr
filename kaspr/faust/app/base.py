@@ -43,16 +43,16 @@ from typing import (
 
 import opentracing
 
-from mode import Seconds, Service, ServiceT, SupervisorStrategyT, want_seconds
-from mode.utils.aiter import aiter
+from kaspr.mode import Seconds, Service, ServiceT, SupervisorStrategyT, want_seconds
+from kaspr.mode.utils.aiter import aiter
 from contextlib import nullcontext
-from mode.utils.collections import force_mapping
-from mode.utils.futures import stampede
-from mode.utils.imports import import_from_cwd, smart_import
-from mode.utils.logging import flight_recorder, get_logger
-from mode.utils.objects import cached_property, qualname, shortlabel
-from mode.utils.queues import FlowControlEvent, ThrowableQueue
-from mode.utils.types.trees import NodeT
+from kaspr.mode.utils.collections import force_mapping
+from kaspr.mode.utils.futures import stampede
+from kaspr.mode.utils.imports import import_from_cwd, smart_import
+from kaspr.mode.utils.logging import flight_recorder, get_logger
+from kaspr.mode.utils.objects import cached_property, qualname, shortlabel
+from kaspr.mode.utils.queues import FlowControlEvent, ThrowableQueue
+from kaspr.mode.utils.types.trees import NodeT
 
 from kaspr.faust import transport
 from kaspr.faust.agents import (
@@ -178,6 +178,8 @@ SCAN_IGNORE: Iterable[Any] = [
     # importing every module of it would run its command-line, and fail
     # for the packages that are optional.
     'kaspr.faust',
+    # Nor in mode, whose event loops patch the process when imported.
+    'kaspr.mode',
 ]
 
 E_NEED_ORIGIN = '''
@@ -503,7 +505,7 @@ class App(AppT, Service):
 
     def _init_signals(self) -> None:
         # Signals in Faust are the same as in Django, but asynchronous by
-        # default (:class:`mode.SyncSignal` is the normal ``def`` version)).
+        # default (:class:`kaspr.mode.SyncSignal` is the normal ``def`` version)).
         #
         # Signals in Faust are usually local to the app instance::
         #
@@ -1050,12 +1052,12 @@ class App(AppT, Service):
         return _inner
 
     def service(self, cls: Type[ServiceT]) -> Type[ServiceT]:
-        """Decorate :class:`mode.Service` to be started with the app.
+        """Decorate :class:`kaspr.mode.Service` to be started with the app.
 
         Examples:
             .. sourcecode:: python
 
-                from mode import Service
+                from kaspr.mode import Service
 
                 @app.service
                 class Foo(Service):

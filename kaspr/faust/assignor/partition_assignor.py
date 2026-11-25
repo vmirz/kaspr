@@ -18,7 +18,7 @@ from aiokafka.coordinator.protocol import (
     ConsumerProtocolMemberAssignment,
     ConsumerProtocolMemberMetadata,
 )
-from mode import get_logger
+from kaspr.mode import get_logger
 from yarl import URL
 
 from kaspr.faust.types.app import AppT

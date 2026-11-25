@@ -4,7 +4,7 @@ from kaspr.faust.livecheck.exceptions import TestTimeout
 from kaspr.faust.livecheck.locals import current_execution_stack, current_test_stack
 from kaspr.faust.livecheck.models import SignalEvent
 from kaspr.faust.livecheck.signals import BaseSignal, Signal
-from mode.utils.mocks import AsyncMock, Mock, patch
+from kaspr.mode.utils.mocks import AsyncMock, Mock, patch
 
 
 class test_BaseSignal:

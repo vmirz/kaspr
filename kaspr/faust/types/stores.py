@@ -13,8 +13,8 @@ from typing import (
     Tuple
 )
 
-from mode import ServiceT
-from mode.utils.collections import FastUserDict
+from kaspr.mode import ServiceT
+from kaspr.mode.utils.collections import FastUserDict
 from yarl import URL
 
 from .codecs import CodecArg

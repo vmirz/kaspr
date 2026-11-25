@@ -4,8 +4,8 @@ from kaspr.utils.functional import utc_now
 from typing import Optional, Iterable
 from kaspr.faust.app import BootStrategy
 from kaspr.faust.types import ServiceT
-from mode.utils.objects import cached_property
-from mode import SyncSignal
+from kaspr.mode.utils.objects import cached_property
+from kaspr.mode import SyncSignal
 from kaspr.types import CustomSettings, KasprAppT, MessageSchedulerT, AppBuilderT
 from kaspr.scheduler import MessageScheduler
 from kaspr.utils.stale_tables import purge_stale_table_dbs

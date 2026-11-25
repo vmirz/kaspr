@@ -1,6 +1,6 @@
 import logging
 from kaspr.faust.utils.terminal.spinners import Spinner, SpinnerHandler
-from mode.utils.mocks import Mock, call, patch
+from kaspr.mode.utils.mocks import Mock, call, patch
 
 
 def spinner(file=None, isatty=True):

@@ -1,5 +1,5 @@
 """Terminal utilities."""
-from mode.utils.compat import isatty
+from kaspr.mode.utils.compat import isatty
 from .spinners import Spinner, SpinnerHandler
 from .tables import Table, TableDataT, logtable, table
 

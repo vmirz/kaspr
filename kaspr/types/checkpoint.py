@@ -2,7 +2,7 @@ import typing
 from typing import Optional
 from kaspr.faust.types import ServiceT
 from kaspr.types.tuples import TTLocation, PT
-from mode.utils.locks import Event
+from kaspr.mode.utils.locks import Event
 
 if typing.TYPE_CHECKING:
     from .app import KasprAppT as _KasprAppT

@@ -3,8 +3,8 @@ import typing
 from typing import Optional
 from kaspr.types import TTLocation
 from kaspr.faust.types import ServiceT
-from mode.utils.objects import cached_property
-from mode.utils.locks import Event
+from kaspr.mode.utils.objects import cached_property
+from kaspr.mode.utils.locks import Event
 
 if typing.TYPE_CHECKING:
     from .app import KasprAppT as _KasprAppT

@@ -1,6 +1,6 @@
 """Transport registry."""
 from typing import Iterator, Type
-from mode.utils.imports import FactoryMapping
+from kaspr.mode.utils.imports import FactoryMapping
 from kaspr.faust.types import AppT, FixupT
 
 __all__ = ['by_name', 'by_url', 'fixups']

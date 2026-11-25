@@ -4,8 +4,8 @@ import typing
 import warnings
 from typing import Iterable
 
-from mode.utils.imports import symbol_by_name
-from mode.utils.objects import cached_property
+from kaspr.mode.utils.imports import symbol_by_name
+from kaspr.mode.utils.objects import cached_property
 
 from . import base
 

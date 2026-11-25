@@ -3,11 +3,11 @@ import sys
 from pathlib import Path
 
 from kaspr import faust
-import mode
+from kaspr import mode
 import pytest
 import pytz
 
-from mode.utils.mocks import patch
+from kaspr.mode.utils.mocks import patch
 from yarl import URL
 
 from kaspr.faust import App

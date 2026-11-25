@@ -3,7 +3,7 @@ from datetime import datetime
 from kaspr.utils.functional import utc_now
 from kaspr.faust.types.tuples import TP, MessageSentCallback
 from typing import Set, Any
-from mode import Signal
+from kaspr.mode import Signal
 
 
 class KasprTable(faust.Table):

@@ -3,10 +3,10 @@ import hashlib
 import json
 from collections import defaultdict
 from math import floor
-from mode import Service
+from kaspr.mode import Service
 from typing import Any, Set, MutableMapping, Mapping, List, Sequence, Iterator, Optional
-from mode.utils.objects import cached_property
-from mode.utils.locks import Event
+from kaspr.mode.utils.objects import cached_property
+from kaspr.mode.utils.locks import Event
 from kaspr.faust.types import TP, StreamT, EventT, TopicT
 from kaspr.types import (
     KasprAppT,

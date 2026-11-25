@@ -4,10 +4,10 @@ from datetime import datetime
 from typing import ClassVar, Type, Callable, Any
 from kaspr.faust.types import AppT, WindowT
 
-from mode.utils.objects import cached_property
+from kaspr.mode.utils.objects import cached_property
 from kaspr.types.message_scheduler import MessageSchedulerT
 from kaspr.types.table import KasprTableT
-from mode import SyncSignalT
+from kaspr.mode import SyncSignalT
 
 if typing.TYPE_CHECKING:
     from . import CustomSettings as _CustomSettings

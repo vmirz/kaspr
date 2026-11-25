@@ -24,7 +24,7 @@ from typing import (
     no_type_check,
 )
 
-from mode import Seconds, ServiceT
+from kaspr.mode import Seconds, ServiceT
 from yarl import URL
 
 from .core import HeadersArg

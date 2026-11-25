@@ -10,8 +10,8 @@ from kaspr.faust.stores.base import Store
 from kaspr.faust.tables.base import Collection
 from kaspr.faust.types import TP
 from kaspr.faust.windows import Window
-from mode import label, shortlabel
-from mode.utils.mocks import AsyncMock, Mock, call, patch
+from kaspr.mode import label, shortlabel
+from kaspr.mode.utils.mocks import AsyncMock, Mock, call, patch
 
 TP1 = TP('foo', 0)
 

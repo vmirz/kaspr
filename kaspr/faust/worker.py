@@ -16,11 +16,11 @@ from itertools import chain
 from pathlib import Path
 from typing import Any, Dict, IO, Iterable, Mapping, Optional, Set, Union
 
-import mode
+from kaspr import mode
 from aiokafka.structs import TopicPartition
-from mode import ServiceT, get_logger
-from mode.utils.logging import Severity, formatter2
-from mode.utils.locks import Event
+from kaspr.mode import ServiceT, get_logger
+from kaspr.mode.utils.logging import Severity, formatter2
+from kaspr.mode.utils.locks import Event
 
 from .types import AppT, SensorT, TP, TopicT
 from .types._env import (
@@ -158,7 +158,7 @@ class Worker(mode.Worker):
     """Worker.
 
     See Also:
-        This is a subclass of :class:`mode.Worker`.
+        This is a subclass of :class:`kaspr.mode.Worker`.
 
     Usage:
         You can start a worker using:

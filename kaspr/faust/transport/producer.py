@@ -9,7 +9,7 @@ The Producer is responsible for:
 import asyncio
 from asyncio import QueueEmpty
 from typing import Any, Awaitable, Mapping, Optional, cast
-from mode import Seconds, Service
+from kaspr.mode import Seconds, Service
 from kaspr.faust.exceptions import ProducerSendError
 from kaspr.faust.types import AppT, HeadersArg
 from kaspr.faust.types.tuples import FutureMessage, RecordMetadata, TP

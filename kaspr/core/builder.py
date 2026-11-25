@@ -8,7 +8,7 @@ from kaspr.types import KasprAppT, AppBuilderT
 from kaspr.types.models import AppSpec, AgentSpec, WebViewSpec, TableSpec, TaskSpec
 from kaspr.types.models.join import JoinSpec
 from kaspr.types.schemas import AppSpecSchema
-from mode.utils.objects import cached_property
+from kaspr.mode.utils.objects import cached_property
 
 
 class AppBuilder(AppBuilderT):

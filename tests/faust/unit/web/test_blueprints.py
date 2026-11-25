@@ -1,7 +1,7 @@
 from pathlib import Path
 import pytest
 from kaspr.faust import web
-from mode.utils.mocks import Mock
+from kaspr.mode.utils.mocks import Mock
 
 
 class test_Blueprint:

@@ -33,11 +33,11 @@ from typing import (
 import click
 from click import echo
 from colorclass import Color, disable_all_colors, enable_all_colors
-from mode import Service, ServiceT, Worker
-from mode.utils import text
-from mode.utils.compat import want_bytes
-from mode.utils.imports import import_from_cwd, symbol_by_name
-from mode.worker import exiting
+from kaspr.mode import Service, ServiceT, Worker
+from kaspr.mode.utils import text
+from kaspr.mode.utils.compat import want_bytes
+from kaspr.mode.utils.imports import import_from_cwd, symbol_by_name
+from kaspr.mode.worker import exiting
 
 from kaspr.faust.types._env import (
     BLOCKING_TIMEOUT,
@@ -625,7 +625,7 @@ class Command(abc.ABC):
 
     def as_service(self,
                    *args: Any, **kwargs: Any) -> ServiceT:
-        """Wrap command in a :class:`mode.Service` object."""
+        """Wrap command in a :class:`kaspr.mode.Service` object."""
         return Service.from_awaitable(
             self.execute(*args, **kwargs),
             name=type(self).__name__)

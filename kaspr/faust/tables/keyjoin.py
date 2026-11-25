@@ -3,7 +3,7 @@ import mmh3
 import asyncio
 from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple
 
-from mode import Service
+from kaspr.mode import Service
 
 from kaspr.faust.exceptions import KeyPlacementError
 from kaspr.faust.streams import current_event

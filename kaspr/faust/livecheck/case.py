@@ -24,8 +24,8 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Counter, Deque
 
 from aiohttp import ClientError, ClientTimeout
-from mode import Seconds, Service, want_seconds
-from mode.utils.times import humanize_seconds
+from kaspr.mode import Seconds, Service, want_seconds
+from kaspr.mode.utils.times import humanize_seconds
 from yarl import URL
 
 from kaspr.faust.utils import uuid

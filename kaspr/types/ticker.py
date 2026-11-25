@@ -1,6 +1,6 @@
 import typing
 from kaspr.faust.types import ServiceT
-from mode.utils.locks import Event
+from kaspr.mode.utils.locks import Event
 
 if typing.TYPE_CHECKING:
     from .app import KasprAppT as _KasprAppT

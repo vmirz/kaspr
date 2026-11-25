@@ -1,5 +1,5 @@
 import asyncio
-from mode.utils.aiter import anext
+from kaspr.mode.utils.aiter import anext
 import pytest
 from tests.faust.helpers import message
 

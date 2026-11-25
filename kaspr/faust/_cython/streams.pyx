@@ -1,7 +1,7 @@
 # cython: language_level=3
 from asyncio import sleep
 from time import monotonic
-from mode.utils.futures import maybe_async, notify
+from kaspr.mode.utils.futures import maybe_async, notify
 from kaspr.faust.exceptions import Skip
 from kaspr.faust.types import ChannelT, EventT
 

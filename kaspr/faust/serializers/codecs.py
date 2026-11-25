@@ -165,8 +165,8 @@ from base64 import b64decode, b64encode
 from types import ModuleType
 from typing import Any, Dict, MutableMapping, Optional, Tuple, cast
 
-from mode.utils.compat import want_bytes, want_str
-from mode.utils.imports import load_extension_classes
+from kaspr.mode.utils.compat import want_bytes, want_str
+from kaspr.mode.utils.imports import load_extension_classes
 
 from kaspr.faust.exceptions import ImproperlyConfigured
 from kaspr.faust.types.codecs import CodecArg, CodecT

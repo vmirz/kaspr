@@ -22,9 +22,9 @@ from typing import (
 )
 from uuid import uuid4
 
-from mode import Seconds, SupervisorStrategyT, want_seconds
-from mode.utils.imports import SymbolArg, symbol_by_name
-from mode.utils.logging import Severity
+from kaspr.mode import Seconds, SupervisorStrategyT, want_seconds
+from kaspr.mode.utils.imports import SymbolArg, symbol_by_name
+from kaspr.mode.utils.logging import Severity
 from yarl import URL
 
 from kaspr.faust.exceptions import AlreadyConfiguredWarning, ImproperlyConfigured
@@ -112,7 +112,7 @@ AGENT_TYPE = 'kaspr.faust.Agent'
 
 #: Default agent supervisor type, used as default for
 #: :setting:`agent_supervisor`.
-AGENT_SUPERVISOR_TYPE = 'mode.OneForOneSupervisor'
+AGENT_SUPERVISOR_TYPE = 'kaspr.mode.OneForOneSupervisor'
 
 CONSUMER_SCHEDULER_TYPE = 'kaspr.faust.transport.utils.DefaultSchedulingStrategy'
 

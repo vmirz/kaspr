@@ -16,7 +16,7 @@ from kaspr.faust.models.fields import (
     IntegerField,
     StringField,
 )
-from mode.utils.logging import get_logger
+from kaspr.mode.utils.logging import get_logger
 from kaspr.faust.models.tags import (
     Secret,
     Sensitive,

@@ -1,6 +1,6 @@
 import pytest
 from kaspr.faust.exceptions import SameNode
-from mode.utils.mocks import Mock
+from kaspr.mode.utils.mocks import Mock
 
 
 @pytest.yield_fixture()

@@ -15,12 +15,12 @@ from kaspr.faust.agents.replies import ReplyConsumer
 from kaspr.faust.events import Event
 from kaspr.faust.exceptions import ImproperlyConfigured
 from kaspr.faust.types import Message, TP
-from mode import SupervisorStrategy, label
-from mode.utils.aiter import aiter
-from mode.utils.futures import done_future
-from mode.utils.logging import CompositeLogger
-from mode.utils.mocks import ANY, AsyncMock, FutureMock, Mock, call, patch
-from mode.utils.trees import Node
+from kaspr.mode import SupervisorStrategy, label
+from kaspr.mode.utils.aiter import aiter
+from kaspr.mode.utils.futures import done_future
+from kaspr.mode.utils.logging import CompositeLogger
+from kaspr.mode.utils.mocks import ANY, AsyncMock, FutureMock, Mock, call, patch
+from kaspr.mode.utils.trees import Node
 
 
 class Word(Record):

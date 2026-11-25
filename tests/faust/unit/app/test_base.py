@@ -23,9 +23,9 @@ from kaspr.faust.types.models import ModelT
 from kaspr.faust.types.settings import Settings
 from kaspr.faust.types.tables import GlobalTableT
 from kaspr.faust.types.web import ResourceOptions
-from mode import Service
-from mode.utils.compat import want_bytes
-from mode.utils.mocks import ANY, AsyncMock, Mock, call, patch
+from kaspr.mode import Service
+from kaspr.mode.utils.compat import want_bytes
+from kaspr.mode.utils.mocks import ANY, AsyncMock, Mock, call, patch
 from yarl import URL
 import pytest
 

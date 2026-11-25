@@ -3,7 +3,7 @@ from kaspr.faust import web
 from kaspr.faust.exceptions import ImproperlyConfigured
 from kaspr.faust.sensors.statsd import StatsdMonitor
 from kaspr.faust.types import TP
-from mode.utils.mocks import Mock, call
+from kaspr.mode.utils.mocks import Mock, call
 
 TP1 = TP('foo', 3)
 

@@ -11,7 +11,7 @@ import asyncio
 import gc
 from types import SimpleNamespace
 
-from mode.utils.locks import Event
+from kaspr.mode.utils.locks import Event
 
 from kaspr.scheduler.dispatcher import Dispatcher
 from kaspr.scheduler.janitor import Janitor

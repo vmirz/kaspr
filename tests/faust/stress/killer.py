@@ -5,7 +5,7 @@ from itertools import cycle
 from typing import List, NamedTuple
 
 import envoy
-from mode import Service, Worker
+from kaspr.mode import Service, Worker
 
 
 class Span(NamedTuple):

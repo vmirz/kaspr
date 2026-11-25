@@ -7,13 +7,13 @@ import pytest
 from _pytest.assertion.util import _compare_eq_dict, _compare_eq_set
 from aiohttp.client import ClientError, ClientSession
 from aiohttp.web import Response
-from mode.utils.futures import all_tasks
+from kaspr.mode.utils.futures import all_tasks
 from tests.faust import mocks
 
-# Before anything imports them from mode.utils.mocks.
+# Before anything imports them from kaspr.mode.utils.mocks.
 mocks.install()
 
-from mode.utils.mocks import (  # noqa: E402
+from kaspr.mode.utils.mocks import (  # noqa: E402
     AsyncContextManagerMock,
     AsyncMock,
     MagicMock,

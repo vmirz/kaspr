@@ -22,8 +22,8 @@ from typing import (
     no_type_check,
 )
 
-from mode import ServiceT, SupervisorStrategyT
-from mode.utils.collections import ManagedUserDict
+from kaspr.mode import ServiceT, SupervisorStrategyT
+from kaspr.mode.utils.collections import ManagedUserDict
 
 from .codecs import CodecArg
 from .core import HeadersArg, K, V

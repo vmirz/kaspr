@@ -27,18 +27,18 @@ from typing import (
 from uuid import uuid4
 from weakref import WeakSet, WeakValueDictionary
 
-from mode import (
+from kaspr.mode import (
     CrashingSupervisor,
     Service,
     ServiceT,
     SupervisorStrategyT,
 )
-from mode.utils.aiter import aenumerate, aiter
-from mode.utils.compat import want_bytes, want_str
-from mode.utils.futures import maybe_async
-from mode.utils.objects import canonshortname, qualname
-from mode.utils.text import shorten_fqdn
-from mode.utils.types.trees import NodeT
+from kaspr.mode.utils.aiter import aenumerate, aiter
+from kaspr.mode.utils.compat import want_bytes, want_str
+from kaspr.mode.utils.futures import maybe_async
+from kaspr.mode.utils.objects import canonshortname, qualname
+from kaspr.mode.utils.text import shorten_fqdn
+from kaspr.mode.utils.types.trees import NodeT
 
 from kaspr.faust.exceptions import ImproperlyConfigured
 from kaspr.faust.utils.tracing import traced_from_parent_span

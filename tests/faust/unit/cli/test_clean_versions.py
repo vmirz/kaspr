@@ -1,7 +1,7 @@
 from pathlib import Path
 import pytest
 from kaspr.faust.cli.clean_versions import clean_versions
-from mode.utils.mocks import Mock, call, patch
+from kaspr.mode.utils.mocks import Mock, call, patch
 
 
 class test_clean_versions:

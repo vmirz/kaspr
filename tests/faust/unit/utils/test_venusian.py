@@ -1,5 +1,5 @@
 from kaspr.faust.utils import venusian
-from mode.utils.mocks import Mock, patch
+from kaspr.mode.utils.mocks import Mock, patch
 
 
 def test_attach():

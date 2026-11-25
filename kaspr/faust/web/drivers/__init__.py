@@ -1,6 +1,6 @@
 """Web server driver registry."""
 from typing import Type
-from mode.utils.imports import FactoryMapping
+from kaspr.mode.utils.imports import FactoryMapping
 from kaspr.faust.web.base import Web
 
 __all__ = ['by_name', 'by_url']

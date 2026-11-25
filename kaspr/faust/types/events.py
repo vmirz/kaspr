@@ -1,7 +1,7 @@
 import abc
 import typing
 from typing import Any, Awaitable, Generic, Mapping, Optional, TypeVar, Union
-from mode.utils.typing import AsyncContextManager
+from kaspr.mode.utils.typing import AsyncContextManager
 from .codecs import CodecArg
 from .core import HeadersArg, K, V
 from .tuples import Message, MessageSentCallback, RecordMetadata

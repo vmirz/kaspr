@@ -1,5 +1,5 @@
 from typing import Any, Callable, Iterator, List
-from mode.utils.objects import cached_property
+from kaspr.mode.utils.objects import cached_property
 from kaspr import faust
 from kaspr.faust.types import RecordMetadata
 from . import config

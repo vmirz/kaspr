@@ -1,8 +1,8 @@
-"""Mock helpers the test suite imports from :mod:`mode.utils.mocks`.
+"""Mock helpers the test suite imports from :mod:`kaspr.mode.utils.mocks`.
 
-Robinhood's ``mode`` shipped them; ``mode-streaming``, which Faust requires
-now, keeps only ``IN``, ``call``, ``mask_module`` and ``patch_module``.
-:func:`install` puts the rest back into ``mode.utils.mocks`` before any test
+Robinhood's ``mode`` shipped them; ``mode-streaming``, which Kaspr embeds as
+``kaspr.mode``, keeps only ``IN``, ``call``, ``mask_module`` and ``patch_module``.
+:func:`install` puts the rest back into ``kaspr.mode.utils.mocks`` before any test
 module imports them, with mode's semantics: an :class:`AsyncMock` records the
 awaited call on its ``coro`` attribute, which the tests assert on.
 """
@@ -162,8 +162,8 @@ class FutureMock(unittest.mock.Mock):
 
 
 def install() -> None:
-    """Add the helpers mode-streaming dropped to ``mode.utils.mocks``."""
-    import mode.utils.mocks as target
+    """Add the helpers mode-streaming dropped to ``kaspr.mode.utils.mocks``."""
+    import kaspr.mode.utils.mocks as target
     for name in __all__:
         if name != 'install' and not hasattr(target, name):
             setattr(target, name, globals()[name])

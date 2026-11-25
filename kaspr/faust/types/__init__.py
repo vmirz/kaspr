@@ -1,5 +1,5 @@
 """Abstract types for static typing."""
-from mode import ServiceT
+from kaspr.mode import ServiceT
 
 from .agents import AgentManagerT, AgentT
 from .app import AppT
@@ -40,7 +40,7 @@ from .tuples import (
 from .windows import WindowRange, WindowT
 
 __all__ = [
-    # :pypi:`mode`
+    # :mod:`kaspr.mode`
     'ServiceT',
 
     # types.agents

@@ -17,8 +17,8 @@ from typing import (
     cast,
 )
 
-from mode import Seconds
-from mode.utils.typing import NoReturn
+from kaspr.mode import Seconds
+from kaspr.mode.utils.typing import NoReturn
 
 from kaspr.faust.exceptions import ImproperlyConfigured
 from kaspr.faust.streams import current_event

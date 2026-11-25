@@ -3,8 +3,8 @@ from collections import deque
 from datetime import datetime, timedelta, timezone
 from statistics import median
 import pytest
-from mode import label
-from mode.utils.mocks import ANY, AsyncMock, Mock, patch
+from kaspr.mode import label
+from kaspr.mode.utils.mocks import ANY, AsyncMock, Mock, patch
 from kaspr.faust.livecheck import Case
 from kaspr.faust.livecheck.exceptions import SuiteFailed
 from kaspr.faust.livecheck.models import State, TestReport
@@ -233,7 +233,7 @@ class test_Case:
     async def test__send_frequency__first_stop(self, *, case, loop):
         case.frequency = 0.1
         case.sleep = AsyncMock()
-        with patch('mode.services.Timer') as ti:
+        with patch('kaspr.mode.services.Timer') as ti:
 
             async def on_itertimer(*args, **kwargs):
                 case._stopped.set()
@@ -250,7 +250,7 @@ class test_Case:
         case.frequency = 0.0
         case.sleep = AsyncMock()
         case.make_fake_request = AsyncMock()
-        with patch('mode.services.Timer') as ti:
+        with patch('kaspr.mode.services.Timer') as ti:
 
             async def on_itertimer(*args, **kwargs):
                 case._stopped.set()
@@ -268,7 +268,7 @@ class test_Case:
         case.frequency = 0.1
         case.sleep = AsyncMock()
         case.app.is_leader = Mock(return_value=False)
-        with patch('mode.services.Timer') as ti:
+        with patch('kaspr.mode.services.Timer') as ti:
 
             async def on_itertimer(*args, **kwargs):
                 for val in [0.1, 0.2, 0.3, 0.4]:
@@ -294,7 +294,7 @@ class test_Case:
         case.sleep = AsyncMock()
         case.frequency = 10.0
         case.app.is_leader = Mock(return_value=False)
-        with patch('mode.services.Timer') as ti:
+        with patch('kaspr.mode.services.Timer') as ti:
             async def on_itertimer(*args, **kwargs):
                 for val in [0.1, 0.2, 0.3, 0.4]:
                     yield val
@@ -324,7 +324,7 @@ class test_Case:
 
     @pytest.mark.asyncio
     async def test__check_frequency(self, *, case):
-        with patch('mode.services.Timer') as ti:
+        with patch('kaspr.mode.services.Timer') as ti:
 
             async def on_itertimer(*args, **kwargs):
                 for val in [0.1, 0.2, 0.3, 0.4, 0.5]:
@@ -338,7 +338,7 @@ class test_Case:
         frozen_monotonic.return_value = 600.0
         case.warn_stalled_after = 10.0
         case.on_suite_fail = AsyncMock()
-        with patch('mode.services.Timer') as ti:
+        with patch('kaspr.mode.services.Timer') as ti:
 
             async def on_itertimer(*args, **kwargs):
                 case.last_test_received = 10.0
@@ -352,7 +352,7 @@ class test_Case:
 
     @pytest.mark.asyncio
     async def test__check_frequency__should_stop1(self, *, case):
-        with patch('mode.services.Timer') as ti:
+        with patch('kaspr.mode.services.Timer') as ti:
 
             async def on_itertimer(*args, **kwargs):
                 case._stopped.set()
@@ -368,7 +368,7 @@ class test_Case:
 
     @pytest.mark.asyncio
     async def test__check_frequency__last_stop(self, *, case):
-        with patch('mode.services.Timer') as ti:
+        with patch('kaspr.mode.services.Timer') as ti:
             case._stopped.clear()
             assert not case.should_stop
 

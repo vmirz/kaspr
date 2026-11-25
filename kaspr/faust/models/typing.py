@@ -34,7 +34,7 @@ from typing import (
     TypeVar,
     Union,
 )
-from mode.utils.objects import (
+from kaspr.mode.utils.objects import (
     DICT_TYPES,
     LIST_TYPES,
     SET_TYPES,

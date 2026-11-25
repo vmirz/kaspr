@@ -29,11 +29,11 @@ from typing import (
     cast,
 )
 
-from mode import Seconds, Service, get_logger, shortlabel, want_seconds
-from mode.utils.aiter import aenumerate, aiter
-from mode.utils.futures import current_task, maybe_async, notify
-from mode.utils.queues import ThrowableQueue
-from mode.utils.types.trees import NodeT
+from kaspr.mode import Seconds, Service, get_logger, shortlabel, want_seconds
+from kaspr.mode.utils.aiter import aenumerate, aiter
+from kaspr.mode.utils.futures import current_task, maybe_async, notify
+from kaspr.mode.utils.queues import ThrowableQueue
+from kaspr.mode.utils.types.trees import NodeT
 
 from . import joins
 from .exceptions import ImproperlyConfigured, Skip

@@ -44,7 +44,7 @@ from typing import (
     Type,
 )
 
-from mode.utils.objects import canoname
+from kaspr.mode.utils.objects import canoname
 
 from kaspr.faust.exceptions import ValidationError
 from kaspr.faust.serializers.codecs import CodecArg, dumps, loads

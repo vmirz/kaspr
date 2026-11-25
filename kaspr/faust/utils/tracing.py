@@ -8,7 +8,7 @@ from functools import wraps
 from typing import Any, Callable, Optional, Tuple
 
 import opentracing
-from mode import shortlabel
+from kaspr.mode import shortlabel
 
 __all__ = [
     'current_span',

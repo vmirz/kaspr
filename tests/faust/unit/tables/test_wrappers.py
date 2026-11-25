@@ -8,7 +8,7 @@ from kaspr.faust.events import Event
 from kaspr.faust.exceptions import ImproperlyConfigured
 from kaspr.faust.tables.wrappers import WindowSet
 from kaspr.faust.types import Message
-from mode.utils.mocks import Mock, patch
+from kaspr.mode.utils.mocks import Mock, patch
 
 DATETIME = datetime.utcnow()
 DATETIME_TS = DATETIME.timestamp()

@@ -1,13 +1,13 @@
 import asyncio
 import gc
-from mode import Service
-from mode.utils.objects import cached_property
-from mode.utils.futures import notify
+from kaspr.mode import Service
+from kaspr.mode.utils.objects import cached_property
+from kaspr.mode.utils.futures import notify
 from typing import Any, Mapping, MutableSet, Optional, Set
 from kaspr.faust.types import ChannelT, StreamT, TopicT, FutureMessage, RecordMetadata
 from kaspr.types import KasprAppT, CheckpointT, TTLocation, TTMessage, PT
 from kaspr.sensors.kaspr import KasprMonitor
-from mode.utils.locks import Event
+from kaspr.mode.utils.locks import Event
 from .utils import create_message_key, current_timekey, SchedulerPart
 
 SECONDS_PER_DAY = 86400

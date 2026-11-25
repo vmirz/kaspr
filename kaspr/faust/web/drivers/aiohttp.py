@@ -27,8 +27,8 @@ from kaspr.faust.types import AppT
 from kaspr.faust.utils import json as _json
 from kaspr.faust.web import base
 from kaspr.faust.types.web import ResourceOptions as _ResourceOptions
-from mode import Service
-from mode.threads import ServiceThread
+from kaspr.mode import Service
+from kaspr.mode.threads import ServiceThread
 
 __all__ = ['Web']
 

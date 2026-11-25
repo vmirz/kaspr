@@ -7,9 +7,9 @@ from kaspr.faust.exceptions import ImproperlyConfigured
 from kaspr.faust.utils import json as _json
 from hypothesis import given
 from hypothesis.strategies import binary, dictionaries, text
-from mode.utils.compat import want_str
+from kaspr.mode.utils.compat import want_str
 import pytest
-from mode.utils.mocks import patch
+from kaspr.mode.utils.mocks import patch
 
 DATA = {'a': 1, 'b': 'string'}
 

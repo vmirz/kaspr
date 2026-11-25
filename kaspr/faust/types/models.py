@@ -19,7 +19,7 @@ from typing import (
     Union,
     cast,
 )
-from mode.utils.objects import cached_property
+from kaspr.mode.utils.objects import cached_property
 from kaspr.faust.exceptions import ValidationError  # XXX !!coupled
 from .codecs import CodecArg
 

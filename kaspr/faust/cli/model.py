@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Any, Sequence, Type
 
 import click
-from mode.utils import text
+from kaspr.mode.utils import text
 
 from kaspr.faust.models import registry
 from kaspr.faust.types import FieldDescriptorT, ModelT

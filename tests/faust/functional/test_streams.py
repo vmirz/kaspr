@@ -5,9 +5,9 @@ from kaspr import faust
 import pytest
 from kaspr.faust.exceptions import ImproperlyConfigured
 from kaspr.faust.streams import maybe_forward
-from mode import label
-from mode.utils.aiter import aiter, anext
-from mode.utils.mocks import AsyncMock, Mock
+from kaspr.mode import label
+from kaspr.mode.utils.aiter import aiter, anext
+from kaspr.mode.utils.mocks import AsyncMock, Mock
 
 from .helpers import channel_empty, message, put
 

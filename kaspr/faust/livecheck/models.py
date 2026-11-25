@@ -3,9 +3,9 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Mapping, Optional
 
-from mode.utils.compat import want_str
-from mode.utils.objects import cached_property
-from mode.utils.text import abbr
+from kaspr.mode.utils.compat import want_str
+from kaspr.mode.utils.objects import cached_property
+from kaspr.mode.utils.text import abbr
 
 from kaspr.faust import Record
 from kaspr.faust.utils.iso8601 import parse as parse_iso8601

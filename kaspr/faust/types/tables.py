@@ -19,8 +19,8 @@ from typing import (
     ValuesView,
 )
 
-from mode import Seconds, ServiceT
-from mode.utils.collections import FastUserDict, ManagedUserDict
+from kaspr.mode import Seconds, ServiceT
+from kaspr.mode.utils.collections import FastUserDict, ManagedUserDict
 from yarl import URL
 
 from .codecs import CodecArg

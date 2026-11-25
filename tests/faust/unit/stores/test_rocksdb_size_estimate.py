@@ -2,7 +2,7 @@ import pytest
 from kaspr.faust.stores import rocksdb
 from kaspr.faust.stores.rocksdb import Store
 from kaspr.faust.types import TP
-from mode.utils.mocks import Mock
+from kaspr.mode.utils.mocks import Mock
 
 
 @pytest.mark.skipif(

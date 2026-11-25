@@ -3,7 +3,7 @@ from contextlib import ExitStack, contextmanager
 import pytest
 import terminaltables
 from kaspr.faust.utils.terminal import tables
-from mode.utils.mocks import Mock, patch
+from kaspr.mode.utils.mocks import Mock, patch
 
 TABLE_DATA = [
     ('foo', 1.0, 3.33, 6.66, 9.99),
@@ -26,7 +26,7 @@ def mock_stdout(isatty=True):
 
 @contextmanager
 def mock_logging(isatty=True):
-    with patch('mode.utils.logging.LOG_ISATTY', isatty):
+    with patch('kaspr.mode.utils.logging.LOG_ISATTY', isatty):
         yield
 
 

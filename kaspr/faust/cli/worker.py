@@ -5,9 +5,9 @@ import platform
 import socket
 from typing import Any, List, Optional, Type, cast
 
-from mode import ServiceT, Worker
-from mode.utils.imports import symbol_by_name
-from mode.utils.logging import level_name
+from kaspr.mode import ServiceT, Worker
+from kaspr.mode.utils.imports import symbol_by_name
+from kaspr.mode.utils.logging import level_name
 from yarl import URL
 
 from kaspr.faust.worker import Worker as FaustWorker

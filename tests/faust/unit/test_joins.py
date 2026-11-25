@@ -1,7 +1,7 @@
 import pytest
 from kaspr.faust import Event, Record, Stream
 from kaspr.faust.joins import InnerJoin, Join, LeftJoin, OuterJoin, RightJoin
-from mode.utils.mocks import Mock
+from kaspr.mode.utils.mocks import Mock
 
 
 class User(Record):

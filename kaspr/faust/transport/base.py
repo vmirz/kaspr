@@ -12,7 +12,7 @@ import asyncio
 
 from typing import Any, ClassVar, List, Type
 
-from mode.services import ServiceT
+from kaspr.mode.services import ServiceT
 from yarl import URL
 
 from kaspr.faust.types import AppT
