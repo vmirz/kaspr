@@ -1,6 +1,7 @@
 import asyncio
 import aiokafka
 from kaspr import faust
+import inspect
 import opentracing
 import pytest
 import random
@@ -1661,6 +1662,14 @@ class test_Producer:
             headers=None,
             transactional_id='tid',
         )
+
+    @pytest.mark.asyncio
+    async def test_send__no_transaction(self, producer, _producer):
+        await producer.send('topic', 'k', 'v', 3, 100, None)
+        _producer.send.assert_called_once()
+        args, kwargs = _producer.send.call_args
+        inspect.signature(aiokafka.AIOKafkaProducer.send).bind(
+            _producer, *args, **kwargs)
 
     @pytest.mark.asyncio
     async def test_send__no_timestamp(self, producer, _producer):
