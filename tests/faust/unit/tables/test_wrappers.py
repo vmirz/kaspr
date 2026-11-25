@@ -385,6 +385,22 @@ class test_WindowWrapper_using_key_index:
         }
         return items_leftover
 
+    def test_key_index_table_is_managed(self, *, app):
+        """Its changelog is created, assigned and recovered, as the table's."""
+        def on_changelog_event(event):
+            ...
+
+        table = app.Table('managed', on_changelog_event=on_changelog_event)
+        index = table.tumbling(60, key_index=True).key_index_table
+
+        assert app.tables['managed-key_index'] is index
+        assert index.changelog_topic_name != table.changelog_topic_name
+        assert {index.changelog_topic_name, table.changelog_topic_name} <= (
+            app.tables.changelog_topics)
+        assert index.window is None
+        # callbacks for the table's changelog are not for the index's
+        assert index._on_changelog_event is None
+
     def test_len(self, *, iwtable):
         iwtable.key_index_table = {1: 'A', 2: 'B'}
         assert len(iwtable) == 2
