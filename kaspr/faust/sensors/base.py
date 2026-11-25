@@ -2,7 +2,7 @@
 from time import monotonic
 from typing import Any, Dict, Iterator, Mapping, Optional, Set
 
-from mode import Service
+from kaspr.mode import Service
 
 from kaspr.faust import web
 from kaspr.faust.types import AppT, CollectionT, EventT, StreamT

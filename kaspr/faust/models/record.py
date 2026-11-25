@@ -18,12 +18,12 @@ from typing import (
 
 from collections import OrderedDict
 
-from mode.utils.objects import (
+from kaspr.mode.utils.objects import (
     annotations,
     is_optional,
     remove_optional,
 )
-from mode.utils.text import pluralize
+from kaspr.mode.utils.text import pluralize
 
 from kaspr.faust.types.models import (
     CoercionMapping,
@@ -438,7 +438,7 @@ class Record(Model, abstract=True):  # type: ignore
 
         data_rest = [
             '    if kwargs:',
-            '        from mode.utils.text import pluralize',
+            '        from kaspr.mode.utils.text import pluralize',
             '        message = "{} got unexpected {}: {}".format(',
             '            self.__class__.__name__,',
             '            pluralize(kwargs.__len__(), "argument"),',

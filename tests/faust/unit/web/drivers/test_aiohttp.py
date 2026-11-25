@@ -5,7 +5,7 @@ from pathlib import Path
 import aiohttp_cors
 import pytest
 from aiohttp.web import Application
-from mode.utils.mocks import ANY, AsyncMock, Mock, call, patch
+from kaspr.mode.utils.mocks import ANY, AsyncMock, Mock, call, patch
 from yarl import URL
 
 from kaspr.faust.types.web import ResourceOptions

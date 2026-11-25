@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from mode.utils.futures import (
+from kaspr.mode.utils.futures import (
     StampedeWrapper,
     done_future,
     maybe_async,

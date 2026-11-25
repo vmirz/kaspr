@@ -17,8 +17,8 @@ from typing import (
 
 from typing import NoReturn
 
-from mode.utils.logging import CompositeLogger
-from mode.utils.times import humanize_seconds
+from kaspr.mode.utils.logging import CompositeLogger
+from kaspr.mode.utils.times import humanize_seconds
 
 from kaspr.faust.models import maybe_model
 

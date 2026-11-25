@@ -72,12 +72,12 @@ from typing import (
 from weakref import WeakSet
 from sortedcontainers import SortedSet
 
-from mode import Service, ServiceT, flight_recorder, get_logger
-from mode.threads import MethodQueue, QueueServiceThread
-from mode.utils.futures import notify
-from mode.utils.locks import Event
-from mode.utils.text import pluralize
-from mode.utils.times import Seconds
+from kaspr.mode import Service, ServiceT, flight_recorder, get_logger
+from kaspr.mode.threads import MethodQueue, QueueServiceThread
+from kaspr.mode.utils.futures import notify
+from kaspr.mode.utils.locks import Event
+from kaspr.mode.utils.text import pluralize
+from kaspr.mode.utils.times import Seconds
 from kaspr.faust.exceptions import ProducerSendError
 from intervaltree import IntervalTree
 from kaspr.faust.types import AppT, ConsumerMessage, Message, RecordMetadata, TP

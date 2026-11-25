@@ -1,4 +1,4 @@
-"""Type classes for `mode.signals`."""
+"""Type classes for `kaspr.mode.signals`."""
 
 import abc
 import asyncio

@@ -1,7 +1,7 @@
 import pytest
 from kaspr.faust.exceptions import ImproperlyConfigured
 from kaspr.faust.types import TP
-from mode.utils.mocks import Mock, call
+from kaspr.mode.utils.mocks import Mock, call
 
 from kaspr.faust.sensors.datadog import (  # noqa
     DatadogMonitor,

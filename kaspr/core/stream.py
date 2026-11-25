@@ -3,9 +3,9 @@ import asyncio
 
 from asyncio import CancelledError
 from typing import AsyncIterable, List, Optional, Sequence, cast, Tuple
-from mode import Seconds, want_seconds
-from mode.utils.aiter import aiter
-from mode.utils.futures import notify
+from kaspr.mode import Seconds, want_seconds
+from kaspr.mode.utils.aiter import aiter
+from kaspr.mode.utils.futures import notify
 from kaspr.faust.types import EventT
 from kaspr.faust.types.streams import (
     T,

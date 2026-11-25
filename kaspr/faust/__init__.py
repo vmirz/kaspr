@@ -106,14 +106,14 @@ _loop = (_extract_arg_from_argv(shortopts=('-L',), longopts=('--loop',)) or
          os.environ.get('F_LOOP'))
 if _loop:  # pragma: no cover
     os.environ['FAUST_LOOP'] = _loop
-    import mode.loop
-    mode.loop.use(_loop)
+    import kaspr.mode.loop
+    kaspr.mode.loop.use(_loop)
 
 # To ensure `from kaspr import faust` executes quickly, this module imports
 # attributes lazily. The next section provides static type checkers
 # with information about the contents of this module.
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from mode import Service, ServiceT                          # noqa: E402
+    from kaspr.mode import Service, ServiceT                          # noqa: E402
     from .agents import Agent                                   # noqa: E402
     from .app import App                                        # noqa: E402
     from .auth import (                                         # noqa: E402
@@ -223,7 +223,7 @@ all_by_module: Mapping[str, Sequence[str]] = {
     ],
     'kaspr.faust.worker': ['Worker'],
     'kaspr.faust.utils': ['uuid'],
-    'mode.services': ['Service', 'ServiceT'],
+    'kaspr.mode.services': ['Service', 'ServiceT'],
 }
 
 object_origins = {}

@@ -1,4 +1,4 @@
-"""Type classes for `mode.utils.trees`."""
+"""Type classes for `kaspr.mode.utils.trees`."""
 
 import abc
 from typing import Any, Generic, Iterator, List, Optional, TypeVar, Union

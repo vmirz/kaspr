@@ -1063,7 +1063,7 @@ class Service(ServiceBase, ServiceCallbacks):
         """Sleep `interval` seconds for every iteration.
 
         This is an async iterator that takes advantage
-        of `~mode.timers.Timer` to monitor drift and timer
+        of `~kaspr.mode.timers.Timer` to monitor drift and timer
         overlap.
 
         Uses `Service.sleep` so exits fast when the service is

@@ -4,7 +4,7 @@ import typing
 
 from time import monotonic
 from typing import Any, Dict, Generic, Tuple, Type, TypeVar, cast
-from mode import Seconds, want_seconds
+from kaspr.mode import Seconds, want_seconds
 
 from kaspr.faust.models import maybe_model
 

@@ -4,14 +4,14 @@ from unittest.mock import ANY, AsyncMock, Mock, patch
 
 import pytest
 
-from mode.threads import (
+from kaspr.mode.threads import (
     MethodQueue,
     QueueServiceThread,
     ServiceThread,
     WorkerThread,
 )
-from mode.utils.futures import done_future
-from mode.utils.locks import Event
+from kaspr.mode.utils.futures import done_future
+from kaspr.mode.utils.locks import Event
 
 
 class test_WorkerThread:

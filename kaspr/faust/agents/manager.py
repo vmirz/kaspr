@@ -5,11 +5,11 @@ from collections import defaultdict
 from typing import Any, Dict, List, Mapping, MutableMapping, MutableSet, Set
 from weakref import WeakSet
 
-from mode import Service
+from kaspr.mode import Service
 from collections import OrderedDict
 
-from mode.utils.collections import ManagedUserDict
-from mode.utils.locks import Event
+from kaspr.mode.utils.collections import ManagedUserDict
+from kaspr.mode.utils.locks import Event
 
 from kaspr.faust.types import AgentManagerT, AgentT, AppT
 from kaspr.faust.types.tuples import TP, tp_set_to_map

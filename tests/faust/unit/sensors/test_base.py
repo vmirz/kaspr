@@ -6,7 +6,7 @@ from kaspr.faust.sensors import Sensor
 from kaspr.faust.transport.consumer import Consumer
 from kaspr.faust.transport.producer import Producer
 from kaspr.faust.types import Message, TP
-from mode.utils.mocks import Mock
+from kaspr.mode.utils.mocks import Mock
 
 TP1 = TP('foo', 0)
 

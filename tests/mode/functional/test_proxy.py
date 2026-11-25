@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock, MagicMock, Mock
 
 import pytest
 
-from mode import Service, label, shortlabel
-from mode.proxy import ServiceProxy
+from kaspr.mode import Service, label, shortlabel
+from kaspr.mode.proxy import ServiceProxy
 
 
 class Proxy(ServiceProxy):

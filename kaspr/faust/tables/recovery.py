@@ -18,11 +18,11 @@ from typing import (
 )
 
 import opentracing
-from mode import Service
-from mode.services import WaitArgT
-from mode.utils.locks import Event
-from mode.utils.times import humanize_seconds, humanize_seconds_ago
-from mode.utils.typing import Counter, Deque
+from kaspr.mode import Service
+from kaspr.mode.services import WaitArgT
+from kaspr.mode.utils.locks import Event
+from kaspr.mode.utils.times import humanize_seconds, humanize_seconds_ago
+from kaspr.mode.utils.typing import Counter, Deque
 
 from kaspr.faust.exceptions import ConsistencyError
 from kaspr.faust.types import AppT, EventT, TP

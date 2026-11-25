@@ -4,8 +4,8 @@ from weakref import ref
 
 import pytest
 
-from mode import label
-from mode.signals import Signal, SignalT, SyncSignal, SyncSignalT
+from kaspr.mode import label
+from kaspr.mode.signals import Signal, SignalT, SyncSignal, SyncSignalT
 
 
 class X:

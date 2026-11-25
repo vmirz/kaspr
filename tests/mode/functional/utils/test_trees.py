@@ -1,6 +1,6 @@
 import pytest
 
-from mode.utils.trees import Node
+from kaspr.mode.utils.trees import Node
 
 
 def test_Node():

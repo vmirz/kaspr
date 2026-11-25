@@ -4,7 +4,7 @@ import typing
 
 from math import floor
 from typing import List, Type, cast
-from mode import Seconds, want_seconds
+from kaspr.mode import Seconds, want_seconds
 
 from .types.windows import WindowRange, WindowRange_from_start, WindowT
 

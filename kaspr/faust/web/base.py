@@ -20,9 +20,9 @@ from typing import (
 )
 
 from urllib.parse import quote
-from mode import Service
-from mode.utils.compat import want_str
-from mode.utils.imports import SymbolArg, symbol_by_name
+from kaspr.mode import Service
+from kaspr.mode.utils.compat import want_str
+from kaspr.mode.utils.imports import SymbolArg, symbol_by_name
 from yarl import URL
 
 from kaspr.faust.types import AppT

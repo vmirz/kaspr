@@ -22,10 +22,10 @@ from unittest.mock import ANY, Mock
 
 import pytest
 
-from mode import Service, ServiceT
-from mode.services import ServiceBase, ServiceCallbacks
-from mode.utils.mocks import IN
-from mode.utils.objects import (
+from kaspr.mode import Service, ServiceT
+from kaspr.mode.services import ServiceBase, ServiceCallbacks
+from kaspr.mode.utils.mocks import IN
+from kaspr.mode.utils.objects import (
     InvalidAnnotation,
     KeywordReduce,
     Unordered,

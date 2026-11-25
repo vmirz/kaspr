@@ -1,7 +1,7 @@
 import psutil
 import shutil
 import os
-from mode import Service
+from kaspr.mode import Service
 from collections import defaultdict
 from typing import Mapping, MutableMapping, Optional, Dict
 from kaspr.types import (
@@ -13,7 +13,7 @@ from kaspr.types import (
     KasprTableT,
 )
 from kaspr.faust.sensors.monitor import Monitor
-from mode.utils.objects import KeywordReduce
+from kaspr.mode.utils.objects import KeywordReduce
 
 
 from kaspr.scheduler.utils import SchedulerPart

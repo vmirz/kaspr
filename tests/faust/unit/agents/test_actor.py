@@ -4,7 +4,7 @@ import pytest
 from kaspr.faust.agents import Agent
 from kaspr.faust.agents.actor import Actor, AsyncIterableActor, AwaitableActor
 from kaspr.faust.types import TP
-from mode.utils.mocks import AsyncMock, Mock
+from kaspr.mode.utils.mocks import AsyncMock, Mock
 
 
 class FakeActor(Actor):

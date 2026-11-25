@@ -14,7 +14,7 @@ from typing import (
 )
 
 from aiohttp.client import ClientSession as HttpClientT
-from mode import Seconds, ServiceT
+from kaspr.mode import Seconds, ServiceT
 from mypy_extensions import Arg, KwArg, VarArg
 from yarl import URL
 

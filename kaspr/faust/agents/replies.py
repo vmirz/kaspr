@@ -12,7 +12,7 @@ from typing import (
 )
 from weakref import WeakSet
 
-from mode import Service
+from kaspr.mode import Service
 
 from kaspr.faust.types import AppT, ChannelT, TopicT
 from .models import ReqRepResponse

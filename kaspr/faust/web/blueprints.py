@@ -54,7 +54,7 @@ Blueprints can be registered to multiple apps at the same time.
 from pathlib import Path
 from typing import List, Mapping, NamedTuple, Optional, Type, Union
 
-from mode.utils.times import Seconds
+from kaspr.mode.utils.times import Seconds
 
 from kaspr.faust.types import AppT
 from kaspr.faust.types.web import (

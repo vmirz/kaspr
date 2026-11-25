@@ -1,7 +1,7 @@
 """Actor - Individual Agent instances."""
 from typing import Any, AsyncGenerator, AsyncIterator, Coroutine, Set, cast
-from mode import Service
-from mode.utils.tracebacks import format_agen_stack, format_coro_stack
+from kaspr.mode import Service
+from kaspr.mode.utils.tracebacks import format_agen_stack, format_coro_stack
 
 from kaspr.faust.types import ChannelT, StreamT, TP
 from kaspr.faust.types.agents import (

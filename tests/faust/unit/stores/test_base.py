@@ -2,8 +2,8 @@ import pytest
 from kaspr.faust import Event, Table
 from kaspr.faust.stores.base import SerializedStore, Store
 from kaspr.faust.types import TP
-from mode import label
-from mode.utils.mocks import Mock
+from kaspr.mode import label
+from kaspr.mode.utils.mocks import Mock
 
 
 class MyStore(Store):

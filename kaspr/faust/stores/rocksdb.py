@@ -27,7 +27,7 @@ from typing import (
     cast,
 )
 
-from mode.utils.collections import LRUCache
+from kaspr.mode.utils.collections import LRUCache
 from yarl import URL
 
 from kaspr.faust.exceptions import ImproperlyConfigured

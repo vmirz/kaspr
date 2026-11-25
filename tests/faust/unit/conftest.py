@@ -3,7 +3,7 @@ from kaspr import faust
 import pytest
 from kaspr.faust.transport.producer import Producer
 from kaspr.faust.utils.tracing import set_current_span
-from mode.utils.mocks import AsyncMock, Mock
+from kaspr.mode.utils.mocks import AsyncMock, Mock
 
 
 @pytest.fixture()

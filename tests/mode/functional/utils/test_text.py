@@ -2,7 +2,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from mode.utils import text
+from kaspr.mode.utils import text
 
 
 @pytest.mark.parametrize(

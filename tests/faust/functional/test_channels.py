@@ -1,10 +1,10 @@
 import asyncio
 from kaspr import faust
 from kaspr.faust.types import StreamT, TP
-from mode import label
-from mode.utils.aiter import aiter, anext
-from mode.utils.mocks import Mock
-from mode.utils.queues import FlowControlQueue
+from kaspr.mode import label
+from kaspr.mode.utils.aiter import aiter, anext
+from kaspr.mode.utils.mocks import Mock
+from kaspr.mode.utils.queues import FlowControlQueue
 import pytest
 from .helpers import channel_empty, message, times_out
 

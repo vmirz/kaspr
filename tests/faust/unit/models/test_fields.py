@@ -1,6 +1,6 @@
 from decimal import Decimal
 import pytest
-from mode.utils.mocks import Mock
+from kaspr.mode.utils.mocks import Mock
 from kaspr.faust import Record
 from kaspr.faust.exceptions import ValidationError
 from kaspr.faust.models.fields import (

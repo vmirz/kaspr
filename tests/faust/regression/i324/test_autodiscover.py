@@ -4,7 +4,7 @@ import os
 import sys
 from contextlib import ExitStack, redirect_stderr, redirect_stdout
 import pytest
-from mode.utils.mocks import patch
+from kaspr.mode.utils.mocks import patch
 
 
 def test_main(*, app, loop):

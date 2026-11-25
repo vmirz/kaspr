@@ -2,7 +2,7 @@ import ssl
 import pytest
 from kaspr.faust.auth import GSSAPICredentials, SASLCredentials, SSLCredentials
 from kaspr.faust.types.auth import AuthProtocol, SASLMechanism
-from mode.utils.mocks import Mock, patch
+from kaspr.mode.utils.mocks import Mock, patch
 
 
 class test_SASLCredentials:

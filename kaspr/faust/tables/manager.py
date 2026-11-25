@@ -4,8 +4,8 @@ import typing
 
 from typing import Any, MutableMapping, Optional, Set, Tuple, cast
 
-from mode import Service
-from mode.utils.queues import ThrowableQueue
+from kaspr.mode import Service
+from kaspr.mode.utils.queues import ThrowableQueue
 
 from kaspr.faust.types import AppT, ChannelT, StoreT, TP
 from kaspr.faust.types.tables import CollectionT, TableManagerT

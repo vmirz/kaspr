@@ -1,5 +1,5 @@
 import pytest
-from mode.utils.mocks import AsyncMock, Mock
+from kaspr.mode.utils.mocks import AsyncMock, Mock
 from kaspr.faust.web import Request, View, Web
 from kaspr.faust.web.exceptions import MethodNotAllowed
 

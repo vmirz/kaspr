@@ -3,8 +3,8 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from mode.exceptions import MaxRestartsExceeded
-from mode.supervisors import (
+from kaspr.mode.exceptions import MaxRestartsExceeded
+from kaspr.mode.supervisors import (
     CrashingSupervisor,
     ForfeitOneForAllSupervisor,
     ForfeitOneForOneSupervisor,

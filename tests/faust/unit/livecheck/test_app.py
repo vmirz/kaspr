@@ -1,8 +1,8 @@
 import asyncio
 from typing import Union
 import pytest
-from mode.utils.compat import want_bytes
-from mode.utils.mocks import AsyncMock, Mock, call
+from kaspr.mode.utils.compat import want_bytes
+from kaspr.mode.utils.mocks import AsyncMock, Mock, call
 from kaspr.faust.livecheck import LiveCheck
 from kaspr.faust.livecheck.app import LiveCheckSensor
 from kaspr.faust.livecheck.exceptions import TestFailed

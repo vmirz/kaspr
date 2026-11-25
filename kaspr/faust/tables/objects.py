@@ -17,7 +17,7 @@ from typing import (
     Type,
 )
 
-from mode import Service
+from kaspr.mode import Service
 
 from kaspr.faust.stores.base import Store
 from kaspr.faust.streams import current_event

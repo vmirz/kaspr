@@ -15,7 +15,7 @@ from typing import (
     cast,
 )
 
-from mode import Service
+from kaspr.mode import Service
 from yarl import URL
 
 from kaspr.faust.types import (

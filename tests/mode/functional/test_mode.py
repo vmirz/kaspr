@@ -1,4 +1,4 @@
-import mode
+from kaspr import mode
 
 
 def test_dir():

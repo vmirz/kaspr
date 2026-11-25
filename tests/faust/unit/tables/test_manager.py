@@ -1,7 +1,7 @@
 import pytest
 from kaspr.faust.tables.recovery import Recovery
 from kaspr.faust.types import TP
-from mode.utils.mocks import AsyncMock, Mock
+from kaspr.mode.utils.mocks import AsyncMock, Mock
 
 TP1 = TP('foo', 3)
 TP2 = TP('bar', 4)

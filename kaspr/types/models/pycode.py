@@ -1,7 +1,7 @@
 """PyCode model"""
 from typing import Any, Union, Callable, TypeVar, Awaitable, Optional, Dict
 from types import CodeType
-from mode.utils.objects import cached_property
+from kaspr.mode.utils.objects import cached_property
 from kaspr.types.models.base import SpecComponent
 from kaspr.types.code import CodeT
 

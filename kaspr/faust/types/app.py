@@ -23,12 +23,12 @@ from typing import (
 )
 
 import opentracing
-from mode import Seconds, ServiceT, Signal, SupervisorStrategyT, SyncSignal
-from mode.utils.futures import stampede
-from mode.utils.objects import cached_property
-from mode.utils.queues import FlowControlEvent, ThrowableQueue
-from mode.utils.types.trees import NodeT
-from mode.utils.typing import NoReturn
+from kaspr.mode import Seconds, ServiceT, Signal, SupervisorStrategyT, SyncSignal
+from kaspr.mode.utils.futures import stampede
+from kaspr.mode.utils.objects import cached_property
+from kaspr.mode.utils.queues import FlowControlEvent, ThrowableQueue
+from kaspr.mode.utils.types.trees import NodeT
+from kaspr.mode.utils.typing import NoReturn
 
 
 from .agents import AgentFun, AgentManagerT, AgentT, SinkT

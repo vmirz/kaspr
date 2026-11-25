@@ -1,4 +1,4 @@
-"""Type classes for `mode.services`."""
+"""Type classes for `kaspr.mode.services`."""
 
 import abc
 import asyncio
@@ -17,7 +17,7 @@ from typing import (
     Union,
 )
 
-from mode.utils.types.trees import NodeT
+from kaspr.mode.utils.types.trees import NodeT
 
 from .supervisors import SupervisorStrategyT
 
@@ -48,7 +48,7 @@ class ServiceT(AsyncContextManager):
     """Abstract type for an asynchronous service that can be started/stopped.
 
     See Also:
-        `mode.Service`.
+        `kaspr.mode.Service`.
     """
 
     Diag: Type[DiagT]

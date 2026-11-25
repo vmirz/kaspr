@@ -1,4 +1,4 @@
-"""Type classes for `mode.utils.graphs`."""
+"""Type classes for `kaspr.mode.utils.graphs`."""
 
 import abc
 from typing import (

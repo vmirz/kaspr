@@ -1,5 +1,5 @@
 from typing import Mapping
-from mode import setup_logging
+from kaspr.mode import setup_logging
 import pytest
 from .app import simple
 

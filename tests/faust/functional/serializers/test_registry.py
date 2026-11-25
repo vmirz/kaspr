@@ -5,7 +5,7 @@ from kaspr import faust
 import pytest
 from kaspr.faust.exceptions import KeyDecodeError, ValueDecodeError
 from kaspr.faust.utils import json
-from mode.utils.mocks import Mock
+from kaspr.mode.utils.mocks import Mock
 
 
 class Case(typing.NamedTuple):

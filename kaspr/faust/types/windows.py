@@ -3,7 +3,7 @@ import abc
 from datetime import timezone
 from typing import List, Optional, Tuple
 
-from mode import Seconds
+from kaspr.mode import Seconds
 
 __all__ = ['WindowRange', 'WindowT']
 

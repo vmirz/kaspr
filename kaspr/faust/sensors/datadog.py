@@ -3,7 +3,7 @@ import re
 
 from typing import Any, Dict, List, Optional, Pattern, cast
 
-from mode.utils.objects import cached_property
+from kaspr.mode.utils.objects import cached_property
 
 from kaspr.faust import web
 from kaspr.faust.exceptions import ImproperlyConfigured

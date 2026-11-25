@@ -14,7 +14,7 @@ from typing import (
     cast,
     no_type_check,
 )
-from mode.utils.locals import LocalStack
+from kaspr.mode.utils.locals import LocalStack
 from kaspr.faust.exceptions import SecurityError
 
 T = TypeVar('T')

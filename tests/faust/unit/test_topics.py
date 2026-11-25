@@ -5,7 +5,7 @@ import pytest
 from kaspr.faust import Event, Record
 from kaspr.faust.exceptions import KeyDecodeError, ValueDecodeError
 from kaspr.faust.types import Message
-from mode.utils.mocks import AsyncMock, Mock, call, patch
+from kaspr.mode.utils.mocks import AsyncMock, Mock, call, patch
 
 
 class Dummy(Record):

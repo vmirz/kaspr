@@ -1,7 +1,7 @@
 """Locals - Current test & execution context."""
 import typing
 from typing import Optional
-from mode.locals import LocalStack
+from kaspr.mode.locals import LocalStack
 from .models import TestExecution
 
 if typing.TYPE_CHECKING:

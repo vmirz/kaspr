@@ -5,7 +5,7 @@ import pytest
 from kaspr.faust.events import Event
 from kaspr.faust.types import Message
 from kaspr.faust.tables.wrappers import WindowSet, WindowWrapper
-from mode.utils.mocks import Mock, patch
+from kaspr.mode.utils.mocks import Mock, patch
 
 
 class TableKey(faust.Record):

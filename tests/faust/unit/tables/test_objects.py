@@ -1,7 +1,7 @@
 import pytest
 from kaspr.faust.tables.objects import ChangeloggedObjectManager
 from kaspr.faust.types import TP
-from mode.utils.mocks import AsyncMock, Mock, patch
+from kaspr.mode.utils.mocks import AsyncMock, Mock, patch
 
 TP1 = TP('foo', 3)
 

@@ -15,7 +15,7 @@ from unittest.mock import MagicMock, Mock
 
 import pytest
 
-from mode.locals import (
+from kaspr.mode.locals import (
     AsyncContextManagerProxy,
     AsyncGeneratorProxy,
     AsyncIterableProxy,
@@ -38,7 +38,7 @@ from mode.locals import (
 class test_Proxy:
     def test_std_class_attributes(self):
         assert Proxy.__name__ == "Proxy"
-        assert Proxy.__module__ == "mode.locals"
+        assert Proxy.__module__ == "kaspr.mode.locals"
         assert isinstance(Proxy.__doc__, str)
 
     def test_doc(self):

@@ -4,8 +4,8 @@ import sys
 from decimal import Decimal
 from typing import Any, Optional, Tuple, Type, cast
 
-from mode.utils.compat import want_bytes, want_str
-from mode.utils.objects import cached_property
+from kaspr.mode.utils.compat import want_bytes, want_str
+from kaspr.mode.utils.objects import cached_property
 
 from kaspr.faust.exceptions import KeyDecodeError, ValueDecodeError
 from kaspr.faust.types import K, ModelArg, ModelT, V

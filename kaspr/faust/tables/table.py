@@ -2,7 +2,7 @@
 import logging
 from typing import Any, ClassVar, Type
 
-from mode import Seconds
+from kaspr.mode import Seconds
 
 from kaspr.faust import windows
 from kaspr.faust.types.tables import KT, TableT, VT, WindowWrapperT

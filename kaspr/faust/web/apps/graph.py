@@ -1,4 +1,4 @@
-"""Web endpoint showing graph of running :pypi:`mode` services."""
+"""Web endpoint showing graph of running :mod:`kaspr.mode` services."""
 import io
 from kaspr.faust import web
 

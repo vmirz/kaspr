@@ -20,8 +20,8 @@ when your program starts (e.g. add it as the top import of your
 entrypoint module):
 
 ```python
-import mode.loop
-mode.loop.use('eventlet')
+import kaspr.mode.loop
+kaspr.mode.loop.use('eventlet')
 ```
 
 ### gevent
@@ -40,8 +40,8 @@ when your program starts (e.g. add it as the top import of your
 entrypoint module):
 
 ```python
-import mode.loop
-mode.loop.use('gevent')
+import kaspr.mode.loop
+kaspr.mode.loop.use('gevent')
 ```
 
 ### uvloop
@@ -53,8 +53,8 @@ when your program starts (e.g. add it as the top import of your
 entrypoint module):
 
 ```python
-import mode.loop
-mode.loop.use('uvloop')
+import kaspr.mode.loop
+kaspr.mode.loop.use('uvloop')
 ```
 """
 
@@ -65,9 +65,9 @@ __all__ = ["LOOPS", "use"]
 
 LOOPS: Mapping[str, Optional[str]] = {
     "aio": None,
-    "eventlet": "mode.loop.eventlet",
-    "gevent": "mode.loop.gevent",
-    "uvloop": "mode.loop.uvloop",
+    "eventlet": "kaspr.mode.loop.eventlet",
+    "gevent": "kaspr.mode.loop.gevent",
+    "uvloop": "kaspr.mode.loop.uvloop",
 }
 
 

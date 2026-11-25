@@ -3,7 +3,7 @@
 import asyncio
 import os
 
-os.environ["GEVENT_LOOP"] = "mode.loop._gevent_loop.Loop"
+os.environ["GEVENT_LOOP"] = "kaspr.mode.loop._gevent_loop.Loop"
 try:
     import eventlet
 except ImportError:

@@ -4,7 +4,7 @@ from time import monotonic
 
 import pytest
 
-from mode.utils.times import (
+from kaspr.mode.utils.times import (
     TIME_MONOTONIC,
     Bucket,
     TokenBucket,

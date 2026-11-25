@@ -5,8 +5,8 @@ from unittest.mock import Mock
 
 import pytest
 
-import mode
-from mode.utils.locks import Event
+from kaspr import mode
+from kaspr.mode.utils.locks import Event
 
 
 class X(mode.Service): ...

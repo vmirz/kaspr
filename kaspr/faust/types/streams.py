@@ -19,8 +19,8 @@ from typing import (
     no_type_check,
 )
 
-from mode import Seconds, ServiceT
-from mode.utils.trees import NodeT
+from kaspr.mode import Seconds, ServiceT
+from kaspr.mode.utils.trees import NodeT
 
 from .channels import ChannelT
 from .core import K

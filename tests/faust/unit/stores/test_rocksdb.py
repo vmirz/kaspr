@@ -5,7 +5,7 @@ from kaspr.faust.exceptions import ImproperlyConfigured
 from kaspr.faust.stores import rocksdb
 from kaspr.faust.stores.rocksdb import RocksDBOptions, Store
 from kaspr.faust.types import TP
-from mode.utils.mocks import AsyncMock, Mock, call, patch
+from kaspr.mode.utils.mocks import AsyncMock, Mock, call, patch
 from yarl import URL
 
 TP1 = TP('foo', 0)

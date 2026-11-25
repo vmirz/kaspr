@@ -1,6 +1,6 @@
 import pytest
 
-from mode.utils.contexts import asyncnullcontext
+from kaspr.mode.utils.contexts import asyncnullcontext
 
 
 @pytest.mark.asyncio

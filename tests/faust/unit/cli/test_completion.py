@@ -1,6 +1,6 @@
 import pytest
 from kaspr.faust.cli.completion import completion
-from mode.utils.mocks import patch
+from kaspr.mode.utils.mocks import patch
 
 
 class test_completion:

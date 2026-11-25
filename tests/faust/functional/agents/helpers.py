@@ -5,8 +5,8 @@ from time import time
 from typing import Any, List, Optional, Set
 from kaspr.faust.types import AppT, CodecT, EventT, Message as MessageT, StreamT, TP
 from kaspr.faust.types.core import HeadersArg
-from mode import Service
-from mode.utils.aiter import aenumerate
+from kaspr.mode import Service
+from kaspr.mode.utils.aiter import aenumerate
 
 CURRENT_OFFSETS = Counter()
 

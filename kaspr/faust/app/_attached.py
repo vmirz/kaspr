@@ -12,7 +12,7 @@ from typing import (
     MutableMapping, NamedTuple, Union, cast,
 )
 
-from mode.utils.objects import Unordered, cached_property
+from kaspr.mode.utils.objects import Unordered, cached_property
 
 from kaspr.faust.streams import current_event
 from kaspr.faust.types import AppT, ChannelT, CodecArg, RecordMetadata, SchemaT, TP

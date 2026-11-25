@@ -5,7 +5,7 @@ import time
 from contextlib import suppress
 from typing import Callable, Dict, Generic, Optional, TypeVar
 
-from mode.utils.compat import want_bytes
+from kaspr.mode.utils.compat import want_bytes
 
 from . import base
 

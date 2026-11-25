@@ -2,7 +2,7 @@ import abc
 import typing
 from typing import Any, List, MutableMapping, Set
 
-from mode import ServiceT
+from kaspr.mode import ServiceT
 from yarl import URL
 
 from .tuples import TP

@@ -2,7 +2,7 @@ import abc
 import typing
 from typing import Any, Dict, Iterable, Optional
 
-from mode import ServiceT
+from kaspr.mode import ServiceT
 
 from . import web
 from .assignor import PartitionAssignorT

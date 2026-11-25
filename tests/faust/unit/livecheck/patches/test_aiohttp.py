@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 import pytest
-from mode.utils.mocks import Mock
+from kaspr.mode.utils.mocks import Mock
 from kaspr.faust.livecheck.locals import current_test_stack
 from kaspr.faust.livecheck.patches.aiohttp import (
     LiveCheckMiddleware,

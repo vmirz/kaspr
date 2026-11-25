@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from mode.debug import Blocking, BlockingDetector
+from kaspr.mode.debug import Blocking, BlockingDetector
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="win32: no SIGALRM")
@@ -38,7 +38,7 @@ class test_BlockingDetector:
         block._arm.asssert_called_once_with(0)
 
     def test__arm(self, block):
-        with patch("mode.debug.arm_alarm") as arm_alarm:
+        with patch("kaspr.mode.debug.arm_alarm") as arm_alarm:
             block._arm(1.11)
             arm_alarm.assert_called_once_with(1.11)
 

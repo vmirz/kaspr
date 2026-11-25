@@ -3,7 +3,7 @@ import random
 import sys
 from typing import Any, Set
 from kaspr.faust.cli import option
-from mode.utils.aiter import aiter, anext
+from kaspr.mode.utils.aiter import aiter, anext
 
 
 def install_produce_command(app) -> None:

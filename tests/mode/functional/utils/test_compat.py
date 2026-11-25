@@ -2,7 +2,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from mode.utils.compat import isatty, want_bytes, want_str
+from kaspr.mode.utils.compat import isatty, want_bytes, want_str
 
 
 @pytest.mark.parametrize(

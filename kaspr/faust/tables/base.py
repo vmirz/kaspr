@@ -24,7 +24,7 @@ from typing import (
     no_type_check,
 )
 
-from mode import Seconds, Service
+from kaspr.mode import Seconds, Service
 from yarl import URL
 
 from kaspr.faust import stores

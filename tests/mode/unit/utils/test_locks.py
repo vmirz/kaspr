@@ -1,4 +1,4 @@
-from mode.utils.locks import Event
+from kaspr.mode.utils.locks import Event
 
 
 def test_repr():

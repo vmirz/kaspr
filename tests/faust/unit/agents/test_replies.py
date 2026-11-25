@@ -6,7 +6,7 @@ from kaspr.faust.agents.replies import (
     ReplyConsumer,
     ReplyPromise,
 )
-from mode.utils.mocks import AsyncMock, Mock
+from kaspr.mode.utils.mocks import AsyncMock, Mock
 
 
 def test_ReplyPromise():

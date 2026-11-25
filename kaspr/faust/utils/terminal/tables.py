@@ -14,9 +14,9 @@ from typing import (
     cast,
 )
 
-from mode.utils import logging
-from mode.utils import text
-from mode.utils.compat import isatty
+from kaspr.mode.utils import logging
+from kaspr.mode.utils import text
+from kaspr.mode.utils.compat import isatty
 
 from terminaltables import AsciiTable, SingleTable
 from terminaltables.base_table import BaseTable as Table

@@ -17,8 +17,8 @@ from kaspr.faust.cli.base import (
     option,
 )
 from kaspr.faust.types._env import BLOCKING_TIMEOUT, CONSOLE_PORT
-from mode import Worker
-from mode.utils.mocks import AsyncMock, Mock, call, patch
+from kaspr.mode import Worker
+from kaspr.mode.utils.mocks import AsyncMock, Mock, call, patch
 
 
 class test_argument:
@@ -646,7 +646,7 @@ class test_AppCommand:
         app.topic.assert_called_once_with('foo')
 
     def test_abbreviate_fqdn(self, *, command, ctx):
-        with patch('mode.utils.text.abbr_fqdn') as abbr_fqdn:
+        with patch('kaspr.mode.utils.text.abbr_fqdn') as abbr_fqdn:
             ret = command.abbreviate_fqdn('foo.bar.baz', prefix='prefix')
             assert ret is abbr_fqdn.return_value
             abbr_fqdn.assert_called_once_with(

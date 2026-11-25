@@ -1,5 +1,5 @@
 import abc
-from mode import Seconds
+from kaspr.mode import Seconds
 from typing import AsyncIterable, Sequence, TypeVar, Union, Awaitable, Callable, Tuple
 from kaspr.faust.types import StreamT, EventT
 

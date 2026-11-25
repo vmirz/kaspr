@@ -1,5 +1,5 @@
 import pytest
-from mode.utils.mocks import AsyncMock, Mock, call
+from kaspr.mode.utils.mocks import AsyncMock, Mock, call
 from kaspr.faust.transport.producer import Producer, ProducerBuffer
 
 

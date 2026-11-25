@@ -2,7 +2,7 @@ import pytest
 from kaspr.faust.app.router import Router
 from kaspr.faust.exceptions import SameNode
 from kaspr.faust.web.exceptions import ServiceUnavailable
-from mode.utils.mocks import ANY, Mock
+from kaspr.mode.utils.mocks import ANY, Mock
 from yarl import URL
 
 

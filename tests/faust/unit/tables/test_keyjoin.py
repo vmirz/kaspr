@@ -2,7 +2,7 @@
 import asyncio
 
 import pytest
-from mode.utils.mocks import AsyncMock, Mock
+from kaspr.mode.utils.mocks import AsyncMock, Mock
 
 from kaspr.faust.exceptions import KeyPlacementError
 from kaspr.faust.tables.keyjoin import KeyJoinProcessor

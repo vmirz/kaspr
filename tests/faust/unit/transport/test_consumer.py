@@ -16,10 +16,10 @@ from kaspr.faust.transport.consumer import (
 )
 from kaspr.faust.transport.conductor import Conductor
 from kaspr.faust.types import ConsumerMessage, Message, TP
-from mode import Service
-from mode.threads import MethodQueue
-from mode.utils.futures import done_future
-from mode.utils.mocks import ANY, AsyncMock, Mock, call, patch
+from kaspr.mode import Service
+from kaspr.mode.threads import MethodQueue
+from kaspr.mode.utils.futures import done_future
+from kaspr.mode.utils.mocks import ANY, AsyncMock, Mock, call, patch
 from sortedcontainers import SortedSet
 
 TP1 = TP('foo', 0)

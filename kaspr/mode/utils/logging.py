@@ -87,11 +87,11 @@ DEFAULT_COLORS = {
 
 DEFAULT_FORMATTERS = {
     "default": {
-        "()": "mode.utils.logging.DefaultFormatter",
+        "()": "kaspr.mode.utils.logging.DefaultFormatter",
         "format": DEFAULT_FORMAT,
     },
     "colored": {
-        "()": "mode.utils.logging.ExtensionFormatter",
+        "()": "kaspr.mode.utils.logging.ExtensionFormatter",
         "format": DEFAULT_COLOR_FORMAT,
         "log_colors": DEFAULT_COLORS,
         "stream": sys.stdout,
@@ -151,7 +151,7 @@ def get_logger(name: str) -> Logger:
     return logger
 
 
-redirect_logger = get_logger("mode.redirect")
+redirect_logger = get_logger("kaspr.mode.redirect")
 
 
 class HasLog(Protocol):

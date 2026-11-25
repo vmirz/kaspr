@@ -1,5 +1,5 @@
 """Queues."""
-from mode.utils.queues import ThrowableQueue
+from kaspr.mode.utils.queues import ThrowableQueue
 
 from kaspr.faust.types import EventT
 

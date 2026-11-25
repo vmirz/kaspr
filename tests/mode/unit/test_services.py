@@ -5,9 +5,9 @@ from unittest.mock import ANY, AsyncMock, MagicMock, Mock, call, patch
 
 import pytest
 
-from mode import Service
-from mode.services import Diag, ServiceTask, WaitResult
-from mode.utils.logging import get_logger
+from kaspr.mode import Service
+from kaspr.mode.services import Diag, ServiceTask, WaitResult
+from kaspr.mode.utils.logging import get_logger
 
 
 class S(Service):
@@ -256,7 +256,7 @@ class test_Service:
     async def test_crontab(self):
         m = Mock()
 
-        with patch("mode.services.secs_for_next") as secs_for_next:
+        with patch("kaspr.mode.services.secs_for_next") as secs_for_next:
             secs_for_next.secs_for_next.return_value = 0.1
 
             class Foo(Service):
@@ -767,7 +767,7 @@ class test_Service:
 
     @pytest.mark.asyncio
     async def test_itertimer(self, *, service):
-        with patch("mode.services.Timer") as itertimer:
+        with patch("kaspr.mode.services.Timer") as itertimer:
 
             async def on_itertimer(*args, **kwargs):
                 yield 1.0
@@ -782,7 +782,7 @@ class test_Service:
 
     @pytest.mark.asyncio
     async def test_itertimer__first_stop(self, *, service):
-        with patch("mode.services.Timer") as itertimer:
+        with patch("kaspr.mode.services.Timer") as itertimer:
 
             async def on_itertimer(*args, **kwargs):
                 service._stopped.set()
@@ -794,7 +794,7 @@ class test_Service:
 
     @pytest.mark.asyncio
     async def test_itertimer__second_stop(self, *, service):
-        with patch("mode.services.Timer") as itertimer:
+        with patch("kaspr.mode.services.Timer") as itertimer:
 
             async def on_itertimer(*args, **kwargs):
                 for val in [0.784512, 0.2, 0.3]:
@@ -817,7 +817,7 @@ class test_Service:
 
     @pytest.mark.asyncio
     async def test_itertimer__third_stop(self, *, service):
-        with patch("mode.services.Timer") as itertimer:
+        with patch("kaspr.mode.services.Timer") as itertimer:
 
             async def on_itertimer(*args, **kwargs):
                 yield 0.1341

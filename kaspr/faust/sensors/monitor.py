@@ -16,9 +16,9 @@ from typing import (
     cast,
 )
 
-from mode import Service, label
-from mode.utils.objects import KeywordReduce
-from mode.utils.typing import Counter, Deque
+from kaspr.mode import Service, label
+from kaspr.mode.utils.objects import KeywordReduce
+from kaspr.mode.utils.typing import Counter, Deque
 
 from kaspr.faust import web
 from kaspr.faust.types import AppT, CollectionT, EventT, StreamT, TopicT

@@ -3,7 +3,7 @@ import operator
 import socket
 from contextlib import contextmanager
 from typing import Any, Callable, Mapping, MutableMapping, Optional, cast
-from mode import Service
+from kaspr.mode import Service
 from kaspr.faust.types import AppT
 from . import states
 from .app import send_update

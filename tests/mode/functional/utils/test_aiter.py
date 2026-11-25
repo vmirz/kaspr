@@ -2,7 +2,7 @@ from typing import AsyncIterable
 
 import pytest
 
-from mode.utils.aiter import (
+from kaspr.mode.utils.aiter import (
     aenumerate,
     aiter,
     alist,

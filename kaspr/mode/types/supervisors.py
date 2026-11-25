@@ -1,10 +1,10 @@
-"""Type classes for `mode.supervisors`."""
+"""Type classes for `kaspr.mode.supervisors`."""
 
 import abc
 import typing
 from typing import Any, Awaitable, Callable, Optional, Type
 
-from mode.utils.times import Seconds
+from kaspr.mode.utils.times import Seconds
 
 if typing.TYPE_CHECKING:
     from .services import ServiceT

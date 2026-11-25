@@ -17,7 +17,7 @@ from typing import (
     cast,
 )
 
-from mode.utils.types.graphs import _T, DependencyGraphT, GraphFormatterT
+from kaspr.mode.utils.types.graphs import _T, DependencyGraphT, GraphFormatterT
 
 from .formatter import GraphFormatter
 

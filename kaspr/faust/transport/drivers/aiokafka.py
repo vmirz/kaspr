@@ -48,11 +48,11 @@ from aiokafka.coordinator.assignors.roundrobin import RoundRobinPartitionAssigno
 from aiokafka.partitioner import DefaultPartitioner, murmur2
 from aiokafka.protocol.admin import CreateTopicsRequest
 from aiokafka.protocol.metadata import MetadataRequest
-from mode import Service, get_logger
-from mode.utils.futures import StampedeWrapper
-from mode.utils.objects import cached_property
-from mode.utils import text
-from mode.utils.times import Seconds, humanize_seconds_ago, want_seconds
+from kaspr.mode import Service, get_logger
+from kaspr.mode.utils.futures import StampedeWrapper
+from kaspr.mode.utils.objects import cached_property
+from kaspr.mode.utils import text
+from kaspr.mode.utils.times import Seconds, humanize_seconds_ago, want_seconds
 from opentracing.ext import tags
 from yarl import URL
 

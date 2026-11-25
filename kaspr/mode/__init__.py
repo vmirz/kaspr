@@ -62,9 +62,9 @@ __all__ = [
 
 
 all_by_module: Mapping[str, Sequence[str]] = {
-    "mode.services": ["Service", "task", "timer"],
-    "mode.signals": ["BaseSignal", "Signal", "SyncSignal"],
-    "mode.supervisors": [
+    "kaspr.mode.services": ["Service", "task", "timer"],
+    "kaspr.mode.signals": ["BaseSignal", "Signal", "SyncSignal"],
+    "kaspr.mode.supervisors": [
         "ForfeitOneForAllSupervisor",
         "ForfeitOneForOneSupervisor",
         "OneForAllSupervisor",
@@ -72,13 +72,13 @@ all_by_module: Mapping[str, Sequence[str]] = {
         "SupervisorStrategy",
         "CrashingSupervisor",
     ],
-    "mode.types.services": ["ServiceT"],
-    "mode.types.signals": ["BaseSignalT", "SignalT", "SyncSignalT"],
-    "mode.types.supervisors": ["SupervisorStrategyT"],
-    "mode.utils.times": ["Seconds", "want_seconds"],
-    "mode.utils.logging": ["flight_recorder", "get_logger", "setup_logging"],
-    "mode.utils.objects": ["label", "shortlabel"],
-    "mode.worker": ["Worker"],
+    "kaspr.mode.types.services": ["ServiceT"],
+    "kaspr.mode.types.signals": ["BaseSignalT", "SignalT", "SyncSignalT"],
+    "kaspr.mode.types.supervisors": ["SupervisorStrategyT"],
+    "kaspr.mode.utils.times": ["Seconds", "want_seconds"],
+    "kaspr.mode.utils.logging": ["flight_recorder", "get_logger", "setup_logging"],
+    "kaspr.mode.utils.objects": ["label", "shortlabel"],
+    "kaspr.mode.worker": ["Worker"],
 }
 
 object_origins = {}
@@ -129,5 +129,7 @@ new_module.__dict__.update(
         "__all__": tuple(object_origins),
         "__version__": __version__,
         "__package__": __package__,
+        "__spec__": __spec__,
+        "__loader__": __loader__,
     }
 )

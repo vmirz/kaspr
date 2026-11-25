@@ -15,9 +15,9 @@ from typing import (
 )
 from urllib.parse import quote
 
-from mode.utils.compat import want_bytes
-from mode.utils.times import Seconds, want_seconds
-from mode.utils.logging import get_logger
+from kaspr.mode.utils.compat import want_bytes
+from kaspr.mode.utils.times import Seconds, want_seconds
+from kaspr.mode.utils.logging import get_logger
 
 from kaspr.faust.types.web import (
     CacheBackendT,

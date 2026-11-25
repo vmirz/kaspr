@@ -174,17 +174,17 @@ def parse_symbol(
     Examples:
 
     ```sh
-    >>> parse_symbol('mode.services')
-    ParsedSymbol(module_name='mode.services', attribute_name=None)
+    >>> parse_symbol('kaspr.mode.services')
+    ParsedSymbol(module_name='kaspr.mode.services', attribute_name=None)
 
-    >>> parse_symbol('.services', package='mode')
+    >>> parse_symbol('.services', package='kaspr.mode')
     ParsedSymbol(module_name='.services', attribute_name=None)
 
-    >>> parse_symbol('mode.services.Service')
-    ParsedSymbol(module_name='mode.services', attribute_name='Service')
+    >>> parse_symbol('kaspr.mode.services.Service')
+    ParsedSymbol(module_name='kaspr.mode.services', attribute_name='Service')
 
-    >>> parse_symbol('mode.services:Service')
-    ParsedSymbol(module_name='mode.services', attribute_name='Service')
+    >>> parse_symbol('kaspr.mode.services:Service')
+    ParsedSymbol(module_name='kaspr.mode.services', attribute_name='Service')
     ```
     """
     module_name: Optional[str]

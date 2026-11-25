@@ -34,8 +34,8 @@ from kaspr.faust.transport.drivers.aiokafka import (
     server_list,
 )
 from kaspr.faust.types import TP
-from mode.utils.futures import done_future
-from mode.utils.mocks import ANY, AsyncMock, MagicMock, Mock, call, patch
+from kaspr.mode.utils.futures import done_future
+from kaspr.mode.utils.mocks import ANY, AsyncMock, MagicMock, Mock, call, patch
 
 TP1 = TP('topic', 23)
 TP2 = TP('topix', 23)

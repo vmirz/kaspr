@@ -11,7 +11,7 @@ else:
 
 from freezegun import freeze_time
 
-from mode.utils.cron import secs_for_next
+from kaspr.mode.utils.cron import secs_for_next
 
 SECS_IN_HOUR = 60 * 60
 

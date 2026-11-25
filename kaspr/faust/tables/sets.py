@@ -15,9 +15,9 @@ from typing import (
     cast,
 )
 
-from mode import Service
-from mode.utils.collections import ManagedUserSet
-from mode.utils.objects import cached_property
+from kaspr.mode import Service
+from kaspr.mode.utils.collections import ManagedUserSet
+from kaspr.mode.utils.objects import cached_property
 from yarl import URL
 
 from kaspr.faust.models import Record, maybe_model

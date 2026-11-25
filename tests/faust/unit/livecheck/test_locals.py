@@ -1,4 +1,4 @@
-from mode.utils.mocks import Mock
+from kaspr.mode.utils.mocks import Mock
 from kaspr.faust.livecheck.locals import current_execution, current_execution_stack
 
 

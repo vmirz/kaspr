@@ -4,7 +4,7 @@ import time
 
 import pytest
 
-from mode.utils.locals import LocalStack
+from kaspr.mode.utils.locals import LocalStack
 
 
 class Request:

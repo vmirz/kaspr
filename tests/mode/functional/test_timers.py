@@ -7,8 +7,8 @@ from unittest.mock import ANY, AsyncMock, Mock, patch
 
 import pytest
 
-from mode.timers import Timer
-from mode.utils.aiter import aslice
+from kaspr.mode.timers import Timer
+from kaspr.mode.utils.aiter import aslice
 
 
 @pytest.mark.asyncio
@@ -122,7 +122,7 @@ class test_Timer:
         assert len(clock_values) == len(intervals) * 2
         clock.side_effect = clock_values
 
-        with patch("mode.timers.logger") as logger:
+        with patch("kaspr.mode.timers.logger") as logger:
             await self.assert_intervals(timer, intervals)
             yield logger
 

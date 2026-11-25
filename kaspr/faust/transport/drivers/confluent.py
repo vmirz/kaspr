@@ -18,10 +18,10 @@ from typing import (
     cast,
 )
 
-from mode import Service, get_logger
-from mode.threads import QueueServiceThread
-from mode.utils.futures import notify
-from mode.utils.times import Seconds, want_seconds
+from kaspr.mode import Service, get_logger
+from kaspr.mode.threads import QueueServiceThread
+from kaspr.mode.utils.futures import notify
+from kaspr.mode.utils.times import Seconds, want_seconds
 from yarl import URL
 
 from kaspr.faust.exceptions import ConsumerNotStarted, ProducerSendError

@@ -7,9 +7,9 @@ import pytest
 from kaspr.faust import Sensor
 from kaspr.faust.worker import Worker
 from kaspr.faust.utils import terminal
-from mode.utils.logging import CompositeLogger
-from mode.utils.trees import Node
-from mode.utils.mocks import AsyncMock, Mock, patch
+from kaspr.mode.utils.logging import CompositeLogger
+from kaspr.mode.utils.trees import Node
+from kaspr.mode.utils.mocks import AsyncMock, Mock, patch
 from yarl import URL
 
 

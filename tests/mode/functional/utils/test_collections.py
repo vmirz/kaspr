@@ -4,7 +4,7 @@ from unittest.mock import Mock, call, patch
 
 import pytest
 
-from mode.utils.collections import (
+from kaspr.mode.utils.collections import (
     AttributeDictMixin,
     DictAttribute,
     FastUserDict,
@@ -625,7 +625,7 @@ def test_force_mapping():
     obj._wrapped = Object("bar")
     assert force_mapping(obj)["name"] == "foo"
 
-    with patch("mode.utils.collections.LazyObject", Object):
+    with patch("kaspr.mode.utils.collections.LazyObject", Object):
         assert force_mapping(obj)["name"] == "bar"
 
 

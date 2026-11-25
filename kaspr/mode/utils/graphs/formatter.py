@@ -2,8 +2,8 @@
 
 from typing import Any, ClassVar, Dict, Mapping, Optional
 
-from mode.utils.objects import label
-from mode.utils.types.graphs import _T, GraphFormatterT
+from kaspr.mode.utils.objects import label
+from kaspr.mode.utils.types.graphs import _T, GraphFormatterT
 
 
 def dedent_initial(s: str, n: int = 4) -> str:

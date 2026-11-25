@@ -5,7 +5,7 @@ import os
 import warnings
 from typing import Optional, cast
 
-os.environ["GEVENT_LOOP"] = "mode.loop._gevent_loop.Loop"
+os.environ["GEVENT_LOOP"] = "kaspr.mode.loop._gevent_loop.Loop"
 try:
     import gevent
     import gevent.monkey

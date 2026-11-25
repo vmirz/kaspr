@@ -11,7 +11,7 @@ from typing import (
     Union,
     cast,
 )
-from mode.utils.compat import want_bytes, want_str
+from kaspr.mode.utils.compat import want_bytes, want_str
 
 if typing.TYPE_CHECKING:
     from .models import ModelT as _ModelT

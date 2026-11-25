@@ -11,9 +11,9 @@ from typing import (
     TypeVar,
 )
 
-from mode import Seconds
-from mode.utils.futures import stampede
-from mode.utils.queues import ThrowableQueue
+from kaspr.mode import Seconds
+from kaspr.mode.utils.futures import stampede
+from kaspr.mode.utils.queues import ThrowableQueue
 
 from .codecs import CodecArg
 from .core import HeadersArg, K, V

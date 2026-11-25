@@ -4,8 +4,8 @@ from unittest.mock import Mock
 
 import pytest
 
-from mode.utils.futures import done_future
-from mode.utils.queues import (
+from kaspr.mode.utils.futures import done_future
+from kaspr.mode.utils.queues import (
     FlowControlEvent,
     FlowControlQueue,
     ThrowableQueue,

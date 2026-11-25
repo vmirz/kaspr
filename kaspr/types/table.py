@@ -3,7 +3,7 @@ import typing
 from kaspr.faust.types import TableT
 from kaspr.faust.types.tuples import MessageSentCallback
 from typing import Any, Iterator, Tuple
-from mode import SignalT
+from kaspr.mode import SignalT
 
 if typing.TYPE_CHECKING:
     from .app import KasprAppT as _KasprAppT

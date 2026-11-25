@@ -7,7 +7,7 @@ from kaspr.faust.web.base import (
     PRODUCTION_BLUEPRINTS,
     Web,
 )
-from mode.utils.mocks import Mock, patch
+from kaspr.mode.utils.mocks import Mock, patch
 from yarl import URL
 
 

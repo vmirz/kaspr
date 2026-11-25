@@ -2,8 +2,8 @@ import asyncio
 
 import pytest
 
-from mode import Service
-from mode.supervisors import (
+from kaspr.mode import Service
+from kaspr.mode.supervisors import (
     ForfeitOneForAllSupervisor,
     ForfeitOneForOneSupervisor,
     OneForAllSupervisor,

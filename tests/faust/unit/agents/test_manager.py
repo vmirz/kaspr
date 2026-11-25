@@ -2,7 +2,7 @@ import asyncio
 import pytest
 from typing import Hashable
 from kaspr.faust.types import TP
-from mode.utils.mocks import AsyncMock, Mock
+from kaspr.mode.utils.mocks import AsyncMock, Mock
 
 
 class test_AgentManager:

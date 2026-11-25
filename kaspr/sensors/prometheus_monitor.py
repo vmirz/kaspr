@@ -5,7 +5,7 @@ import kaspr
 import re
 from typing import Pattern, Mapping, List, Optional
 
-from mode.utils.objects import cached_property
+from kaspr.mode.utils.objects import cached_property
 from kaspr.faust.exceptions import ImproperlyConfigured
 from kaspr.faust import web
 

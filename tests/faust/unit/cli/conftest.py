@@ -1,5 +1,5 @@
 import pytest
-from mode.utils.mocks import Mock
+from kaspr.mode.utils.mocks import Mock
 
 
 @pytest.fixture()

@@ -17,8 +17,8 @@ from typing import (
     cast,
 )
 
-from mode.utils.objects import cached_property
-from mode.utils.text import pluralize
+from kaspr.mode.utils.objects import cached_property
+from kaspr.mode.utils.text import pluralize
 
 from kaspr.faust.exceptions import ValidationError
 from kaspr.faust.types.models import (

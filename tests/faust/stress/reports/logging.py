@@ -3,7 +3,7 @@ import logging
 import socket
 from typing import Any
 from kaspr import faust
-from mode import Service
+from kaspr.mode import Service
 from .app import get_error_topic
 from .models import Error
 

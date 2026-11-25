@@ -1,6 +1,6 @@
 import asyncio
 import pytest
-from mode.utils.mocks import ANY, AsyncMock, Mock, patch
+from kaspr.mode.utils.mocks import ANY, AsyncMock, Mock, patch
 from kaspr.faust.livecheck.exceptions import (
     LiveCheckError,
     TestFailed,

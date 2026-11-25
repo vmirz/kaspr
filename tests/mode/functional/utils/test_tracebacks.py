@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from mode.utils.tracebacks import Traceback, format_task_stack
+from kaspr.mode.utils.tracebacks import Traceback, format_task_stack
 
 
 @pytest.mark.asyncio

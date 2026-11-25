@@ -15,10 +15,10 @@ from typing import (
     cast,
 )
 
-from mode.signals import BaseSignalT
-from mode.utils.compat import want_bytes
-from mode.utils.objects import annotations, cached_property, qualname
-from mode.utils.times import Seconds
+from kaspr.mode.signals import BaseSignalT
+from kaspr.mode.utils.compat import want_bytes
+from kaspr.mode.utils.objects import annotations, cached_property, qualname
+from kaspr.mode.utils.times import Seconds
 
 from kaspr import faust
 from kaspr.faust.app.base import SCAN_CATEGORIES

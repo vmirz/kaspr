@@ -1,9 +1,9 @@
 import asyncio
 import pytest
 
-from mode import label, shortlabel
-from mode.utils.futures import done_future
-from mode.utils.mocks import AsyncMock, Mock, patch
+from kaspr.mode import label, shortlabel
+from kaspr.mode.utils.futures import done_future
+from kaspr.mode.utils.mocks import AsyncMock, Mock, patch
 
 from kaspr.faust import App, Channel, Topic
 from kaspr.faust.transport.consumer import Consumer

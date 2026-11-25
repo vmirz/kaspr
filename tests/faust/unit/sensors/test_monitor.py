@@ -8,7 +8,7 @@ from kaspr.faust.transport.consumer import Consumer
 from kaspr.faust.transport.producer import Producer
 from kaspr.faust.types import Message, TP
 from kaspr.faust.sensors.monitor import Monitor, TableState
-from mode.utils.mocks import AsyncMock, Mock
+from kaspr.mode.utils.mocks import AsyncMock, Mock
 
 TP1 = TP('foo', 0)
 
