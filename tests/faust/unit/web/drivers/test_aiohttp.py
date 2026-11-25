@@ -250,7 +250,7 @@ class test_Web:
     @pytest.mark.asyncio
     async def test_start_server(self, *, app, web):
         web.web_app = Mock(name='web.web_app', autospec=Application)
-        web._runner = Mock(name='runner', setup=AsyncMock())
+        web._runner = Mock(name='runner', setup=AsyncMock(), server=None)
         web._create_site = Mock(
             name='create_site',
             return_value=Mock(

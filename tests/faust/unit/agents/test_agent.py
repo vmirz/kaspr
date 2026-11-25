@@ -389,7 +389,7 @@ class test_Agent:
     @pytest.mark.asyncio
     async def test_prepare_actor__AsyncIterable(self, *, agent):
         aref = agent(index=0, active_partitions=None)
-        with patch('asyncio.Task') as Task:
+        with patch('asyncio.ensure_future') as ensure_future:
             agent._slurp = Mock(name='_slurp')
             agent._execute_actor = Mock(name='_execute_actor')
             beacon = Mock(name='beacon', autospec=Node)
@@ -397,9 +397,9 @@ class test_Agent:
             agent._slurp.assert_called()
             coro = agent._slurp()
             agent._execute_actor.assert_called_once_with(coro, aref)
-            Task.assert_called_once_with(
+            ensure_future.assert_called_once_with(
                 agent._execute_actor())
-            task = Task()
+            task = ensure_future()
             assert task._beacon is beacon
             assert aref.actor_task is task
             assert aref in agent._actors

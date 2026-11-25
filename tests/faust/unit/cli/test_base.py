@@ -341,10 +341,9 @@ class test_Command:
         assert command.on_worker_created(Mock(name='worker')) is None
 
     def test_as_service(self, *, command):
-        loop = Mock()
         command.execute = Mock()
         with patch('kaspr.faust.cli.base.Service') as Service:
-            res = command.as_service(loop, 1, kw=2)
+            res = command.as_service(1, kw=2)
             assert res is Service.from_awaitable.return_value
             Service.from_awaitable.assert_called_once_with(
                 command.execute.return_value,
@@ -355,8 +354,7 @@ class test_Command:
     def test_worker_for_service(self, *, command):
         with patch('kaspr.faust.cli.base.Worker') as Worker:
             service = Mock(name='service')
-            loop = Mock(name='loop')
-            res = command.worker_for_service(service, loop)
+            res = command.worker_for_service(service)
             assert res is Worker.return_value
             Worker.assert_called_once_with(
                 service,

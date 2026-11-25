@@ -69,12 +69,12 @@ class test_BarrierState:
         assert p.size == 0
 
         done, pending = await asyncio.wait(
-            [
+            [asyncio.ensure_future(coro) for coro in (
                 self.adder(p),
                 self.fulfiller(p),
                 self.finalizer(p, 1.0),
                 self.consumer(p),
-            ],
+            )],
             timeout=5.0,
         )
 

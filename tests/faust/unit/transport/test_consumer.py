@@ -668,11 +668,12 @@ class test_Consumer:
         assert TP1 not in consumer._first_read_offset
         consumer._seek.assert_called_once_with(TP1, 401)
 
-    def test_stop_flow(self, *, consumer):
+    @pytest.mark.asyncio
+    async def test_stop_flow(self, *, consumer):
         consumer.flow_active = True
         consumer.can_resume_flow.set()
 
-        consumer.stop_flow()
+        await consumer.stop_flow()
 
         assert not consumer.flow_active
         assert not consumer.can_resume_flow.is_set()
@@ -958,8 +959,10 @@ class test_Consumer:
             TP1: 4,
             TP2: 30,
         }
+        # the next offsets to read
         assert consumer._filter_committable_offsets({TP1, TP2}) == {
-            TP2: 36,
+            TP1: 5,
+            TP2: 37,
         }
 
     @pytest.mark.asyncio
@@ -1185,7 +1188,7 @@ class test_Consumer:
         await consumer._drain_messages(
             Mock(name='fetcher', _stopped=asyncio.Event()))
         assert [call.args[0].offset
-                for call in consumer.callback.await_args_list] == list(offsets)
+                for call in consumer.callback.call_args_list] == list(offsets)
 
     @pytest.mark.asyncio
     async def test_drain_messages__gap_excludes_the_record_fetched(
@@ -1370,6 +1373,9 @@ class test_ThreadDelegateConsumer:
             return (args, kwargs)
 
         def create_topic(self, *args, **kwargs):
+            return
+
+        def request_rejoin(self):
             return
 
     @pytest.fixture

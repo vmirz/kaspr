@@ -128,7 +128,6 @@ def test_clone(*, app):
     assert c3.key_type is Point
     assert c3.value_type is Point
     assert c3.maxsize == 99
-    assert c3.loop == 33
     assert c3.is_iterator
     assert c3.queue is not c.queue
     assert c3._root is c

@@ -2,7 +2,6 @@ import os
 import threading
 import time
 from http import HTTPStatus
-from pathlib import Path
 from typing import Any, NamedTuple
 import pytest
 from _pytest.assertion.util import _compare_eq_dict, _compare_eq_set
@@ -23,21 +22,6 @@ from mode.utils.mocks import (  # noqa: E402
 )
 
 sentinel = object()
-
-#: Tests that have not followed the code they test. They must fail: one that
-#: passes again leaves the list.
-KNOWN_FAILURES = frozenset(
-    Path(__file__).with_name('known_failures.txt').read_text().splitlines())
-
-#: Needs aredis, which the cache backend gave up for redis.
-collect_ignore = ['functional/web/test_cache.py']
-
-
-def pytest_collection_modifyitems(items):
-    for item in items:
-        if item.nodeid.removeprefix('tests/faust/') in KNOWN_FAILURES:
-            item.add_marker(pytest.mark.xfail(
-                strict=True, reason='has not followed the code'))
 
 
 class DirtyTest(Exception):
