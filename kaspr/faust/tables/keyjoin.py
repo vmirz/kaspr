@@ -453,7 +453,8 @@ class KeyJoinProcessor(Service, KeyJoinT):
         result = self.app.create_event(key, value, None, message)
         message.incref(len(subscribers))
         for subscriber in subscribers:
-            await self._deliver(subscriber.queue, result)
+            if not await self._deliver(subscriber.queue, result):
+                message.drop()
 
     async def _deliver(self, queue: asyncio.Queue, event: EventT) -> bool:
         """Put ``event`` on a subscriber's queue; False if it is dropped.

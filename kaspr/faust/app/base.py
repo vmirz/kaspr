@@ -67,6 +67,7 @@ from kaspr.faust.exceptions import ConsumerNotStarted, ImproperlyConfigured, Sam
 from kaspr.faust.fixups import FixupT, fixups
 from kaspr.faust.sensors import Monitor, SensorDelegate
 from kaspr.faust.utils import cron, venusian
+from kaspr.faust.utils.queues import EventQueue
 from kaspr.faust.utils.tracing import (
     call_with_trace,
     noop_span,
@@ -1708,7 +1709,7 @@ class App(AppT, Service):
             *,
             clear_on_resume: bool = False) -> ThrowableQueue:
         """Like :class:`asyncio.Queue`, but can be suspended/resumed."""
-        return ThrowableQueue(
+        return EventQueue(
             maxsize=maxsize,
             flow_control=self.flow_control,
             clear_on_resume=clear_on_resume,

@@ -15,7 +15,7 @@ from kaspr.faust.transport.consumer import (
     TransactionManager,
 )
 from kaspr.faust.transport.conductor import Conductor
-from kaspr.faust.types import Message, TP
+from kaspr.faust.types import ConsumerMessage, Message, TP
 from mode import Service
 from mode.threads import MethodQueue
 from mode.utils.futures import done_future
@@ -781,18 +781,53 @@ class test_Consumer:
         consumer.ack(message)
 
     @pytest.mark.asyncio
-    async def test_wait_empty(self, *, consumer):
-        consumer._unacked_messages = {Mock(autospec=Message)}
+    async def test_wait_empty(self, *, consumer, message):
+        consumer._unacked_messages = {message}
         consumer._wait_for_ack = AsyncMock()
 
         def on_commit(start_new_transaction=True):
-            for _ in range(10):
-                yield
             if consumer.commit.call_count == 3:
                 consumer._unacked_messages.clear()
         consumer.commit = AsyncMock(name='commit', side_effect=on_commit)
 
+        await asyncio.wait_for(consumer.wait_empty(), timeout=1)
+        assert consumer.commit.call_count == 4  # and once when it is empty
+
+    @pytest.mark.asyncio
+    async def test_wait_empty__not_for_a_cleared_queue(self, *, consumer):
+        # Two streams of one topic: the first has acked the message, the
+        # queue of the second was cleared with the message in it.
+        message = ConsumerMessage(
+            'foo', 0, 3, None, None, None, b'key', b'value', None)
+        message.incref(2)
+        message.ack(consumer)
+        message.drop()
+        consumer._unacked_messages = {message}
+        consumer.commit = AsyncMock(name='commit')
+        consumer._wait_for_ack = AsyncMock(side_effect=AssertionError)
+
         await consumer.wait_empty()
+        assert not message.acked  # it is read again
+
+    @pytest.mark.asyncio
+    async def test_wait_empty__for_the_stream_that_has_it(self, *, consumer):
+        # Two streams of one topic: the queue of one was cleared with the
+        # message in it, the other is processing it.
+        message = ConsumerMessage(
+            'foo', 0, 3, None, None, None, b'key', b'value', None)
+        message.incref(2)
+        message.drop()
+        consumer._unacked_messages = {message}
+        consumer.commit = AsyncMock(name='commit')
+
+        waiting = asyncio.ensure_future(consumer.wait_empty())
+        await asyncio.sleep(0.1)
+        assert not waiting.done()
+        message.ack(consumer)
+        done, _ = await asyncio.wait({waiting}, timeout=3)
+        consumer._stopped.set()  # which ends any wait
+        assert done
+        assert not message.acked
 
     @pytest.mark.asyncio
     async def test_wait_empty__when_stopped(self, *, consumer):

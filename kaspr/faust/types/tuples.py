@@ -121,6 +121,7 @@ class Message:
         'serialized_value_size',
         'acked',
         'refcount',
+        'dropped',
         'time_in',
         'time_out',
         'time_total',
@@ -165,6 +166,8 @@ class Message:
             if serialized_value_size is None else serialized_value_size)
         self.acked: bool = False
         self.refcount: int = 0
+        #: References that will not be acked: :meth:`drop`.
+        self.dropped: int = 0
         self.tp = tp if tp is not None else TP(topic, partition)
         self.tracked: bool = not self.use_tracking
 
@@ -194,6 +197,19 @@ class Message:
     def decref(self, n: int = 1) -> int:
         refcount = self.refcount = max(self.refcount - n, 0)
         return refcount
+
+    def drop(self) -> None:
+        """Call when a stream will not see the message, so will not ack it.
+
+        The message is not acked then, whatever the other streams do: it is
+        read again. But nothing has to wait for that one stream.
+        """
+        self.dropped += 1
+
+    @property
+    def pending(self) -> bool:
+        """Return :const:`True` while a stream has yet to ack this."""
+        return not self.acked and self.refcount > self.dropped
 
     @classmethod
     def from_message(cls, message: Any, tp: TP) -> 'Message':

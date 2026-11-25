@@ -941,6 +941,7 @@ class test_output_acks:
         assert _emitted(processor) == []
         response.ack()
         assert not response.message.acked
+        assert not response.message.pending  # nor does the rebalance wait
 
     @pytest.mark.asyncio
     async def test_put_cleared_by_a_rebalance_drops_the_result(self, app):
@@ -962,6 +963,7 @@ class test_output_acks:
         assert _emitted(processor) == []
         response.ack()
         assert not response.message.acked
+        assert not response.message.pending
 
     @pytest.mark.asyncio
     async def test_stopping_cancels_a_blocked_put(self, app):
