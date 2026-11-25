@@ -9,5 +9,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY kaspr/ ./kaspr/
+# A pod would compile it as it starts, within its CPU limit.
+RUN python -m compileall -q kaspr
 
 CMD ["python", "-m", "kaspr", "worker", "-l", "info"]

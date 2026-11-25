@@ -3,10 +3,13 @@
 import ast
 import importlib
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
 
+import kaspr
+from kaspr import faust
 from kaspr.faust.models.base import registry
 
 REPO = Path(__file__).resolve().parents[1]
@@ -45,6 +48,16 @@ def test_nothing_imports_faust_as_a_package_of_its_own():
     """It would work wherever twm-faust is still installed, and not in the image."""
     sources = [*(REPO / "kaspr").rglob("*.py"), *(REPO / "tests").rglob("*.py")]
     assert not [str(p) for p in sources if any(name.split(".")[0] == "faust" for name in imports(p))]
+
+
+def test_no_requirement_installs_faust():
+    requirements = [REPO / "requirements.txt", REPO / "requirements-dev.txt"]
+    assert "faust" not in re.sub(r"#.*", "", "".join(p.read_text() for p in requirements))
+
+
+def test_one_version():
+    assert faust.__version__ == kaspr.__version__
+    assert kaspr.__version__.startswith(".".join(map(str, faust.version_info[:3])))
 
 
 def test_models_keep_their_names_in_kafka():

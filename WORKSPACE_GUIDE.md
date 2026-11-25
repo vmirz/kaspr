@@ -1,6 +1,6 @@
 # Kaspr Ecosystem — Workspace Guide for LLMs
 
-> **Purpose:** This document provides an LLM with comprehensive context about five interrelated projects so it can quickly reason about code, implement features, and make changes across the stack.
+> **Purpose:** This document provides an LLM with comprehensive context about four interrelated projects so it can quickly reason about code, implement features, and make changes across the stack.
 
 ---
 
@@ -8,13 +8,12 @@
 
 1. [Ecosystem Overview](#ecosystem-overview)
 2. [Development Workflow](#development-workflow)
-3. [Project 1: Faust (Stream Processing Framework)](#1-faust--stream-processing-framework)
-4. [Project 2: Kaspr (YAML-Driven Stream Processing)](#2-kaspr--yaml-driven-stream-processing)
-5. [Project 3: Kaspr-Operator (Kubernetes Operator)](#3-kaspr-operator--kubernetes-operator)
-6. [Project 4: Kaspr-Helm (Helm Charts)](#4-kaspr-helm--helm-charts)
-7. [Project 5: Kaspr-Docs (Documentation Website)](#5-kaspr-docs--documentation-website)
-8. [Cross-Project Patterns & Conventions](#cross-project-patterns--conventions)
-9. [Feature Implementation Checklist](#feature-implementation-checklist)
+3. [Project 1: Kaspr (YAML-Driven Stream Processing)](#1-kaspr--yaml-driven-stream-processing), with [its engine, Faust](#the-engine-faust)
+4. [Project 2: Kaspr-Operator (Kubernetes Operator)](#2-kaspr-operator--kubernetes-operator)
+5. [Project 3: Kaspr-Helm (Helm Charts)](#3-kaspr-helm--helm-charts)
+6. [Project 4: Kaspr-Docs (Documentation Website)](#4-kaspr-docs--documentation-website)
+7. [Cross-Project Patterns & Conventions](#cross-project-patterns--conventions)
+8. [Feature Implementation Checklist](#feature-implementation-checklist)
 
 ---
 
@@ -42,7 +41,7 @@
                               │ extends / wraps
                               ▼
 ┌──────────────────────────────────────────────────────────────────────┐
-│  faust (Python, forked as twm-faust)                                │
+│  kaspr/faust (Python, the engine in the kaspr package)              │
 │  Core stream processing: agents, streams, tables, topics, transport │
 │  Kafka consumer/producer via aiokafka, RocksDB state stores         │
 └──────────────────────────────────────────────────────────────────────┘
@@ -50,7 +49,6 @@
 
 | Project | Language | Version | Location |
 |---------|----------|---------|----------|
-| **faust** (twm-faust) | Python | 1.17.10 | `faust/` |
 | **kaspr** | Python | 0.8.2 | `kaspr/` |
 | **kaspr-operator** | Python | 0.16.2 | `kaspr-operator/` (TotalWineLabs) |
 | **kaspr-helm** | Helm/YAML | Chart 0.2.20 / App 0.5.15 | `kaspr-helm/` |
@@ -59,11 +57,11 @@
 ### Dependency Chain
 
 ```
-faust ← kaspr ← kaspr-operator ← kaspr-helm
-                                ← kaspr-docs
+kaspr ← kaspr-operator ← kaspr-helm
+                       ← kaspr-docs
 ```
 
-- **kaspr** depends on `twm-faust[rocksdict,prometheus]>=1.17.10,<1.18.0`
+- **kaspr** contains its engine, Faust (`kaspr/faust/`), and depends on `aiokafka`, `mode-streaming`, `aiohttp`, `rocksdict`, `prometheus-client`, `marshmallow`
 - **kaspr-operator** depends on `kopf`, `kubernetes-asyncio`, `marshmallow`, `mmh3`, `prometheus-client`
 - **kaspr-docs** uses `nextra` (Next.js documentation framework)
 - **kaspr-helm** deploys the operator image and CRDs
@@ -74,123 +72,24 @@ faust ← kaspr ← kaspr-operator ← kaspr-helm
 
 The typical flow when adding a new feature:
 
-1. **Faust** — Implement the core stream processing capability (e.g., new table type, new stream operation, new transport feature). Bump `__version__` in `faust/__init__.py`.
-2. **Kaspr** — Add YAML configuration model + schema + builder support for the new feature. This means adding types/models, types/schemas, and wiring it through the `AppBuilder`. Bump `__version__` in `kaspr/__init__.py`.
+1. **Kaspr's engine** — Implement the core stream processing capability in `kaspr/faust/` (e.g., new table type, new stream operation, new transport feature).
+2. **Kaspr** — Add YAML configuration model + schema + builder support for the new feature. This means adding types/models, types/schemas, and wiring it through the `AppBuilder`. Bump `__version__` in `kaspr/__init__.py`, also for a change to the engine alone.
 3. **Kaspr-Operator** — Update CRDs (OpenAPI schema in `crds/*.crd.yaml`), add corresponding types/models and types/schemas for the operator side, update resource classes and handlers. Bump `__version__` in `kaspr/__init__.py` of the operator.
 4. **Kaspr-Helm** — Copy updated CRDs to `charts/operator/crds/`, update `Chart.yaml` appVersion, bump chart version.
 5. **Kaspr-Docs** — Update user guides (`pages/docs/user-guide/`), API reference (`pages/docs/api-reference/v1alpha1.mdx`), and examples.
 
 ---
 
-## 1. Faust — Stream Processing Framework
-
-**Path:** `/faust/`  
-**Package:** `twm-faust` (forked from Robinhood's faust-streaming)  
-**Python:** ≥ 3.10  
-**Key Dependencies:** `aiokafka`, `mode-streaming`, `aiohttp`, `rocksdict` (optional), `croniter`
-
-### Architecture & Key Concepts
-
-Faust is built around these core abstractions:
-
-| Concept | Module | Description |
-|---------|--------|-------------|
-| **App** | `faust/app/base.py` | Central application object. Everything is registered here (agents, topics, tables, web views). 1977 lines. |
-| **Agent** | `faust/agents/agent.py` | An async function that processes a stream of events. Agents are async generators. 1141 lines. |
-| **Stream** | `faust/streams.py` | Async iterator over events from a channel. Supports `group_by`, `filter`, `take`, etc. 996 lines. |
-| **Topic** | `faust/topics.py` | A named channel backed by a Kafka topic. Handles serialization/deserialization. 501 lines. |
-| **Channel** | `faust/channels.py` | In-memory message channel (topic is a subclass). |
-| **Table** | `faust/tables/table.py` | Key/value store backed by a Kafka changelog topic. Supports windowing (hopping, tumbling). |
-| **GlobalTable** | `faust/tables/globaltable.py` | A table replicated to every worker instance. |
-| **Store** | `faust/stores/` | Pluggable state backends: `memory`, `rocksdb`. |
-| **Transport** | `faust/transport/drivers/` | Kafka drivers: `aiokafka` (default), `confluent`. |
-| **Sensor** | `faust/sensors/` | Monitoring hooks (datadog, statsd, custom). |
-| **Web** | `faust/web/` | Built-in aiohttp web server for views/endpoints. |
-| **Model** | `faust/models/` | Serializable record types (like dataclasses for events). |
-| **Window** | `faust/windows.py` | Time-based windowing (tumbling, hopping). |
-
-### Directory Structure
-
-```
-faust/
-├── __init__.py          # Version: 1.17.10
-├── app/
-│   ├── base.py          # App class — THE central object (1977 lines)
-│   └── router.py        # App router for web
-├── agents/
-│   ├── agent.py         # Agent implementation (1141 lines)
-│   ├── actor.py         # AsyncIterableActor, AwaitableActor
-│   ├── manager.py       # AgentManager
-│   ├── models.py        # ReqRep models
-│   └── replies.py       # Reply/barrier state
-├── channels.py          # Channel (in-memory), SerializedChannel
-├── streams.py           # Stream class (996 lines)
-├── topics.py            # Topic class (501 lines)
-├── tables/
-│   ├── base.py          # Collection base class (706 lines)
-│   ├── table.py         # Table (non-windowed) (124 lines)
-│   ├── globaltable.py   # GlobalTable
-│   ├── wrappers.py      # WindowWrapper
-│   ├── manager.py       # TableManager
-│   └── recovery.py      # Table recovery from changelogs
-├── stores/
-│   ├── base.py          # Base store interface
-│   ├── memory.py        # In-memory store
-│   └── rocksdb.py       # RocksDB store (803 lines)
-├── transport/
-│   ├── base.py          # Base transport
-│   ├── consumer.py      # Consumer abstraction
-│   ├── producer.py      # Producer abstraction
-│   ├── conductor.py     # Topic conductor
-│   └── drivers/
-│       ├── aiokafka.py  # Default Kafka driver
-│       └── confluent.py # Confluent driver
-├── sensors/
-│   ├── base.py          # SensorDelegate
-│   ├── monitor.py       # Monitor
-│   ├── datadog.py       # Datadog integration
-│   └── statsd.py        # StatsD integration
-├── models/              # Serializable record types
-├── web/                 # Built-in web server
-├── types/               # Type interfaces (abstract base classes)
-│   ├── agents.py, app.py, streams.py, tables.py, topics.py, ...
-│   └── settings.py      # Settings type
-├── utils/               # Utilities (cron, venusian, tracing)
-├── _cython/             # Optional Cython acceleration
-├── events.py            # Event wrapper
-├── exceptions.py        # Exception types
-├── joins.py             # Join implementations
-└── windows.py           # Window types (HoppingWindow, TumblingWindow)
-```
-
-### Key Patterns
-
-- **Type interfaces in `faust/types/`**: Every major class has an abstract interface (e.g., `AgentT`, `StreamT`, `TableT`). Implementations are in the corresponding modules.
-- **Plugin system via `App` constructor**: Custom implementations are injected via string paths: `Agent="kaspr.core.agent.KasprAgent"`, `Table="kaspr.core.table.KasprTable"`, etc.
-- **Service lifecycle via `mode`**: All services extend `mode.Service` with `on_start()`, `on_stop()`, `on_started()` lifecycle hooks.
-- **Changelog-backed tables**: Every table has a Kafka changelog topic. State is recovered on rebalance by replaying the changelog.
-- **Processing guarantee**: Supports `exactly_once` via Kafka transactions.
-
-### How to Add a New Feature to Faust
-
-1. Define the abstract type interface in `faust/types/`.
-2. Implement the concrete class in the appropriate module.
-3. Register it with the `App` class (possibly as a pluggable class).
-4. Add tests in `t/` directory.
-5. Bump version in `faust/__init__.py`.
-
----
-
-## 2. Kaspr — YAML-Driven Stream Processing
+## 1. Kaspr — YAML-Driven Stream Processing
 
 **Path:** `/kaspr/`  
 **Package:** `kaspr`  
 **Python:** ≥ 3.10  
-**Key Dependencies:** `twm-faust[rocksdict,prometheus]>=1.17.10`, `marshmallow`, `python-benedict`, `pyyaml`
+**Key Dependencies:** `aiokafka`, `mode-streaming`, `aiohttp`, `rocksdict`, `prometheus-client`, `marshmallow`, `python-benedict`, `pyyaml`
 
 ### What Kaspr Does
 
-Kaspr sits on top of Faust and provides:
+Kaspr sits on top of Faust, its engine, and provides:
 1. **YAML-based configuration** — Stream processors are defined in YAML files instead of Python code.
 2. **AppBuilder** — Reads YAML definitions and dynamically creates Faust agents, tables, web views, and tasks.
 3. **PyCode execution** — Embedded Python code blocks in YAML are compiled and executed at runtime.
@@ -222,6 +121,7 @@ kaspr/
 ├── app.py                   # App instance creation (configures KasprApp)
 ├── agents.py                # Example FK join agent code
 ├── exceptions.py            # Custom exceptions
+├── faust/                   # The engine (see The Engine: Faust)
 ├── core/
 │   ├── app.py               # KasprApp(faust.App) — main app class (121 lines)
 │   ├── agent.py             # KasprAgent(faust.Agent) — custom agent
@@ -349,9 +249,106 @@ The processor pipeline (`AgentProcessorSpec.prepare_processor()`) is the heart o
 6. Add env-var settings in `types/settings.py` if needed.
 7. Bump version in `__init__.py`.
 
+### The Engine: Faust
+
+**Path:** `kaspr/faust/`, tests in `tests/faust/`  
+**Package:** `kaspr.faust`. Robinhood's Faust, in the fork released as `twm-faust` until 1.18.0  
+**Python:** ≥ 3.10  
+**Key Dependencies:** `aiokafka`, `mode-streaming`, `aiohttp`, `rocksdict` (optional), `croniter`
+
+#### Architecture & Key Concepts
+
+Faust is built around these core abstractions:
+
+| Concept | Module | Description |
+|---------|--------|-------------|
+| **App** | `kaspr/faust/app/base.py` | Central application object. Everything is registered here (agents, topics, tables, web views). 1977 lines. |
+| **Agent** | `kaspr/faust/agents/agent.py` | An async function that processes a stream of events. Agents are async generators. 1141 lines. |
+| **Stream** | `kaspr/faust/streams.py` | Async iterator over events from a channel. Supports `group_by`, `filter`, `take`, etc. 996 lines. |
+| **Topic** | `kaspr/faust/topics.py` | A named channel backed by a Kafka topic. Handles serialization/deserialization. 501 lines. |
+| **Channel** | `kaspr/faust/channels.py` | In-memory message channel (topic is a subclass). |
+| **Table** | `kaspr/faust/tables/table.py` | Key/value store backed by a Kafka changelog topic. Supports windowing (hopping, tumbling). |
+| **GlobalTable** | `kaspr/faust/tables/globaltable.py` | A table replicated to every worker instance. |
+| **Store** | `kaspr/faust/stores/` | Pluggable state backends: `memory`, `rocksdb`. |
+| **Transport** | `kaspr/faust/transport/drivers/` | Kafka drivers: `aiokafka` (default), `confluent`. |
+| **Sensor** | `kaspr/faust/sensors/` | Monitoring hooks (datadog, statsd, custom). |
+| **Web** | `kaspr/faust/web/` | Built-in aiohttp web server for views/endpoints. |
+| **Model** | `kaspr/faust/models/` | Serializable record types (like dataclasses for events). |
+| **Window** | `kaspr/faust/windows.py` | Time-based windowing (tumbling, hopping). |
+
+#### Directory Structure
+
+```
+kaspr/faust/
+├── __init__.py
+├── app/
+│   ├── base.py          # App class — THE central object (1977 lines)
+│   └── router.py        # App router for web
+├── agents/
+│   ├── agent.py         # Agent implementation (1141 lines)
+│   ├── actor.py         # AsyncIterableActor, AwaitableActor
+│   ├── manager.py       # AgentManager
+│   ├── models.py        # ReqRep models
+│   └── replies.py       # Reply/barrier state
+├── channels.py          # Channel (in-memory), SerializedChannel
+├── streams.py           # Stream class (996 lines)
+├── topics.py            # Topic class (501 lines)
+├── tables/
+│   ├── base.py          # Collection base class (706 lines)
+│   ├── table.py         # Table (non-windowed) (124 lines)
+│   ├── globaltable.py   # GlobalTable
+│   ├── wrappers.py      # WindowWrapper
+│   ├── manager.py       # TableManager
+│   └── recovery.py      # Table recovery from changelogs
+├── stores/
+│   ├── base.py          # Base store interface
+│   ├── memory.py        # In-memory store
+│   └── rocksdb.py       # RocksDB store (803 lines)
+├── transport/
+│   ├── base.py          # Base transport
+│   ├── consumer.py      # Consumer abstraction
+│   ├── producer.py      # Producer abstraction
+│   ├── conductor.py     # Topic conductor
+│   └── drivers/
+│       ├── aiokafka.py  # Default Kafka driver
+│       └── confluent.py # Confluent driver
+├── sensors/
+│   ├── base.py          # SensorDelegate
+│   ├── monitor.py       # Monitor
+│   ├── datadog.py       # Datadog integration
+│   └── statsd.py        # StatsD integration
+├── models/              # Serializable record types
+├── web/                 # Built-in web server
+├── types/               # Type interfaces (abstract base classes)
+│   ├── agents.py, app.py, streams.py, tables.py, topics.py, ...
+│   └── settings.py      # Settings type
+├── utils/               # Utilities (cron, venusian, tracing)
+├── _cython/             # Optional Cython acceleration
+├── events.py            # Event wrapper
+├── exceptions.py        # Exception types
+├── joins.py             # Join implementations
+└── windows.py           # Window types (HoppingWindow, TumblingWindow)
+```
+
+#### Key Patterns
+
+- **Type interfaces in `kaspr/faust/types/`**: Every major class has an abstract interface (e.g., `AgentT`, `StreamT`, `TableT`). Implementations are in the corresponding modules.
+- **Plugin system via `App` constructor**: Custom implementations are injected via string paths: `Agent="kaspr.core.agent.KasprAgent"`, `Table="kaspr.core.table.KasprTable"`, etc.
+- **Service lifecycle via `mode`**: All services extend `mode.Service` with `on_start()`, `on_stop()`, `on_started()` lifecycle hooks.
+- **Changelog-backed tables**: Every table has a Kafka changelog topic. State is recovered on rebalance by replaying the changelog.
+- **Processing guarantee**: Supports `exactly_once` via Kafka transactions.
+
+#### How to Add a New Feature to Faust
+
+1. Define the abstract type interface in `kaspr/faust/types/`.
+2. Implement the concrete class in the appropriate module.
+3. Register it with the `App` class (possibly as a pluggable class).
+4. Add tests in `tests/faust/`.
+5. Bump version in `kaspr/__init__.py`.
+
 ---
 
-## 3. Kaspr-Operator — Kubernetes Operator
+## 2. Kaspr-Operator — Kubernetes Operator
 
 **Path:** `/kaspr-operator/` (TotalWineLabs)  
 **Package:** `kaspr-operator`  
@@ -506,7 +503,7 @@ They mirror each other in structure but serve different purposes. The operator m
 
 ---
 
-## 4. Kaspr-Helm — Helm Charts
+## 3. Kaspr-Helm — Helm Charts
 
 **Path:** `/kaspr-helm/`  
 **Chart Version:** 0.2.20  
@@ -569,7 +566,7 @@ kaspr-helm/
 
 ---
 
-## 5. Kaspr-Docs — Documentation Website
+## 4. Kaspr-Docs — Documentation Website
 
 **Path:** `/kaspr-docs/`  
 **Framework:** [Nextra](https://nextra.site/) v3 (Next.js + MDX documentation theme)  
@@ -650,7 +647,7 @@ Nextra uses `_meta.js` files to control sidebar navigation order and titles. Eac
 
 3. **Sensor/Monitor Pattern** — Faust has `SensorDelegate`, kaspr wraps it as `KasprMonitor` + `PrometheusMonitor`, and the operator has its own `OperatorSensor` + `SensorDelegate` + `PrometheusMonitor` (separate implementation, same pattern).
 
-4. **Abstract Type → Concrete Implementation** — Faust defines `*T` types in `faust/types/`, kaspr defines `Kaspr*T` types in `kaspr/types/`, operator uses `BaseModel` in `kaspr/types/models/`.
+4. **Abstract Type → Concrete Implementation** — Faust defines `*T` types in `kaspr/faust/types/`, kaspr defines `Kaspr*T` types in `kaspr/types/`, operator uses `BaseModel` in `kaspr/types/models/`.
 
 5. **Python Code in YAML** — The `CodeSpec`/`PyCode` pattern appears in both kaspr and operator:
    - YAML field: `python:` (source code string) + optional `entrypoint:` (function name)
@@ -661,8 +658,7 @@ Nextra uses `_meta.js` files to control sidebar navigation order and titles. Eac
 
 | When you bump... | Also check/bump... |
 |-------------------|-------------------|
-| `faust/__init__.py` (`__version__`) | kaspr `requirements.txt` (faust version pin) |
-| `kaspr/__init__.py` (`__version__`) | kaspr-operator Dockerfile / image tag |
+| `kaspr/__init__.py` (`__version__`), for Kaspr and its engine | kaspr-operator Dockerfile / image tag |
 | `kaspr-operator/__init__.py` (`__version__`) | kaspr-helm `Chart.yaml` (`appVersion`), operator Docker image |
 | CRDs in `kaspr-operator/crds/` | kaspr-helm `charts/operator/crds/` (copy files) |
 | kaspr-helm `Chart.yaml` | version + appVersion |
@@ -674,11 +670,10 @@ Nextra uses `_meta.js` files to control sidebar navigation order and titles. Eac
 When implementing a new end-to-end feature (e.g., a new agent capability):
 
 ### Faust Layer
-- [ ] Define abstract type in `faust/types/` if new interface needed
-- [ ] Implement in the appropriate module (`faust/agents/`, `faust/tables/`, etc.)
+- [ ] Define abstract type in `kaspr/faust/types/` if new interface needed
+- [ ] Implement in the appropriate module (`kaspr/faust/agents/`, `kaspr/faust/tables/`, etc.)
 - [ ] Add to `App` class if it needs to be pluggable
-- [ ] Add tests in `t/`
-- [ ] Bump `faust/__init__.py` version
+- [ ] Add tests in `tests/faust/`
 
 ### Kaspr Layer
 - [ ] Create model in `kaspr/types/models/` (data class)
@@ -718,11 +713,11 @@ When implementing a new end-to-end feature (e.g., a new agent capability):
 
 | File | Lines | Notes |
 |------|-------|-------|
-| `faust/app/base.py` | 1,977 | Core app — most complex file in faust |
-| `faust/agents/agent.py` | 1,141 | Agent implementation |
-| `faust/streams.py` | 996 | Stream processing |
-| `faust/stores/rocksdb.py` | 803 | RocksDB store |
-| `faust/tables/base.py` | 706 | Table base class |
+| `kaspr/faust/app/base.py` | 1,977 | Core app — most complex file in Faust |
+| `kaspr/faust/agents/agent.py` | 1,141 | Agent implementation |
+| `kaspr/faust/streams.py` | 996 | Stream processing |
+| `kaspr/faust/stores/rocksdb.py` | 803 | RocksDB store |
+| `kaspr/faust/tables/base.py` | 706 | Table base class |
 | `kaspr/types/settings.py` | 716 | All configurable settings |
 | `kaspr/scheduler/manager.py` | 657 | Message scheduler |
 | `kaspr-operator/handlers/kasprapp.py` | 2,342 | Main reconciliation handler |

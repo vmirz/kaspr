@@ -24,7 +24,9 @@ import typing
 
 from typing import Any, Mapping, NamedTuple, Optional, Sequence, Tuple
 
-__version__ = '1.18.0'
+# Faust has no releases of its own.
+from kaspr import __version__
+
 __author__ = 'Robinhood Markets, Inc.'
 __contact__ = 'contact@fauststream.com'
 __homepage__ = 'http://faust.readthedocs.io/'
@@ -41,8 +43,6 @@ class version_info_t(NamedTuple):
     serial: str
 
 
-# bumpversion can only search for {current_version}
-# so we have to parse the version here.
 _match = re.match(r'(\d+)\.(\d+).(\d+)(.+)?', __version__)
 if _match is None:  # pragma: no cover
     raise RuntimeError('THIS IS A BROKEN RELEASE!')
