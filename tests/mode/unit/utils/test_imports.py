@@ -1,6 +1,7 @@
 import os
 import sys
 from contextlib import contextmanager
+from importlib.metadata import EntryPoint
 from unittest.mock import Mock, call, patch
 
 import pytest
@@ -92,7 +93,7 @@ class test_FactoryMapping:
 
     def test__finalize(self, *, map):
         map.namespaces = {"foo"}
-        with patch_iter_entry_points():
+        with patch_entry_points():
             map._finalize()
         assert map.aliases["ep1"] == "foo:a"
         assert map.aliases["ep2"] == "bar:c"
@@ -158,7 +159,7 @@ def test_smart_import():
 
 
 def test_load_extension_classes():
-    with patch_iter_entry_points():
+    with patch_entry_points():
         with patch("kaspr.mode.utils.imports.symbol_by_name") as sbn:
             assert list(load_extension_classes("foo")) == [
                 EntrypointExtension("ep1", sbn.return_value),
@@ -169,7 +170,7 @@ def test_load_extension_classes():
 
 
 def test_load_extension_classes_syntax_error():
-    with patch_iter_entry_points():
+    with patch_entry_points():
         with patch("kaspr.mode.utils.imports.symbol_by_name") as sbn:
             sbn.side_effect = SyntaxError()
             with pytest.warns(UserWarning):
@@ -177,7 +178,7 @@ def test_load_extension_classes_syntax_error():
 
 
 def test_load_extension_class_names():
-    with patch_iter_entry_points():
+    with patch_entry_points():
         assert list(load_extension_class_names("foo")) == [
             RawEntrypointExtension("ep1", "foo:a"),
             RawEntrypointExtension("ep2", "bar:c"),
@@ -185,23 +186,27 @@ def test_load_extension_class_names():
 
 
 @contextmanager
-def patch_iter_entry_points():
-    with patch("pkg_resources.iter_entry_points") as iter_entry_points:
-        ep1 = Mock(name="ep1")
-        ep1.name = "ep1"
-        ep1.module_name = "foo"
-        ep1.attrs = ["a", "b"]
-        ep2 = Mock(name="ep2")
-        ep2.name = "ep2"
-        ep2.module_name = "bar"
-        ep2.attrs = ["c", "d"]
-        iter_entry_points.return_value = [ep1, ep2]
+def patch_entry_points():
+    with patch("kaspr.mode.utils.imports.entry_points") as entry_points:
+        entry_points.return_value = [
+            EntryPoint("ep1", "foo:a", "foo"),
+            EntryPoint("ep2", "bar:c", "foo"),
+        ]
         yield
+        entry_points.assert_called_once_with(group="foo")
 
 
-def test_load_extension_class_names__no_pkg_resources():
+def test_load_extension_class_names__installed(tmp_path, monkeypatch):
+    """Of an installed distribution, found without setuptools."""
+    info = tmp_path / "plugin-1.0.dist-info"
+    info.mkdir()
+    (info / "METADATA").write_text("Name: plugin\nVersion: 1.0\n")
+    (info / "entry_points.txt").write_text("[plugins]\nx = plugin:X\n")
+    monkeypatch.syspath_prepend(str(tmp_path))
     with mask_module("pkg_resources"):
-        assert list(load_extension_class_names("foo")) == []
+        assert list(load_extension_class_names("plugins")) == [
+            RawEntrypointExtension("x", "plugin:X"),
+        ]
 
 
 def test_cwd_in_path():
