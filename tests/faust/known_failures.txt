@@ -2,7 +2,6 @@ functional/sensors/test_statsd.py::test_stream_label[stream_from_channel-channel
 functional/sensors/test_statsd.py::test_stream_label[stream_from_combined_streams-topic_foo&topic_bar]
 functional/sensors/test_statsd.py::test_stream_label[stream_from_multiple_topics-topic_foo,bar]
 functional/sensors/test_statsd.py::test_stream_label[stream_from_topic-topic_withdrawals]
-functional/test_app.py::test_settings::test_broker_with_no_scheme_set
 functional/test_channels.py::test_clone
 functional/test_channels.py::test_stream
 functional/test_models.py::test_Sensitive
@@ -73,7 +72,6 @@ unit/transport/drivers/test_aiokafka.py::test_AIOKafkaConsumerThread::test_close
 unit/transport/drivers/test_aiokafka.py::test_AIOKafkaConsumerThread::test_session_gt_request_timeout
 unit/transport/drivers/test_aiokafka.py::test_Producer::test__new_producer__default
 unit/transport/drivers/test_aiokafka.py::test_Producer::test__new_producer__in_transaction
-unit/transport/drivers/test_aiokafka.py::test_Producer::test__new_producer__using_settings[expected_args2]
 unit/transport/drivers/test_aiokafka.py::test_Producer::test__producer_type
 unit/transport/drivers/test_aiokafka.py::test_VEP_no_commit::test_committing_fine
 unit/transport/drivers/test_aiokafka.py::test_VEP_no_commit::test_just_started
