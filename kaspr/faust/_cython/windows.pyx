@@ -1,7 +1,7 @@
 # cython: language_level=3
 from datetime import timedelta
 from libc.math cimport floor
-from faust.types import WindowT
+from kaspr.faust.types import WindowT
 
 
 cdef double want_seconds(object o, object default) except *:

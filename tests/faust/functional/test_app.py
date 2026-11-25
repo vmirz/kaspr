@@ -2,7 +2,7 @@ import socket
 import sys
 from pathlib import Path
 
-import faust
+from kaspr import faust
 import mode
 import pytest
 import pytz
@@ -10,18 +10,18 @@ import pytz
 from mode.utils.mocks import patch
 from yarl import URL
 
-from faust import App
-from faust.app import BootStrategy
-from faust.assignor import LeaderAssignor, PartitionAssignor
-from faust.exceptions import AlreadyConfiguredWarning, ImproperlyConfigured
-from faust.app.router import Router
-from faust.sensors import Monitor
-from faust.serializers import Registry
-from faust.tables import TableManager
-from faust.transport.utils import DefaultSchedulingStrategy
-from faust.types import settings
-from faust.types.enums import ProcessingGuarantee
-from faust.types.web import ResourceOptions
+from kaspr.faust import App
+from kaspr.faust.app import BootStrategy
+from kaspr.faust.assignor import LeaderAssignor, PartitionAssignor
+from kaspr.faust.exceptions import AlreadyConfiguredWarning, ImproperlyConfigured
+from kaspr.faust.app.router import Router
+from kaspr.faust.sensors import Monitor
+from kaspr.faust.serializers import Registry
+from kaspr.faust.tables import TableManager
+from kaspr.faust.transport.utils import DefaultSchedulingStrategy
+from kaspr.faust.types import settings
+from kaspr.faust.types.enums import ProcessingGuarantee
+from kaspr.faust.types.web import ResourceOptions
 
 TABLEDIR: Path
 DATADIR: Path
@@ -556,6 +556,6 @@ class test_BootStrategy:
     @pytest.mark.app(debug=True)
     @pytest.mark.asyncio
     async def test_debug_enabled_warns_on_start(self, *, app):
-        with patch('faust.app.base.logger') as logger:
+        with patch('kaspr.faust.app.base.logger') as logger:
             await app.on_start()
             logger.warning.assert_called_once()

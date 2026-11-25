@@ -20,11 +20,11 @@ from mode.utils.compat import want_bytes
 from mode.utils.objects import annotations, cached_property, qualname
 from mode.utils.times import Seconds
 
-import faust
-from faust.app.base import SCAN_CATEGORIES
-from faust.sensors.base import Sensor
-from faust.types import AgentT, AppT, EventT, StreamT, TP, TopicT
-from faust.utils import venusian
+from kaspr import faust
+from kaspr.faust.app.base import SCAN_CATEGORIES
+from kaspr.faust.sensors.base import Sensor
+from kaspr.faust.types import AgentT, AppT, EventT, StreamT, TP, TopicT
+from kaspr.faust.utils import venusian
 
 from . import patches
 from .case import Case
@@ -224,7 +224,7 @@ class LiveCheck(faust.App):
         """Decorate class to be used as a test case.
 
         Returns:
-            :class:`faust.livecheck.Case`.
+            :class:`kaspr.faust.livecheck.Case`.
         """
         base_case = base
 

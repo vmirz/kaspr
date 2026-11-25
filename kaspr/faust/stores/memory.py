@@ -8,7 +8,7 @@ from typing import (
     Set,
     Tuple,
 )
-from faust.types import EventT, TP
+from kaspr.faust.types import EventT, TP
 from . import base
 
 

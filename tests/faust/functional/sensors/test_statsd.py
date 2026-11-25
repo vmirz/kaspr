@@ -1,5 +1,5 @@
 import pytest
-from faust.sensors.statsd import StatsdMonitor
+from kaspr.faust.sensors.statsd import StatsdMonitor
 
 PREFIX = 'faust-test'
 

@@ -25,7 +25,7 @@ from mode.utils.objects import (
 )
 from mode.utils.text import pluralize
 
-from faust.types.models import (
+from kaspr.faust.types.models import (
     CoercionMapping,
     FieldDescriptorT,
     FieldMap,
@@ -33,7 +33,7 @@ from faust.types.models import (
     ModelOptions,
     ModelT,
 )
-from faust.utils import codegen
+from kaspr.faust.utils import codegen
 
 from .base import Model
 from .fields import FieldDescriptor, field_for_type

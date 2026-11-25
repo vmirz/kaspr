@@ -1,6 +1,6 @@
 import pytest
 from mode.utils.mocks import AsyncMock, Mock, call
-from faust.transport.producer import Producer, ProducerBuffer
+from kaspr.faust.transport.producer import Producer, ProducerBuffer
 
 
 class test_ProducerBuffer:
@@ -171,7 +171,7 @@ class ProducerTests:
     @pytest.mark.asyncio
     async def test_wait_delivered_raises_once_a_message_is_lost(
             self, *, producer):
-        from faust.exceptions import ProducerSendError
+        from kaspr.faust.exceptions import ProducerSendError
         producer.flush = AsyncMock(name='flush')
         lost = KeyError('lost')
         producer.on_undelivered(lost)

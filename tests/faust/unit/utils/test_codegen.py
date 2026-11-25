@@ -1,5 +1,5 @@
 import pytest
-from faust.utils.codegen import reprcall, reprkwargs
+from kaspr.faust.utils.codegen import reprcall, reprkwargs
 
 
 @pytest.mark.parametrize('input,expected', [

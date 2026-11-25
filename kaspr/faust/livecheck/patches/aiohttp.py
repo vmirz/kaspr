@@ -6,8 +6,8 @@ from typing import Any, List, Optional, no_type_check
 import aiohttp
 from aiohttp import web
 
-from faust.livecheck.locals import current_test_stack
-from faust.livecheck.models import TestExecution
+from kaspr.faust.livecheck.locals import current_test_stack
+from kaspr.faust.livecheck.models import TestExecution
 
 __all__ = ['patch_all', 'patch_aiohttp_session', 'LiveCheckMiddleware']
 

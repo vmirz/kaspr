@@ -1,6 +1,6 @@
 import pytest
-from faust.web import Blueprint
-from faust.web.base import (
+from kaspr.faust.web import Blueprint
+from kaspr.faust.web.base import (
     BlueprintManager,
     DEBUG_BLUEPRINTS,
     DEFAULT_BLUEPRINTS,

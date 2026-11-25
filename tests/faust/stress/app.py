@@ -1,7 +1,7 @@
 from typing import Any, Callable, Iterator, List
 from mode.utils.objects import cached_property
-import faust
-from faust.types import RecordMetadata
+from kaspr import faust
+from kaspr.faust.types import RecordMetadata
 from . import config
 from . import producer
 from .reports.checks import Check, SystemChecks

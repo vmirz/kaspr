@@ -1,7 +1,7 @@
 import pytest
-from faust.stores import rocksdb
-from faust.stores.rocksdb import Store
-from faust.types import TP
+from kaspr.faust.stores import rocksdb
+from kaspr.faust.stores.rocksdb import Store
+from kaspr.faust.types import TP
 from mode.utils.mocks import Mock
 
 

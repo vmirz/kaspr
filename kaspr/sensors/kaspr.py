@@ -12,7 +12,7 @@ from kaspr.types import (
     KasprAppT,
     KasprTableT,
 )
-from faust.sensors.monitor import Monitor
+from kaspr.faust.sensors.monitor import Monitor
 from mode.utils.objects import KeywordReduce
 
 

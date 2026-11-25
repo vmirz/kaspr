@@ -10,9 +10,9 @@ from mode.utils.imports import symbol_by_name
 from mode.utils.logging import level_name
 from yarl import URL
 
-from faust.worker import Worker as FaustWorker
-from faust.types import AppT
-from faust.types._env import WEB_BIND, WEB_PORT, WEB_TRANSPORT, SHUTDOWN_MEMORY_PERCENT, SHUTDOWN_MEMORY_BYTES
+from kaspr.faust.worker import Worker as FaustWorker
+from kaspr.faust.types import AppT
+from kaspr.faust.types._env import WEB_BIND, WEB_PORT, WEB_TRANSPORT, SHUTDOWN_MEMORY_PERCENT, SHUTDOWN_MEMORY_BYTES
 
 from . import params
 from .base import AppCommand, now_builtin_worker_options, option
@@ -21,8 +21,8 @@ __all__ = ['worker']
 
 FAUST = 'ƒaµS†'
 
-# XXX mypy borks if we do `from faust import __version`.
-faust_version: str = symbol_by_name('faust:__version__')
+# XXX mypy borks if we do `from kaspr.faust import __version`.
+faust_version: str = symbol_by_name('kaspr.faust:__version__')
 
 
 class worker(AppCommand):
@@ -70,7 +70,7 @@ class worker(AppCommand):
         For the worker we simply start the application itself.
 
         Note:
-            The application will be started using a :class:`faust.Worker`.
+            The application will be started using a :class:`kaspr.faust.Worker`.
         """
         self._init_worker_options(*args, **kwargs)
         return self.app
@@ -118,7 +118,7 @@ class worker(AppCommand):
         compiler = platform.python_compiler()
         cython_info = None
         try:
-            import faust._cython.windows  # noqa: F401
+            import kaspr.faust._cython.windows  # noqa: F401
         except ImportError:
             pass
         else:

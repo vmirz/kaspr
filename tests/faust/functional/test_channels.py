@@ -1,6 +1,6 @@
 import asyncio
-import faust
-from faust.types import StreamT, TP
+from kaspr import faust
+from kaspr.faust.types import StreamT, TP
 from mode import label
 from mode.utils.aiter import aiter, anext
 from mode.utils.mocks import Mock

@@ -1,6 +1,6 @@
 # cython: language_level=3
 from asyncio import ALL_COMPLETED, wait
-from faust.exceptions import KeyDecodeError, ValueDecodeError
+from kaspr.faust.exceptions import KeyDecodeError, ValueDecodeError
 
 
 cdef class ConductorHandler:

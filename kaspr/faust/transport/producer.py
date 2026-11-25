@@ -10,10 +10,10 @@ import asyncio
 from asyncio import QueueEmpty
 from typing import Any, Awaitable, Mapping, Optional, cast
 from mode import Seconds, Service
-from faust.exceptions import ProducerSendError
-from faust.types import AppT, HeadersArg
-from faust.types.tuples import FutureMessage, RecordMetadata, TP
-from faust.types.transports import ProducerBufferT, ProducerT, TransportT
+from kaspr.faust.exceptions import ProducerSendError
+from kaspr.faust.types import AppT, HeadersArg
+from kaspr.faust.types.tuples import FutureMessage, RecordMetadata, TP
+from kaspr.faust.types.transports import ProducerBufferT, ProducerT, TransportT
 
 __all__ = ['Producer']
 

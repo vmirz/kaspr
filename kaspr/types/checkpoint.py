@@ -1,6 +1,6 @@
 import typing
 from typing import Optional
-from faust.types import ServiceT
+from kaspr.faust.types import ServiceT
 from kaspr.types.tuples import TTLocation, PT
 from mode.utils.locks import Event
 

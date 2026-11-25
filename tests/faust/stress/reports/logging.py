@@ -2,7 +2,7 @@ import asyncio
 import logging
 import socket
 from typing import Any
-import faust
+from kaspr import faust
 from mode import Service
 from .app import get_error_topic
 from .models import Error

@@ -1,7 +1,7 @@
 import abc
 from mode import Seconds
 from typing import AsyncIterable, Sequence, TypeVar, Union, Awaitable, Callable, Tuple
-from faust.types import StreamT, EventT
+from kaspr.faust.types import StreamT, EventT
 
 # Used for typing StreamT[Withdrawal]
 T = TypeVar("T")

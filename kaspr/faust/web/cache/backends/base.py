@@ -7,9 +7,9 @@ from mode import Service
 from mode.utils.logging import get_logger
 from yarl import URL
 
-from faust.types import AppT
-from faust.types.web import CacheBackendT
-from faust.web.cache.exceptions import CacheUnavailable
+from kaspr.faust.types import AppT
+from kaspr.faust.types.web import CacheBackendT
+from kaspr.faust.web.cache.exceptions import CacheUnavailable
 
 logger = get_logger(__name__)
 

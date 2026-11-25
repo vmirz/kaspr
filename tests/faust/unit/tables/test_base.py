@@ -3,13 +3,13 @@ import operator
 from copy import copy
 
 import pytest
-from faust import joins
-from faust import Event, Record, Stream, Topic
-from faust.exceptions import PartitionsMismatch
-from faust.stores.base import Store
-from faust.tables.base import Collection
-from faust.types import TP
-from faust.windows import Window
+from kaspr.faust import joins
+from kaspr.faust import Event, Record, Stream, Topic
+from kaspr.faust.exceptions import PartitionsMismatch
+from kaspr.faust.stores.base import Store
+from kaspr.faust.tables.base import Collection
+from kaspr.faust.types import TP
+from kaspr.faust.windows import Window
 from mode import label, shortlabel
 from mode.utils.mocks import AsyncMock, Mock, call, patch
 
@@ -429,7 +429,7 @@ class test_Collection:
         assert table._relative_now(event) == 30.3
 
     def test_relative_now__no_event(self, *, table):
-        with patch('faust.tables.base.current_event') as ce:
+        with patch('kaspr.faust.tables.base.current_event') as ce:
             ce.return_value = None
             with patch('time.time') as time:
                 assert table._relative_now(None) is time()
@@ -439,7 +439,7 @@ class test_Collection:
         assert table._relative_event(event) is event.message.timestamp
 
     def test_relative_event__raises_if_no_event(self, *, table):
-        with patch('faust.tables.base.current_event') as current_event:
+        with patch('kaspr.faust.tables.base.current_event') as current_event:
             current_event.return_value = None
             with pytest.raises(RuntimeError):
                 table._relative_event(None)
@@ -459,7 +459,7 @@ class test_Collection:
             Mock(name='event', autospec=Event)) == 303.3
 
     def test_windowed_now(self, *, table):
-        with patch('faust.tables.base.current_event'):
+        with patch('kaspr.faust.tables.base.current_event'):
             table.window = Mock(name='window', autospec=Window)
             table.window.earliest.return_value = 42
             table._get_key = Mock(name='_get_key')

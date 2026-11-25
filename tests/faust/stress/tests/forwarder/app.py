@@ -1,6 +1,6 @@
 import random
 from collections import Counter
-from faust import Stream
+from kaspr.faust import Stream
 from ...reports import checks
 from ...reports.app import SimpleCheck
 from ...app import create_stress_app
@@ -12,7 +12,7 @@ found_gaps = 0
 app = create_stress_app(
     name='f-stress-dedupe',
     version=7,
-    origin='t.stress.tests.forwarder',
+    origin='tests.faust.stress.tests.forwarder',
     broker_commit_every=100,
 )
 

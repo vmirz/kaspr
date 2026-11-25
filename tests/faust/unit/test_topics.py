@@ -1,10 +1,10 @@
 import asyncio
 import re
-import faust
+from kaspr import faust
 import pytest
-from faust import Event, Record
-from faust.exceptions import KeyDecodeError, ValueDecodeError
-from faust.types import Message
+from kaspr.faust import Event, Record
+from kaspr.faust.exceptions import KeyDecodeError, ValueDecodeError
+from kaspr.faust.types import Message
 from mode.utils.mocks import AsyncMock, Mock, call, patch
 
 
@@ -168,7 +168,7 @@ class test_Topic:
         app._attachments.enabled = True
         callback = Mock(name='callback')
         schema = Mock(name='schema')
-        with patch('faust.topics.current_event') as current_event:
+        with patch('kaspr.faust.topics.current_event') as current_event:
             await topic.send(
                 key='k',
                 value='v',
@@ -200,7 +200,7 @@ class test_Topic:
         app._attachments.enabled = True
         callback = Mock(name='callback')
         topic._send_now = AsyncMock()
-        with patch('faust.topics.current_event', Mock(return_value=None)):
+        with patch('kaspr.faust.topics.current_event', Mock(return_value=None)):
             await topic.send(
                 key='k',
                 value='v',
@@ -269,9 +269,9 @@ class test_Topic:
     def test_send_soon__marks_messages_sent_while_processing(
             self, *, topic, app):
         app.producer.send_soon = Mock(name='send_soon')
-        with patch('faust.topics.current_event', Mock(return_value=None)):
+        with patch('kaspr.faust.topics.current_event', Mock(return_value=None)):
             outside = topic.send_soon(key=b'k', value=b'v')
-        with patch('faust.topics.current_event'):
+        with patch('kaspr.faust.topics.current_event'):
             during = topic.send_soon(key=b'k', value=b'v')
 
         assert outside.during_processing is False
@@ -286,7 +286,7 @@ class test_Topic:
         topic._get_producer = AsyncMock(return_value=producer)
         fut = topic.as_future_message(key=b'k', value=b'v')
         fut.during_processing = True
-        with patch('faust.topics.current_event', Mock(return_value=None)):
+        with patch('kaspr.faust.topics.current_event', Mock(return_value=None)):
             await topic.publish_message(fut)
         exc = KeyError('lost')
         sent.set_exception(exc)
@@ -301,7 +301,7 @@ class test_Topic:
         producer = _producer_delivering(sent)
         topic._get_producer = AsyncMock(return_value=producer)
         fut = topic.as_future_message(key=b'k', value=b'v')
-        with patch('faust.topics.current_event', Mock(return_value=None)):
+        with patch('kaspr.faust.topics.current_event', Mock(return_value=None)):
             await topic.publish_message(fut)
         sent.set_exception(KeyError('lost'))
         await asyncio.sleep(0)

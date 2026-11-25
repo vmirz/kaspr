@@ -8,9 +8,9 @@ from aiohttp.web import Application
 from mode.utils.mocks import ANY, AsyncMock, Mock, call, patch
 from yarl import URL
 
-from faust.types.web import ResourceOptions
-from faust.web import base
-from faust.web.drivers.aiohttp import (
+from kaspr.faust.types.web import ResourceOptions
+from kaspr.faust.web import base
+from kaspr.faust.web.drivers.aiohttp import (
     NON_OPTIONS_METHODS,
     Server,
     ServerThread,
@@ -134,7 +134,7 @@ class test_Web:
         assert isinstance(web.cors, aiohttp_cors.CorsConfig)
 
     def test_text(self, *, web):
-        with patch('faust.web.drivers.aiohttp.Response') as Response:
+        with patch('kaspr.faust.web.drivers.aiohttp.Response') as Response:
             resp = web.text(
                 'foo',
                 content_type='app/json',
@@ -153,7 +153,7 @@ class test_Web:
 
     def test_json__from_str(self, *, web):
         web.text = Mock(name='web.text')
-        with patch('faust.utils.json.dumps') as dumps:
+        with patch('kaspr.faust.utils.json.dumps') as dumps:
             dumps.return_value = 'foo'
             payload = {'foo': 'bar'}
             response = web.json(
@@ -174,7 +174,7 @@ class test_Web:
 
     def test_json__from_bytes(self, *, web):
         web.bytes = Mock(name='web.bytes')
-        with patch('faust.utils.json.dumps') as dumps:
+        with patch('kaspr.faust.utils.json.dumps') as dumps:
             dumps.return_value = b'foo'
             payload = {'foo': 'bar'}
             response = web.json(
@@ -195,7 +195,7 @@ class test_Web:
             assert response is web.bytes.return_value
 
     def test_html(self, *, web):
-        with patch('faust.web.drivers.aiohttp.Response') as Response:
+        with patch('kaspr.faust.web.drivers.aiohttp.Response') as Response:
             resp = web.html(
                 'foo',
                 status=303,
@@ -213,7 +213,7 @@ class test_Web:
             assert resp is Response()
 
     def test_bytes(self, *, web):
-        with patch('faust.web.drivers.aiohttp.Response') as Response:
+        with patch('kaspr.faust.web.drivers.aiohttp.Response') as Response:
             resp = web.bytes(
                 b'foo',
                 content_type='app/json',
@@ -234,7 +234,7 @@ class test_Web:
     async def test_on_start(self, *, web):
         web.add_dependency = Mock(name='add_dependency')
         web.app.conf.web_in_thread = True
-        with patch('faust.web.drivers.aiohttp.ServerThread') as ServerThread:
+        with patch('kaspr.faust.web.drivers.aiohttp.ServerThread') as ServerThread:
             await web.on_start()
             ServerThread.assert_called_once_with(
                 web, beacon=web.beacon)
@@ -332,7 +332,7 @@ class test_Web:
 
     def test__new_transport__tcp(self, *, web, app):
         app.conf.web_transport = URL('tcp://')
-        with patch('faust.web.drivers.aiohttp.TCPSite') as TCPSite:
+        with patch('kaspr.faust.web.drivers.aiohttp.TCPSite') as TCPSite:
             ret = web._create_site()
             TCPSite.assert_called_once_with(
                 web._runner,
@@ -343,7 +343,7 @@ class test_Web:
 
     def test__new_transport__unix(self, *, web, app):
         app.conf.web_transport = URL('unix:///etc/foobar')
-        with patch('faust.web.drivers.aiohttp.UnixSite') as UnixSite:
+        with patch('kaspr.faust.web.drivers.aiohttp.UnixSite') as UnixSite:
             ret = web._create_site()
             UnixSite.assert_called_once_with(
                 web._runner,

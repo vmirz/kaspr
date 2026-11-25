@@ -3,7 +3,7 @@ from collections import Counter
 from datetime import date, datetime, timezone
 from decimal import Decimal
 from uuid import uuid4
-from faust.utils.json import JSONEncoder, str_to_decimal
+from kaspr.faust.utils.json import JSONEncoder, str_to_decimal
 from hypothesis import assume, given
 from hypothesis.strategies import decimals
 import pytest

@@ -1,4 +1,4 @@
-from faust.windows import SlidingWindow
+from kaspr.faust.windows import SlidingWindow
 
 
 class test_SlidingWindow:

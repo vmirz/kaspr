@@ -1,5 +1,5 @@
 from datetime import timedelta, timezone
-from faust.livecheck.models import State
+from kaspr.faust.livecheck.models import State
 
 
 class test_State:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from typing import List
-import faust
+from kaspr import faust
 
 
 class Point(faust.Record):
@@ -13,7 +13,7 @@ class Arena(faust.Record):
     timestamp: float = None
 
 
-app = faust.App('t-integration', origin='t.integration.app')
+app = faust.App('t-integration', origin='tests.faust.integration.app')
 add_topic = app.topic('add-topic')
 local_channel = app.channel()
 

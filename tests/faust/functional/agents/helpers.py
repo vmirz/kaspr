@@ -3,8 +3,8 @@ from collections import Counter
 from itertools import cycle
 from time import time
 from typing import Any, List, Optional, Set
-from faust.types import AppT, CodecT, EventT, Message as MessageT, StreamT, TP
-from faust.types.core import HeadersArg
+from kaspr.faust.types import AppT, CodecT, EventT, Message as MessageT, StreamT, TP
+from kaspr.faust.types.core import HeadersArg
 from mode import Service
 from mode.utils.aiter import aenumerate
 

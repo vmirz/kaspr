@@ -1,7 +1,7 @@
 import pytest
-from faust import Event
-from faust.stores.memory import Store
-from faust.types import TP
+from kaspr.faust import Event
+from kaspr.faust.stores.memory import Store
+from kaspr.faust.types import TP
 from mode.utils.mocks import Mock
 
 

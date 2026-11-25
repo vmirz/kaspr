@@ -1,5 +1,5 @@
-from faust.types import TP
-from faust.transport.utils import (
+from kaspr.faust.types import TP
+from kaspr.faust.transport.utils import (
     DefaultSchedulingStrategy,
     TopicBuffer,
 )

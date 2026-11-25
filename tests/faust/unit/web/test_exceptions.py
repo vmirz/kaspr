@@ -1,4 +1,4 @@
-from faust.web import exceptions
+from kaspr.faust.web import exceptions
 
 
 def test_WebError():

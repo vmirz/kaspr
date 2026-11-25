@@ -2,8 +2,8 @@
 from asyncio import sleep
 from time import monotonic
 from mode.utils.futures import maybe_async, notify
-from faust.exceptions import Skip
-from faust.types import ChannelT, EventT
+from kaspr.faust.exceptions import Skip
+from kaspr.faust.types import ChannelT, EventT
 
 
 cdef class StreamIterator:

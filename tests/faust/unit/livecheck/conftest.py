@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta, timezone
 import pytest
 from mode.utils.mocks import ContextMock, patch
-from faust.livecheck.models import TestExecution
-from faust.livecheck.runners import TestRunner
+from kaspr.faust.livecheck.models import TestExecution
+from kaspr.faust.livecheck.runners import TestRunner
 
 
 @pytest.fixture()
@@ -43,13 +43,13 @@ def runner(*, execution, case):
 
 @pytest.yield_fixture()
 def current_test_stack():
-    with patch('faust.livecheck.case.current_test_stack') as cts:
+    with patch('kaspr.faust.livecheck.case.current_test_stack') as cts:
         cts.push = ContextMock()
         yield cts
 
 
 @pytest.yield_fixture()
 def current_execution_stack():
-    with patch('faust.livecheck.case.current_execution_stack') as ces:
+    with patch('kaspr.faust.livecheck.case.current_execution_stack') as ces:
         ces.push = ContextMock()
         yield ces

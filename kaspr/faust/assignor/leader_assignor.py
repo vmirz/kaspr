@@ -2,8 +2,8 @@
 from typing import Any
 from mode import Service
 from mode.utils.objects import cached_property
-from faust.types import AppT, TP, TopicT
-from faust.types.assignor import LeaderAssignorT
+from kaspr.faust.types import AppT, TP, TopicT
+from kaspr.faust.types.assignor import LeaderAssignorT
 
 __all__ = ['LeaderAssignor']
 

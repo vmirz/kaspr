@@ -20,13 +20,13 @@ from typing import (
 from mode.utils.objects import cached_property
 from mode.utils.text import pluralize
 
-from faust.exceptions import ValidationError
-from faust.types.models import (
+from kaspr.faust.exceptions import ValidationError
+from kaspr.faust.types.models import (
     FieldDescriptorT,
     ModelT,
     T,
 )
-from faust.utils import iso8601
+from kaspr.faust.utils import iso8601
 
 from .tags import Tag
 from .typing import NodeType, TypeExpression

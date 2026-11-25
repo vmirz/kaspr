@@ -5,9 +5,9 @@ from typing import Any, Sequence, Type
 import click
 from mode.utils import text
 
-from faust.models import registry
-from faust.types import FieldDescriptorT, ModelT
-from faust.utils import terminal
+from kaspr.faust.models import registry
+from kaspr.faust.types import FieldDescriptorT, ModelT
+from kaspr.faust.utils import terminal
 
 from .base import AppCommand, argument
 

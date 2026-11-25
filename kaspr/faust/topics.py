@@ -74,14 +74,14 @@ class Topic(SerializedChannel, TopicT):
                  subscribe to. You cannot specify both topics and a pattern.
         schema: Schema used for serialization/deserialization.
         key_type: How to deserialize keys for messages in this topic.
-                  Can be a :class:`faust.Model` type, :class:`str`,
+                  Can be a :class:`kaspr.faust.Model` type, :class:`str`,
                   :class:`bytes`, or :const:`None` for "autodetect"
                   (Overrides schema if one is defined).
         value_type: How to deserialize values for messages in this topic.
-                  Can be a :class:`faust.Model` type, :class:`str`,
+                  Can be a :class:`kaspr.faust.Model` type, :class:`str`,
                   :class:`bytes`, or :const:`None` for "autodetect"
                   (Overrides schema if ones is defined).
-        active_partitions: Set of :class:`faust.types.tuples.TP` that this
+        active_partitions: Set of :class:`kaspr.faust.types.tuples.TP` that this
                   topic should be restricted to.
 
     Raises:

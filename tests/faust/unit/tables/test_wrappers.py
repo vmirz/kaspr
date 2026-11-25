@@ -2,12 +2,12 @@ import operator
 import random
 from datetime import datetime
 
-import faust
+from kaspr import faust
 import pytest
-from faust.events import Event
-from faust.exceptions import ImproperlyConfigured
-from faust.tables.wrappers import WindowSet
-from faust.types import Message
+from kaspr.faust.events import Event
+from kaspr.faust.exceptions import ImproperlyConfigured
+from kaspr.faust.tables.wrappers import WindowSet
+from kaspr.faust.types import Message
 from mode.utils.mocks import Mock, patch
 
 DATETIME = datetime.utcnow()
@@ -60,8 +60,8 @@ def same(a, b):
 
 @pytest.yield_fixture()
 def current_event(*, freeze_time):
-    with patch('faust.tables.wrappers.current_event') as current_event:
-        with patch('faust.tables.base.current_event', current_event):
+    with patch('kaspr.faust.tables.wrappers.current_event') as current_event:
+        with patch('kaspr.faust.tables.base.current_event', current_event):
             current_event.return_value.message.timestamp = freeze_time.time
             yield current_event
 
@@ -264,7 +264,7 @@ class test_WindowWrapper:
 
     def test_get_timestamp__event_is_None(self, *, event, wtable):
         wtable.get_relative_timestamp = None
-        with patch('faust.tables.wrappers.current_event') as ce:
+        with patch('kaspr.faust.tables.wrappers.current_event') as ce:
             ce.return_value = None
             with pytest.raises(RuntimeError):
                 assert wtable.get_timestamp(None)

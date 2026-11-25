@@ -56,32 +56,32 @@ from mode.utils.times import Seconds, humanize_seconds_ago, want_seconds
 from opentracing.ext import tags
 from yarl import URL
 
-from faust.auth import (
+from kaspr.faust.auth import (
     GSSAPICredentials,
     SASLCredentials,
     SSLCredentials,
 )
-from faust.exceptions import (
+from kaspr.faust.exceptions import (
     ConsumerNotStarted,
     ImproperlyConfigured,
     NotReady,
     ProducerSendError,
 )
-from faust.transport import base
-from faust.transport.consumer import (
+from kaspr.faust.transport import base
+from kaspr.faust.transport.consumer import (
     ConsumerThread,
     RecordMap,
     ThreadDelegateConsumer,
     ensure_TPset,
 )
-from faust.types import ConsumerMessage, HeadersArg, RecordMetadata, TP
-from faust.types.auth import CredentialsT
-from faust.types.transports import (
+from kaspr.faust.types import ConsumerMessage, HeadersArg, RecordMetadata, TP
+from kaspr.faust.types.auth import CredentialsT
+from kaspr.faust.types.transports import (
     ConsumerT,
     PartitionerT,
     ProducerT,
 )
-from faust.utils.tracing import (
+from kaspr.faust.utils.tracing import (
     noop_span,
     set_current_span,
     traced_from_parent_span,

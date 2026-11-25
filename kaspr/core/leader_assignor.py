@@ -1,4 +1,4 @@
-from faust.assignor import LeaderAssignor
+from kaspr.faust.assignor import LeaderAssignor
 from mode.utils.objects import cached_property
 
 class KasprLeaderAssignor(LeaderAssignor):

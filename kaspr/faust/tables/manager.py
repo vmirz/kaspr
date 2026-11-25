@@ -7,14 +7,14 @@ from typing import Any, MutableMapping, Optional, Set, Tuple, cast
 from mode import Service
 from mode.utils.queues import ThrowableQueue
 
-from faust.types import AppT, ChannelT, StoreT, TP
-from faust.types.tables import CollectionT, TableManagerT
-from faust.utils.tracing import traced_from_parent_span
+from kaspr.faust.types import AppT, ChannelT, StoreT, TP
+from kaspr.faust.types.tables import CollectionT, TableManagerT
+from kaspr.faust.utils.tracing import traced_from_parent_span
 
 from .recovery import Recovery
 
 if typing.TYPE_CHECKING:
-    from faust.app import App as _App
+    from kaspr.faust.app import App as _App
 else:
     class _App: ...  # noqa
 

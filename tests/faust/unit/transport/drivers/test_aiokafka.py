@@ -1,6 +1,6 @@
 import asyncio
 import aiokafka
-import faust
+from kaspr import faust
 import opentracing
 import pytest
 import random
@@ -14,11 +14,11 @@ from aiokafka.partitioner import DefaultPartitioner
 from aiokafka.protocol.metadata import MetadataResponse_v0
 from aiokafka.structs import OffsetAndMetadata, TopicPartition
 from opentracing.ext import tags
-from faust import auth
-from faust.exceptions import ImproperlyConfigured, NotReady
-from faust.sensors.monitor import Monitor
-from faust.transport.drivers import aiokafka as mod
-from faust.transport.drivers.aiokafka import (
+from kaspr.faust import auth
+from kaspr.faust.exceptions import ImproperlyConfigured, NotReady
+from kaspr.faust.sensors.monitor import Monitor
+from kaspr.faust.transport.drivers import aiokafka as mod
+from kaspr.faust.transport.drivers.aiokafka import (
     AIOKafkaConsumerThread,
     BaseProducer,
     Consumer,
@@ -32,14 +32,14 @@ from faust.transport.drivers.aiokafka import (
     credentials_to_aiokafka_auth,
     server_list,
 )
-from faust.types import TP
+from kaspr.faust.types import TP
 from mode.utils.futures import done_future
 from mode.utils.mocks import ANY, AsyncMock, MagicMock, Mock, call, patch
 
 TP1 = TP('topic', 23)
 TP2 = TP('topix', 23)
 
-TESTED_MODULE = 'faust.transport.drivers.aiokafka'
+TESTED_MODULE = 'kaspr.faust.transport.drivers.aiokafka'
 
 
 @pytest.fixture()
@@ -1836,7 +1836,7 @@ class test_Transport:
     async def test__create_topic__missing(self, *, transport, loop):
         client = Mock(name='client')
         transport._topic_waiters.clear()
-        with patch('faust.transport.drivers.aiokafka.StampedeWrapper') as SW:
+        with patch('kaspr.faust.transport.drivers.aiokafka.StampedeWrapper') as SW:
             SW.return_value = AsyncMock()
             await transport._create_topic(
                 transport,
@@ -1860,7 +1860,7 @@ class test_Transport:
     async def test__create_topic__raises(self, *, transport, loop):
         client = Mock(name='client')
         transport._topic_waiters.clear()
-        with patch('faust.transport.drivers.aiokafka.StampedeWrapper') as SW:
+        with patch('kaspr.faust.transport.drivers.aiokafka.StampedeWrapper') as SW:
             SW.return_value = AsyncMock()
             SW.return_value.coro.side_effect = KeyError('foo')
             with pytest.raises(KeyError):

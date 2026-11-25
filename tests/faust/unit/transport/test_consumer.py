@@ -1,12 +1,12 @@
 import asyncio
 import pytest
-from faust import App
-from faust.app._attached import Attachments
-from faust.exceptions import AlreadyConfiguredWarning
-from faust.tables.manager import TableManager
-from faust.transport.base import Producer, Transport
+from kaspr.faust import App
+from kaspr.faust.app._attached import Attachments
+from kaspr.faust.exceptions import AlreadyConfiguredWarning
+from kaspr.faust.tables.manager import TableManager
+from kaspr.faust.transport.base import Producer, Transport
 from intervaltree import Interval, IntervalTree
-from faust.transport.consumer import (
+from kaspr.faust.transport.consumer import (
     Consumer,
     ConsumerThread,
     Fetcher,
@@ -14,8 +14,8 @@ from faust.transport.consumer import (
     ThreadDelegateConsumer,
     TransactionManager,
 )
-from faust.transport.conductor import Conductor
-from faust.types import Message, TP
+from kaspr.faust.transport.conductor import Conductor
+from kaspr.faust.types import Message, TP
 from mode import Service
 from mode.threads import MethodQueue
 from mode.utils.futures import done_future
@@ -1503,7 +1503,7 @@ class test_ThreadDelegateConsumer:
 
         consumer.verify_event_path = Mock(name='verify_event_path')
 
-        with patch('faust.transport.consumer.monotonic') as monotonic:
+        with patch('kaspr.faust.transport.consumer.monotonic') as monotonic:
             now = monotonic.return_value = 391243.231
             await consumer.verify_all_partitions_active()
 
@@ -1528,7 +1528,7 @@ class test_ThreadDelegateConsumer:
 
         consumer.sleep.side_effect = on_sleep
 
-        with patch('faust.transport.consumer.monotonic') as monotonic:
+        with patch('kaspr.faust.transport.consumer.monotonic') as monotonic:
             now = monotonic.return_value = 391243.231
             await consumer.verify_all_partitions_active()
 

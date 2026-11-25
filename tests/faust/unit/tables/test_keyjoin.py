@@ -1,14 +1,14 @@
-"""Tests for faust.tables.keyjoin — Key Join Processor."""
+"""Tests for kaspr.faust.tables.keyjoin — Key Join Processor."""
 import asyncio
 
 import pytest
 from mode.utils.mocks import AsyncMock, Mock
 
-from faust.exceptions import KeyPlacementError
-from faust.tables.keyjoin import KeyJoinProcessor
-from faust.types.joins import JoinedValue, SubscriptionInstruction
+from kaspr.faust.exceptions import KeyPlacementError
+from kaspr.faust.tables.keyjoin import KeyJoinProcessor
+from kaspr.faust.types.joins import JoinedValue, SubscriptionInstruction
 
-from t.helpers import new_event
+from tests.faust.helpers import new_event
 
 SUBSCRIBE_AND_RESPOND = SubscriptionInstruction.SUBSCRIBE_AND_RESPOND.value
 SUBSCRIBE_ONLY = SubscriptionInstruction.SUBSCRIBE_ONLY.value
@@ -371,12 +371,12 @@ class _processing:
 
     def __enter__(self):
         import weakref
-        from faust.streams import _current_event
+        from kaspr.faust.streams import _current_event
         self._token = _current_event.set(weakref.ref(self.event))
         return self.event
 
     def __exit__(self, *exc_info):
-        from faust.streams import _current_event
+        from kaspr.faust.streams import _current_event
         _current_event.reset(self._token)
 
 
@@ -405,7 +405,7 @@ class test_placement:
         return app.producer.partitioner(key_bytes, partitions, partitions)
 
     def _event(self, app, partition):
-        from t.helpers import new_event
+        from tests.faust.helpers import new_event
         return new_event(app, topic='source', partition=partition, offset=7)
 
     @pytest.mark.asyncio
@@ -1036,7 +1036,7 @@ class test_wiring:
 class test_deprecated_aliases:
 
     def test_ForeignKeyJoin_warns(self):
-        from faust.joins import ForeignKeyJoin, KeyJoin
+        from kaspr.faust.joins import ForeignKeyJoin, KeyJoin
         with pytest.warns(DeprecationWarning, match='KeyJoin'):
             join = ForeignKeyJoin(Mock(), Mock(), extractor=Mock())
         assert isinstance(join, KeyJoin)

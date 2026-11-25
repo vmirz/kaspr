@@ -1,6 +1,6 @@
 import os
 import pytest
-from faust.types._env import _getenv
+from kaspr.faust.types._env import _getenv
 
 
 def test_getenv_not_set():

@@ -5,9 +5,9 @@ from statistics import median
 import pytest
 from mode import label
 from mode.utils.mocks import ANY, AsyncMock, Mock, patch
-from faust.livecheck import Case
-from faust.livecheck.exceptions import SuiteFailed
-from faust.livecheck.models import State, TestReport
+from kaspr.faust.livecheck import Case
+from kaspr.faust.livecheck.exceptions import SuiteFailed
+from kaspr.faust.livecheck.models import State, TestReport
 
 
 class test_Case:
@@ -65,8 +65,8 @@ class test_Case:
     async def test_maybe_trigger(self, *, case):
         case.trigger = AsyncMock('trigger')
 
-        with patch('faust.livecheck.case.uuid'):
-            with patch('faust.livecheck.case.uniform') as uniform:
+        with patch('kaspr.faust.livecheck.case.uuid'):
+            with patch('kaspr.faust.livecheck.case.uniform') as uniform:
                 uniform.return_value = 1.0
                 async with case.maybe_trigger() as test:
                     assert test is None
@@ -150,7 +150,7 @@ class test_Case:
             yield monotonic
 
     def _patch_monotonic(self):
-        return patch('faust.livecheck.case.monotonic')
+        return patch('kaspr.faust.livecheck.case.monotonic')
 
     @pytest.mark.asyncio
     async def test_on_test_skipped(self, *, case, runner, frozen_monotonic):
@@ -505,11 +505,11 @@ class test_Case:
         await case.url_request('get', 'http://foo/') == 'foo'
 
     def test_current_test(self, *, case):
-        with patch('faust.livecheck.case.current_test_stack') as cts:
+        with patch('kaspr.faust.livecheck.case.current_test_stack') as cts:
             assert case.current_test is cts.top
 
     def test_current_execution(self, *, case):
-        with patch('faust.livecheck.case.current_execution_stack') as ces:
+        with patch('kaspr.faust.livecheck.case.current_execution_stack') as ces:
             assert case.current_execution is ces.top
 
     def test_label(self, *, case):

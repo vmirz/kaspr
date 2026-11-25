@@ -3,10 +3,10 @@ import subprocess
 import sys
 from pathlib import Path
 from typing import Callable, Tuple
-from faust.types import AppT
-from faust.utils.json import loads
+from kaspr.faust.types import AppT
+from kaspr.faust.utils.json import loads
 import pytest
-from t.integration import app as _app_module
+from tests.faust.integration import app as _app_module
 
 
 @pytest.fixture
@@ -25,6 +25,8 @@ def main_path() -> Path:
 
 CommandReturns = Tuple[int, str, str]
 
+REPO = Path(__file__).parents[3]
+
 
 def _create_faust_cli(executable: Path, *partial_args: str,
                       color: bool = False,
@@ -41,6 +43,7 @@ def _create_faust_cli(executable: Path, *partial_args: str,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             shell=False,
+            env={**os.environ, 'PYTHONPATH': str(REPO)},
         )
         stdout, stderr = p.communicate()
         if json:

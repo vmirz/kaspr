@@ -6,7 +6,7 @@ from time import monotonic
 from typing import Any, Dict, Generic, Tuple, Type, TypeVar, cast
 from mode import Seconds, want_seconds
 
-from faust.models import maybe_model
+from kaspr.faust.models import maybe_model
 
 from .exceptions import TestTimeout
 from .locals import current_test_stack

@@ -1,8 +1,8 @@
 import pytest
-from faust import web
-from faust.exceptions import ImproperlyConfigured
-from faust.sensors.statsd import StatsdMonitor
-from faust.types import TP
+from kaspr.faust import web
+from kaspr.faust.exceptions import ImproperlyConfigured
+from kaspr.faust.sensors.statsd import StatsdMonitor
+from kaspr.faust.types import TP
 from mode.utils.mocks import Mock, call
 
 TP1 = TP('foo', 3)
@@ -19,7 +19,7 @@ class test_StatsdMonitor:
     @pytest.fixture()
     def statsd(self, *, monkeypatch):
         statsd = Mock(name='statsd')
-        monkeypatch.setattr('faust.sensors.statsd.statsd', statsd)
+        monkeypatch.setattr('kaspr.faust.sensors.statsd.statsd', statsd)
         return statsd
 
     @pytest.fixture()
@@ -58,7 +58,7 @@ class test_StatsdMonitor:
         assert mon.client
 
     def test_raises_if_statsd_not_installed(self, *, monkeypatch):
-        monkeypatch.setattr('faust.sensors.statsd.statsd', None)
+        monkeypatch.setattr('kaspr.faust.sensors.statsd.statsd', None)
         with pytest.raises(ImproperlyConfigured):
             StatsdMonitor()
 

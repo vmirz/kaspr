@@ -1,14 +1,14 @@
 import asyncio
 import pytest
 from mode.utils.mocks import ANY, AsyncMock, Mock, patch
-from faust.livecheck.exceptions import (
+from kaspr.faust.livecheck.exceptions import (
     LiveCheckError,
     TestFailed,
     TestRaised,
     TestSkipped,
     TestTimeout,
 )
-from faust.livecheck.models import State
+from kaspr.faust.livecheck.models import State
 
 
 class test_TestRunner:
@@ -225,7 +225,7 @@ class test_TestRunner:
         runner.log.info.assert_called_once_with('msg %r', 1)
 
     def test_end(self, *, runner):
-        with patch('faust.livecheck.runners.monotonic') as monotonic:
+        with patch('kaspr.faust.livecheck.runners.monotonic') as monotonic:
             monotonic.return_value = 100.0
             runner.started = 50.0
             runner.end()

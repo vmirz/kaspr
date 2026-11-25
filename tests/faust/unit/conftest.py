@@ -1,8 +1,8 @@
 import os
-import faust
+from kaspr import faust
 import pytest
-from faust.transport.producer import Producer
-from faust.utils.tracing import set_current_span
+from kaspr.faust.transport.producer import Producer
+from kaspr.faust.utils.tracing import set_current_span
 from mode.utils.mocks import AsyncMock, Mock
 
 

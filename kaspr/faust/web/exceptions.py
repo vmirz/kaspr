@@ -1,7 +1,7 @@
 """HTTP and related errors."""
 import http
 from typing import Any, Dict, cast
-from faust.exceptions import FaustError
+from kaspr.faust.exceptions import FaustError
 
 __all__ = [
     'WebError',

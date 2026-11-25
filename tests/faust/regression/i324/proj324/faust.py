@@ -1,4 +1,4 @@
-import faust
+from kaspr import faust
 
 
 def create_app():

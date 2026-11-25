@@ -21,14 +21,14 @@ from aiokafka.coordinator.protocol import (
 from mode import get_logger
 from yarl import URL
 
-from faust.types.app import AppT
-from faust.types.assignor import (
+from kaspr.faust.types.app import AppT
+from kaspr.faust.types.assignor import (
     HostToPartitionMap,
     PartitionAssignorT,
     TopicToPartitionMap,
 )
-from faust.types.tables import TableManagerT
-from faust.types.tuples import TP
+from kaspr.faust.types.tables import TableManagerT
+from kaspr.faust.types.tuples import TP
 
 from .client_assignment import ClientAssignment, ClientMetadata
 from .cluster_assignment import ClusterAssignment

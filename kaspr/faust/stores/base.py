@@ -18,7 +18,7 @@ from typing import (
 from mode import Service
 from yarl import URL
 
-from faust.types import (
+from kaspr.faust.types import (
     AppT,
     CodecArg,
     CollectionT,
@@ -27,7 +27,7 @@ from faust.types import (
     StoreT,
     TP,
 )
-from faust.types.stores import KT, VT
+from kaspr.faust.types.stores import KT, VT
 
 __all__ = ['Store', 'SerializedStore']
 

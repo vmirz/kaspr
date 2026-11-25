@@ -3,11 +3,11 @@ from http import HTTPStatus
 from statistics import median
 from typing import Any
 import pytest
-from faust import Event, Stream, Table, Topic
-from faust.transport.consumer import Consumer
-from faust.transport.producer import Producer
-from faust.types import Message, TP
-from faust.sensors.monitor import Monitor, TableState
+from kaspr.faust import Event, Stream, Table, Topic
+from kaspr.faust.transport.consumer import Consumer
+from kaspr.faust.transport.producer import Producer
+from kaspr.faust.types import Message, TP
+from kaspr.faust.sensors.monitor import Monitor, TableState
 from mode.utils.mocks import AsyncMock, Mock
 
 TP1 = TP('foo', 0)

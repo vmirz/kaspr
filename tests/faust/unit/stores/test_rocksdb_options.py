@@ -1,7 +1,7 @@
 from pathlib import Path
 import pytest
-from faust.stores import rocksdb
-from faust.stores.rocksdb import RocksDBOptions
+from kaspr.faust.stores import rocksdb
+from kaspr.faust.stores.rocksdb import RocksDBOptions
 
 
 MiB = 1024 ** 2

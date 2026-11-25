@@ -20,7 +20,7 @@ from typing import NoReturn
 from mode.utils.logging import CompositeLogger
 from mode.utils.times import humanize_seconds
 
-from faust.models import maybe_model
+from kaspr.faust.models import maybe_model
 
 from .exceptions import (
     LiveCheckError,

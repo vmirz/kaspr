@@ -20,15 +20,15 @@ from typing import (
 from mode import Service, get_logger
 from mode.utils.futures import notify
 
-from faust.exceptions import KeyDecodeError, ValueDecodeError
-from faust.types import AppT, EventT, K, Message, TP, V
-from faust.types.topics import TopicT
-from faust.types.transports import ConductorT, ConsumerCallback, TPorTopicSet
-from faust.types.tuples import tp_set_to_map
-from faust.utils.tracing import traced_from_parent_span
+from kaspr.faust.exceptions import KeyDecodeError, ValueDecodeError
+from kaspr.faust.types import AppT, EventT, K, Message, TP, V
+from kaspr.faust.types.topics import TopicT
+from kaspr.faust.types.transports import ConductorT, ConsumerCallback, TPorTopicSet
+from kaspr.faust.types.tuples import tp_set_to_map
+from kaspr.faust.utils.tracing import traced_from_parent_span
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from faust.topics import Topic as _Topic
+    from kaspr.faust.topics import Topic as _Topic
 else:
     class _Topic: ...  # noqa
 

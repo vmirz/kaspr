@@ -15,7 +15,7 @@ from typing import (
     no_type_check,
 )
 from mode.utils.locals import LocalStack
-from faust.exceptions import SecurityError
+from kaspr.faust.exceptions import SecurityError
 
 T = TypeVar('T')
 

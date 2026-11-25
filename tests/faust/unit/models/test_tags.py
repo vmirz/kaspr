@@ -1,6 +1,6 @@
 import pytest
-from faust.exceptions import SecurityError
-from faust.models.tags import Secret, Sensitive
+from kaspr.faust.exceptions import SecurityError
+from kaspr.faust.models.tags import Secret, Sensitive
 
 
 class test_Sensitive:

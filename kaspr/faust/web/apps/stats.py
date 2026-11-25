@@ -1,8 +1,8 @@
 """HTTP endpoint showing statistics from the Faust monitor."""
 from collections import defaultdict
 from typing import List, MutableMapping, Set
-from faust import web
-from faust.types.tuples import TP
+from kaspr.faust import web
+from kaspr.faust.types.tuples import TP
 
 __all__ = ['Assignment', 'Stats', 'blueprint']
 

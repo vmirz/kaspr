@@ -1,6 +1,6 @@
 import pytest
-from faust import Event, Record, Stream
-from faust.joins import InnerJoin, Join, LeftJoin, OuterJoin, RightJoin
+from kaspr.faust import Event, Record, Stream
+from kaspr.faust.joins import InnerJoin, Join, LeftJoin, OuterJoin, RightJoin
 from mode.utils.mocks import Mock
 
 

@@ -1,4 +1,4 @@
-import faust
+from kaspr import faust
 import asyncio
 
 from asyncio import CancelledError
@@ -6,12 +6,12 @@ from typing import AsyncIterable, List, Optional, Sequence, cast, Tuple
 from mode import Seconds, want_seconds
 from mode.utils.aiter import aiter
 from mode.utils.futures import notify
-from faust.types import EventT
-from faust.types.streams import (
+from kaspr.faust.types import EventT
+from kaspr.faust.types.streams import (
     T,
     T_co,
 )
-from faust.types.topics import ChannelT
+from kaspr.faust.types.topics import ChannelT
 
 
 class KasprStream(faust.Stream):

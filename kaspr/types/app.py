@@ -2,7 +2,7 @@ import abc
 import typing
 from datetime import datetime
 from typing import ClassVar, Type, Callable, Any
-from faust.types import AppT, WindowT
+from kaspr.faust.types import AppT, WindowT
 
 from mode.utils.objects import cached_property
 from kaspr.types.message_scheduler import MessageSchedulerT

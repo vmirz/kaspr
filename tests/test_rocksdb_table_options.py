@@ -1,9 +1,9 @@
-import inspect
 import logging
 from types import SimpleNamespace
 
 import pytest
 
+from kaspr.faust.stores import rocksdb as faust_rocksdb
 from kaspr.types import settings
 from kaspr.types.models.table.table import TableSpec
 from kaspr.utils import rocksdb as rocksdb_utils
@@ -220,12 +220,6 @@ def test_scheduler_tables_use_the_same_options(conf):
 
 
 def test_tables_share_the_block_cache_in_rocksdb(conf, tmp_path):
-    faust_rocksdb = pytest.importorskip("faust.stores.rocksdb")
-    if faust_rocksdb.rocksdict is None or "block_cache" not in inspect.signature(
-        faust_rocksdb.RocksDBOptions.__init__
-    ).parameters:
-        pytest.skip("twm-faust without shared block cache support")
-
     dbs = []
     try:
         for table in ("orders", "items"):

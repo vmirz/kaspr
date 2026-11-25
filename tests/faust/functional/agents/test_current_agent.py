@@ -1,5 +1,5 @@
 import pytest
-from faust.agents import current_agent
+from kaspr.faust.agents import current_agent
 
 
 @pytest.mark.asyncio

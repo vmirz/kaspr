@@ -40,10 +40,10 @@ from mode.utils.objects import canonshortname, qualname
 from mode.utils.text import shorten_fqdn
 from mode.utils.types.trees import NodeT
 
-from faust.exceptions import ImproperlyConfigured
-from faust.utils.tracing import traced_from_parent_span
+from kaspr.faust.exceptions import ImproperlyConfigured
+from kaspr.faust.utils.tracing import traced_from_parent_span
 
-from faust.types import (
+from kaspr.faust.types import (
     AppT,
     ChannelT,
     CodecArg,
@@ -60,7 +60,7 @@ from faust.types import (
     TopicT,
     V,
 )
-from faust.types.agents import (
+from kaspr.faust.types.agents import (
     ActorRefT,
     ActorT,
     AgentErrorHandler,
@@ -70,8 +70,8 @@ from faust.types.agents import (
     ReplyToArg,
     SinkT,
 )
-from faust.types.core import merge_headers, prepare_headers
-from faust.types.serializers import SchemaT
+from kaspr.faust.types.core import merge_headers, prepare_headers
+from kaspr.faust.types.serializers import SchemaT
 
 from .actor import AsyncIterableActor, AwaitableActor
 from .models import (
@@ -83,7 +83,7 @@ from .models import (
 from .replies import BarrierState, ReplyPromise
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from faust.app.base import App as _App
+    from kaspr.faust.app.base import App as _App
 else:
     class _App: ...   # noqa
 

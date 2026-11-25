@@ -1,6 +1,6 @@
 from pathlib import Path
 import pytest
-from faust import web
+from kaspr.faust import web
 from mode.utils.mocks import Mock
 
 

@@ -1,9 +1,9 @@
 """HTTP endpoint showing partition routing destinations."""
 from typing import Any, Mapping, cast
-from faust import web
-from faust.app.router import SameNode
-from faust.models import Record
-from faust.types import K, TableT, V
+from kaspr.faust import web
+from kaspr.faust.app.router import SameNode
+from kaspr.faust.models import Record
+from kaspr.faust.types import K, TableT, V
 
 __all__ = [
     'TableView',

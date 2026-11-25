@@ -1,5 +1,5 @@
 from datetime import timedelta
-from faust.exceptions import ImproperlyConfigured
+from kaspr.faust.exceptions import ImproperlyConfigured
 from kaspr import KasprApp
 from kaspr.core import coordinator_patch
 from kaspr.sensors.prometheus_monitor import PrometheusMonitor

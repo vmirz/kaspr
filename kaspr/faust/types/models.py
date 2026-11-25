@@ -20,7 +20,7 @@ from typing import (
     cast,
 )
 from mode.utils.objects import cached_property
-from faust.exceptions import ValidationError  # XXX !!coupled
+from kaspr.faust.exceptions import ValidationError  # XXX !!coupled
 from .codecs import CodecArg
 
 __all__ = [

@@ -1,7 +1,7 @@
 import pytest
 from mode.utils.mocks import AsyncMock, Mock
-from faust.web import Request, View, Web
-from faust.web.exceptions import MethodNotAllowed
+from kaspr.faust.web import Request, View, Web
+from kaspr.faust.web.exceptions import MethodNotAllowed
 
 
 @View.from_handler

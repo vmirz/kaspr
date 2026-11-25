@@ -18,14 +18,16 @@ __all__ = [
 ]
 
 
-class SubscriptionMessage(Record, serializer='json'):
+class SubscriptionMessage(Record, serializer='json',
+                          namespace='faust.joins.SubscriptionMessage'):
     """Message sent from left-side to right-side via subscription topic."""
     left_pk: Any
     hash: bytes = b''
     instruction: str = SubscriptionInstruction.SUBSCRIBE_AND_RESPOND.value
 
 
-class ResponseMessage(Record, serializer='json'):
+class ResponseMessage(Record, serializer='json',
+                      namespace='faust.joins.ResponseMessage'):
     """Message sent from right-side back to left-side via response topic."""
     right_value: Any = None
     hash: bytes = b''

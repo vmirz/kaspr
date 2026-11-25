@@ -1,4 +1,4 @@
-from faust.windows import HoppingWindow
+from kaspr.faust.windows import HoppingWindow
 
 
 class test_HoppingWindow:

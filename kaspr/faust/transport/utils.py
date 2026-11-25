@@ -12,8 +12,8 @@ from typing import (
 )
 from collections import OrderedDict
 
-from faust.types import TP
-from faust.types.transports import SchedulingStrategyT
+from kaspr.faust.types import TP
+from kaspr.faust.types.transports import SchedulingStrategyT
 
 __all__ = [
     'TopicIndexMap',

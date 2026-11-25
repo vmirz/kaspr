@@ -1,6 +1,6 @@
 import pytest
-from faust.fixups import fixups
-from faust.fixups.django import Fixup
+from kaspr.faust.fixups import fixups
+from kaspr.faust.fixups.django import Fixup
 from mode.utils.mocks import Mock, mask_module, patch_module
 
 

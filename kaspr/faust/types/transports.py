@@ -49,7 +49,7 @@ __all__ = [
     'TransportT',
 ]
 
-#: Callback called by :class:`faust.transport.base.Consumer` whenever
+#: Callback called by :class:`kaspr.faust.transport.base.Consumer` whenever
 #: a message is received.
 ConsumerCallback = Callable[[Message], Awaitable]
 
@@ -485,7 +485,7 @@ class TransportT(abc.ABC):
     #: The Fetcher service used for this type of transport.
     Fetcher: ClassVar[Type[ServiceT]]
 
-    #: The :class:`faust.App` that created this transport.
+    #: The :class:`kaspr.faust.App` that created this transport.
     app: _AppT
 
     #: The URL to use for this transport (e.g. kafka://localhost).

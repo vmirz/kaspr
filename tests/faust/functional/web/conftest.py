@@ -1,5 +1,5 @@
 import pytest
-from faust.exceptions import SameNode
+from kaspr.faust.exceptions import SameNode
 from mode.utils.mocks import Mock
 
 

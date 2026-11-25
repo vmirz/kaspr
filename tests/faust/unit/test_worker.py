@@ -4,9 +4,9 @@ import warnings
 from pathlib import Path
 
 import pytest
-from faust import Sensor
-from faust.worker import Worker
-from faust.utils import terminal
+from kaspr.faust import Sensor
+from kaspr.faust.worker import Worker
+from kaspr.faust.utils import terminal
 from mode.utils.logging import CompositeLogger
 from mode.utils.trees import Node
 from mode.utils.mocks import AsyncMock, Mock, patch
@@ -179,7 +179,7 @@ class test_Worker:
         worker.app.discover.assert_not_called()
 
     def test_setproctitle(self, worker, app):
-        with patch('faust.worker.setproctitle') as setproctitle:
+        with patch('kaspr.faust.worker.setproctitle') as setproctitle:
             worker._setproctitle('foo')
             setproctitle.assert_called_with(
                 f'[Faust:Worker] -foo- testid -p {app.conf.web_port} '
@@ -247,7 +247,7 @@ class test_Worker:
     def test_setup_spinner_handler(self, worker):
         logger = Mock(name='logger', autospec=logging.Logger)
         logger.handlers = [Mock(name='handler', autospec=logging.Handler)]
-        with patch('faust.utils.terminal.SpinnerHandler') as SpinnerHandler:
+        with patch('kaspr.faust.utils.terminal.SpinnerHandler') as SpinnerHandler:
             worker._setup_spinner_handler(logger, logging.INFO)
             logger.handlers[0].setLevel.assert_called_with(logging.INFO)
             SpinnerHandler.assert_called_once_with(

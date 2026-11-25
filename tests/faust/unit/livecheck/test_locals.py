@@ -1,5 +1,5 @@
 from mode.utils.mocks import Mock
-from faust.livecheck.locals import current_execution, current_execution_stack
+from kaspr.faust.livecheck.locals import current_execution, current_execution_stack
 
 
 def test_current_execution():

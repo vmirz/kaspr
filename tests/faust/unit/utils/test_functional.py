@@ -1,6 +1,6 @@
 from collections import deque
 import pytest
-from faust.utils.functional import (
+from kaspr.faust.utils.functional import (
     consecutive_numbers,
     deque_pushpopmax,
 )

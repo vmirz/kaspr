@@ -1,4 +1,4 @@
-import faust
+from kaspr import faust
 
 __all__ = ['Error', 'Status']
 

@@ -2,7 +2,7 @@ from contextlib import ExitStack, contextmanager
 
 import pytest
 import terminaltables
-from faust.utils.terminal import tables
+from kaspr.faust.utils.terminal import tables
 from mode.utils.mocks import Mock, patch
 
 TABLE_DATA = [
@@ -44,7 +44,7 @@ def test_table(target, contexts, kwargs, expected_tty):
     with ExitStack() as stack:
         for context in contexts:
             stack.enter_context(context)
-        with patch('faust.utils.terminal.tables._get_best_table_type') as _g:
+        with patch('kaspr.faust.utils.terminal.tables._get_best_table_type') as _g:
             table = tables.table(
                 TABLE_DATA, title='Title', target=target, **kwargs)
             _g.assert_called_with(expected_tty)
@@ -67,7 +67,7 @@ def test_logtable(tty, contexts, headers, expected_tty, expected_data):
     with ExitStack() as stack:
         for context in contexts:
             stack.enter_context(context)
-        with patch('faust.utils.terminal.tables.table') as table:
+        with patch('kaspr.faust.utils.terminal.tables.table') as table:
             ret = tables.logtable(
                 TABLE_DATA,
                 title='Title',
@@ -89,8 +89,8 @@ def test_get_best_table_type(tty, expected_table_type):
 
 
 def test_table__default_tty():
-    with patch('faust.utils.terminal.tables._get_best_table_type') as g:
-        with patch('faust.utils.terminal.tables.isatty') as i:
+    with patch('kaspr.faust.utils.terminal.tables._get_best_table_type') as g:
+        with patch('kaspr.faust.utils.terminal.tables.isatty') as i:
             i.return_value = None
             tables.table({}, tty=None, title='foo')
             g.assert_called_once_with(False)

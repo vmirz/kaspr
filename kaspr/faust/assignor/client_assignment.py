@@ -1,10 +1,10 @@
 """Client Assignment."""
 import copy
 from typing import List, Mapping, MutableMapping, Sequence, Set, Tuple, cast
-from faust.models import Record
-from faust.types import TP
-from faust.types.assignor import HostToPartitionMap
-from faust.types.tables import TableManagerT
+from kaspr.faust.models import Record
+from kaspr.faust.types import TP
+from kaspr.faust.types.assignor import HostToPartitionMap
+from kaspr.faust.types.tables import TableManagerT
 
 R_COPART_ASSIGNMENT = '''
 <{name} actives={self.actives} standbys={self.standbys} topics={self.topics}>

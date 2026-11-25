@@ -3,8 +3,8 @@ from typing import Any, AsyncGenerator, AsyncIterator, Coroutine, Set, cast
 from mode import Service
 from mode.utils.tracebacks import format_agen_stack, format_coro_stack
 
-from faust.types import ChannelT, StreamT, TP
-from faust.types.agents import (
+from kaspr.faust.types import ChannelT, StreamT, TP
+from kaspr.faust.types.agents import (
     ActorT,
     AgentT,
     AsyncIterableActorT,

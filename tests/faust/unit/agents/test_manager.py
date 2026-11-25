@@ -1,7 +1,7 @@
 import asyncio
 import pytest
 from typing import Hashable
-from faust.types import TP
+from kaspr.faust.types import TP
 from mode.utils.mocks import AsyncMock, Mock
 
 

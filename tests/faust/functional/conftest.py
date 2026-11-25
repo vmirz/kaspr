@@ -1,11 +1,11 @@
 import logging as _logging
 import os
 import pytest
-import faust
+from kaspr import faust
 from copy import copy
 from typing import Dict, IO, NamedTuple, Union
-from faust.web.cache.backends.memory import CacheStorage
-from faust.utils.tracing import set_current_span
+from kaspr.faust.web.cache.backends.memory import CacheStorage
+from kaspr.faust.utils.tracing import set_current_span
 from mode.utils.logging import setup_logging
 from mode.utils.mocks import AsyncMock, Mock
 

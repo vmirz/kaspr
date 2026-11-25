@@ -2,7 +2,7 @@ import asyncio
 import random
 import sys
 from typing import Any, Set
-from faust.cli import option
+from kaspr.faust.cli import option
 from mode.utils.aiter import aiter, anext
 
 

@@ -1,10 +1,10 @@
 import base64
 from typing import Mapping
-from faust.serializers.codecs import (
+from kaspr.faust.serializers.codecs import (
     Codec, binary as _binary, codecs, dumps, get_codec, json, loads, register,
 )
-from faust.exceptions import ImproperlyConfigured
-from faust.utils import json as _json
+from kaspr.faust.exceptions import ImproperlyConfigured
+from kaspr.faust.utils import json as _json
 from hypothesis import given
 from hypothesis.strategies import binary, dictionaries, text
 from mode.utils.compat import want_str
@@ -31,7 +31,7 @@ def test_json_subset(codec: str) -> None:
 def test_missing_yaml_library() -> None:
     msg = 'Missing yaml: pip install PyYAML'
 
-    with patch('faust.serializers.codecs._yaml', None):
+    with patch('kaspr.faust.serializers.codecs._yaml', None):
         with pytest.raises(ImproperlyConfigured):
             loads('yaml', dumps('yaml', DATA))
             pytest.fail(msg)

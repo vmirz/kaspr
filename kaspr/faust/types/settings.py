@@ -27,8 +27,8 @@ from mode.utils.imports import SymbolArg, symbol_by_name
 from mode.utils.logging import Severity
 from yarl import URL
 
-from faust.exceptions import AlreadyConfiguredWarning, ImproperlyConfigured
-from faust.utils.urls import urllist
+from kaspr.faust.exceptions import AlreadyConfiguredWarning, ImproperlyConfigured
+from kaspr.faust.utils.urls import urllist
 
 from ._env import DATADIR, WEB_BIND, WEB_PORT, WEB_TRANSPORT
 from .agents import AgentT
@@ -80,8 +80,8 @@ Should appear before calling app.topic/@app.agent/etc.
 '''
 
 
-# XXX mypy borks if we do `from faust import __version__`
-faust_version: str = symbol_by_name('faust:__version__')
+# XXX mypy borks if we do `from kaspr.faust import __version__`
+faust_version: str = symbol_by_name('kaspr.faust:__version__')
 
 TIMEZONE = timezone.utc
 
@@ -108,69 +108,69 @@ PROCESSING_GUARANTEE = ProcessingGuarantee.AT_LEAST_ONCE
 TABLEDIR = 'tables'
 
 #: Path to agent class, used as default for :setting:`Agent`.
-AGENT_TYPE = 'faust.Agent'
+AGENT_TYPE = 'kaspr.faust.Agent'
 
 #: Default agent supervisor type, used as default for
 #: :setting:`agent_supervisor`.
 AGENT_SUPERVISOR_TYPE = 'mode.OneForOneSupervisor'
 
-CONSUMER_SCHEDULER_TYPE = 'faust.transport.utils.DefaultSchedulingStrategy'
+CONSUMER_SCHEDULER_TYPE = 'kaspr.faust.transport.utils.DefaultSchedulingStrategy'
 
 #: Default event class type, used as default for :setting:`Event`.
-EVENT_TYPE = 'faust.Event'
+EVENT_TYPE = 'kaspr.faust.Event'
 
 #: Default schema class type, used as default for :setting:`Schema`.
-SCHEMA_TYPE = 'faust.Schema'
+SCHEMA_TYPE = 'kaspr.faust.Schema'
 
 #: Path to stream class, used as default for :setting:`Stream`.
-STREAM_TYPE = 'faust.Stream'
+STREAM_TYPE = 'kaspr.faust.Stream'
 
 #: Path to table manager class, used as default for :setting:`TableManager`.
-TABLE_MANAGER_TYPE = 'faust.tables.TableManager'
+TABLE_MANAGER_TYPE = 'kaspr.faust.tables.TableManager'
 
 #: Path to table class, used as default for :setting:`Table`.
-TABLE_TYPE = 'faust.Table'
+TABLE_TYPE = 'kaspr.faust.Table'
 
 #: Tables keep a cache of key to partition number. This value
 #: configures the maximum size of that cache.
 TABLE_KEY_INDEX_SIZE = 1000
 
 #: Path to "table of sets" class, used as default for :setting:`SetTable`.
-SET_TABLE_TYPE = 'faust.SetTable'
+SET_TABLE_TYPE = 'kaspr.faust.SetTable'
 
 #: Path to global table class, used as default for :setting:`GlobalTable`.
-GLOBAL_TABLE_TYPE = 'faust.GlobalTable'
+GLOBAL_TABLE_TYPE = 'kaspr.faust.GlobalTable'
 
 #: Path to "global table of sets" class,
 #: used as default for :setting:`SetGlobalTable`.
-SET_GLOBAL_TABLE_TYPE = 'faust.SetGlobalTable'
+SET_GLOBAL_TABLE_TYPE = 'kaspr.faust.SetGlobalTable'
 
 #: Path to serializer registry class, used as the default for
 #: :setting:`Serializers`.
-REGISTRY_TYPE = 'faust.serializers.Registry'
+REGISTRY_TYPE = 'kaspr.faust.serializers.Registry'
 
 #: Path to worker class, providing the default for :setting:`Worker`.
-WORKER_TYPE = 'faust.worker.Worker'
+WORKER_TYPE = 'kaspr.faust.worker.Worker'
 
 #: Path to partition assignor class, providing the default for
 #: :setting:`PartitionAssignor`.
-PARTITION_ASSIGNOR_TYPE = 'faust.assignor:PartitionAssignor'
+PARTITION_ASSIGNOR_TYPE = 'kaspr.faust.assignor:PartitionAssignor'
 
 #: Path to leader assignor class, providing the default for
 #: :setting:`LeaderAssignor`.
-LEADER_ASSIGNOR_TYPE = 'faust.assignor:LeaderAssignor'
+LEADER_ASSIGNOR_TYPE = 'kaspr.faust.assignor:LeaderAssignor'
 
 #: Path to router class, providing the default for :setting:`Router`.
-ROUTER_TYPE = 'faust.app.router:Router'
+ROUTER_TYPE = 'kaspr.faust.app.router:Router'
 
 #: Path to topic class, providing the default for :setting:`Topic`.
-TOPIC_TYPE = 'faust:Topic'
+TOPIC_TYPE = 'kaspr.faust:Topic'
 
 #: Path to HTTP client class, providing the default for :setting:`HttpClient`.
 HTTP_CLIENT_TYPE = 'aiohttp.client:ClientSession'
 
 #: Path to Monitor sensor class, providing the default for :setting:`Monitor`.
-MONITOR_TYPE = 'faust.sensors:Monitor'
+MONITOR_TYPE = 'kaspr.faust.sensors:Monitor'
 
 #: Default broker API version.
 #: Used as default for

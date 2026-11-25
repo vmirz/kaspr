@@ -5,10 +5,10 @@ from mode import label, shortlabel
 from mode.utils.futures import done_future
 from mode.utils.mocks import AsyncMock, Mock, patch
 
-from faust import App, Channel, Topic
-from faust.transport.consumer import Consumer
-from faust.transport.conductor import Conductor
-from faust.types import Message, TP
+from kaspr.faust import App, Channel, Topic
+from kaspr.faust.transport.consumer import Consumer
+from kaspr.faust.transport.conductor import Conductor
+from kaspr.faust.types import Message, TP
 
 TP1 = TP('foo', 0)
 TP2 = TP('foo', 1)

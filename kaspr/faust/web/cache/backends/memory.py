@@ -84,7 +84,7 @@ class CacheBackend(base.CacheBackend):
     """In-memory backend for cache operations."""
 
     def __post_init__(self) -> None:
-        # we reuse this in t/conftest to mock a Redis server :D
+        # we reuse this in tests/faust/conftest to mock a Redis server :D
         self.storage: CacheStorage[str, bytes] = CacheStorage()
 
     async def _get(self, key: str) -> Optional[bytes]:

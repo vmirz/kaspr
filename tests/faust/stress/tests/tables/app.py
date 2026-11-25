@@ -1,7 +1,7 @@
 import random
 from collections import Counter
 from copy import copy
-from faust import Stream
+from kaspr.faust import Stream
 from ...reports import checks
 from ...app import create_stress_app
 
@@ -12,7 +12,7 @@ found_gaps = 0
 app = create_stress_app(
     name='f-stress-tables',
     version=7,
-    origin='t.stress.tests.tables',
+    origin='tests.faust.stress.tests.tables',
     broker_commit_every=100,
 )
 

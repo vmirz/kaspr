@@ -78,11 +78,11 @@ from mode.utils.futures import notify
 from mode.utils.locks import Event
 from mode.utils.text import pluralize
 from mode.utils.times import Seconds
-from faust.exceptions import ProducerSendError
+from kaspr.faust.exceptions import ProducerSendError
 from intervaltree import IntervalTree
-from faust.types import AppT, ConsumerMessage, Message, RecordMetadata, TP
-from faust.types.core import HeadersArg
-from faust.types.transports import (
+from kaspr.faust.types import AppT, ConsumerMessage, Message, RecordMetadata, TP
+from kaspr.faust.types.core import HeadersArg
+from kaspr.faust.types.transports import (
     ConsumerCallback,
     ConsumerT,
     PartitionsAssignedCallback,
@@ -92,13 +92,13 @@ from faust.types.transports import (
     TransactionManagerT,
     TransportT,
 )
-from faust.types.tuples import FutureMessage
-from faust.utils import terminal
-from faust.utils.functional import consecutive_numbers
-from faust.utils.tracing import traced_from_parent_span
+from kaspr.faust.types.tuples import FutureMessage
+from kaspr.faust.utils import terminal
+from kaspr.faust.utils.functional import consecutive_numbers
+from kaspr.faust.utils.tracing import traced_from_parent_span
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from faust.app import App as _App
+    from kaspr.faust.app import App as _App
 else:
     class _App: ...  # noqa: E701
 

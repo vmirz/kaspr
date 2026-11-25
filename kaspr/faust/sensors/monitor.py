@@ -20,12 +20,12 @@ from mode import Service, label
 from mode.utils.objects import KeywordReduce
 from mode.utils.typing import Counter, Deque
 
-from faust import web
-from faust.types import AppT, CollectionT, EventT, StreamT, TopicT
-from faust.types.assignor import PartitionAssignorT
-from faust.types.tuples import Message, PendingMessage, RecordMetadata, TP
-from faust.types.transports import ConsumerT, ProducerT
-from faust.utils.functional import deque_pushpopmax
+from kaspr.faust import web
+from kaspr.faust.types import AppT, CollectionT, EventT, StreamT, TopicT
+from kaspr.faust.types.assignor import PartitionAssignorT
+from kaspr.faust.types.tuples import Message, PendingMessage, RecordMetadata, TP
+from kaspr.faust.types.transports import ConsumerT, ProducerT
+from kaspr.faust.utils.functional import deque_pushpopmax
 
 from .base import Sensor
 

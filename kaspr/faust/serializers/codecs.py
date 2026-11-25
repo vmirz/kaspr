@@ -44,7 +44,7 @@ You can add a new codec to this mapping by:
 
 .. sourcecode:: pycon
 
-    >>> from faust.serializers import codecs
+    >>> from kaspr.faust.serializers import codecs
     >>> codecs.register(custom, custom_serializer())
 
 A codec subclass requires two methods to be implemented: ``_loads()``
@@ -54,7 +54,7 @@ and ``_dumps()``:
 
     import msgpack
 
-    from faust.serializers import codecs
+    from kaspr.faust.serializers import codecs
 
     class raw_msgpack(codecs.Codec):
 
@@ -83,7 +83,7 @@ our codec, and we can use it to define records like this:
 
 .. sourcecode:: pycon
 
-    >>> from faust.serializers import Record
+    >>> from kaspr.faust.serializers import Record
     >>> class Point(Record, serializer='msgpack'):
     ...     x: int
     ...     y: int
@@ -139,7 +139,7 @@ that part next in our :file:`faust-msgpack/faust_msgpack.py` module:
 
 .. sourcecode:: python
 
-    from faust.serializers import codecs
+    from kaspr.faust.serializers import codecs
 
     class raw_msgpack(codecs.Codec):
 
@@ -168,9 +168,9 @@ from typing import Any, Dict, MutableMapping, Optional, Tuple, cast
 from mode.utils.compat import want_bytes, want_str
 from mode.utils.imports import load_extension_classes
 
-from faust.exceptions import ImproperlyConfigured
-from faust.types.codecs import CodecArg, CodecT
-from faust.utils import json as _json
+from kaspr.faust.exceptions import ImproperlyConfigured
+from kaspr.faust.types.codecs import CodecArg, CodecT
+from kaspr.faust.utils import json as _json
 
 try:
     import yaml as _yaml

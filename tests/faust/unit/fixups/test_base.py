@@ -1,4 +1,4 @@
-from faust.fixups.base import Fixup
+from kaspr.faust.fixups.base import Fixup
 
 
 class test_Fixup:

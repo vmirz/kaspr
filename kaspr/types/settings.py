@@ -8,10 +8,10 @@ import ssl
 from pathlib import Path
 from yarl import URL
 from typing import Any, Sequence, Optional, Union, Type, cast
-from faust import SASLCredentials, SSLCredentials
-from faust.types.settings import Settings
-from faust.types.auth import SASLMechanism, CredentialsT, AuthProtocol
-from faust.exceptions import ImproperlyConfigured
+from kaspr.faust import SASLCredentials, SSLCredentials
+from kaspr.faust.types.settings import Settings
+from kaspr.faust.types.auth import SASLMechanism, CredentialsT, AuthProtocol
+from kaspr.faust.exceptions import ImproperlyConfigured
 from mode import Seconds, want_seconds
 from mode.utils.imports import SymbolArg, symbol_by_name
 from kaspr.types.builder import AppBuilderT

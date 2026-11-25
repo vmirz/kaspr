@@ -1,8 +1,8 @@
 """Models used by agents internally."""
 from typing import Any
 
-from faust.models import Record
-from faust.types import ModelT
+from kaspr.faust.models import Record
+from kaspr.faust.types import ModelT
 
 __all__ = ['ReqRepRequest', 'ReqRepResponse']
 
@@ -23,7 +23,12 @@ class ReqRepRequest(Record,
     correlation_id: str
 
 
-class ModelReqRepRequest(ReqRepRequest):
+# Models are named after their module unless they set a namespace, and that
+# name is in the messages. Those without one keep the name they had when
+# Faust was a package of its own: members that still run it read them too.
+
+class ModelReqRepRequest(ReqRepRequest,
+                         namespace='faust.agents.models.ModelReqRepRequest'):
     """Request-Reply request where value is a model."""
 
     value: ModelT
@@ -37,5 +42,6 @@ class ReqRepResponse(Record, serializer='json', namespace='@ReqRepResponse'):
     correlation_id: str
 
 
-class ModelReqRepResponse(ReqRepResponse):
+class ModelReqRepResponse(ReqRepResponse,
+                          namespace='faust.agents.models.ModelReqRepResponse'):
     value: Any

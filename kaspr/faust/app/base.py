@@ -54,58 +54,58 @@ from mode.utils.objects import cached_property, qualname, shortlabel
 from mode.utils.queues import FlowControlEvent, ThrowableQueue
 from mode.utils.types.trees import NodeT
 
-from faust import transport
-from faust.agents import (
+from kaspr.faust import transport
+from kaspr.faust.agents import (
     AgentFun,
     AgentManager,
     AgentT,
     ReplyConsumer,
     SinkT,
 )
-from faust.channels import Channel, ChannelT
-from faust.exceptions import ConsumerNotStarted, ImproperlyConfigured, SameNode
-from faust.fixups import FixupT, fixups
-from faust.sensors import Monitor, SensorDelegate
-from faust.utils import cron, venusian
-from faust.utils.tracing import (
+from kaspr.faust.channels import Channel, ChannelT
+from kaspr.faust.exceptions import ConsumerNotStarted, ImproperlyConfigured, SameNode
+from kaspr.faust.fixups import FixupT, fixups
+from kaspr.faust.sensors import Monitor, SensorDelegate
+from kaspr.faust.utils import cron, venusian
+from kaspr.faust.utils.tracing import (
     call_with_trace,
     noop_span,
     operation_name_from_fun,
     set_current_span,
     traced_from_parent_span,
 )
-from faust.web import drivers as web_drivers
-from faust.web.cache import backends as cache_backends
-from faust.web.views import View
+from kaspr.faust.web import drivers as web_drivers
+from kaspr.faust.web.cache import backends as cache_backends
+from kaspr.faust.web.views import View
 
-from faust.types._env import STRICT
-from faust.types.app import AppT, BootStrategyT, TaskArg, TracerT
-from faust.types.assignor import LeaderAssignorT, PartitionAssignorT
-from faust.types.codecs import CodecArg
-from faust.types.core import HeadersArg, K, V
-from faust.types.enums import ProcessingGuarantee
-from faust.types.events import EventT
-from faust.types.models import ModelArg
-from faust.types.router import RouterT
-from faust.types.serializers import RegistryT, SchemaT
-from faust.types.settings import Settings as _Settings
-from faust.types.streams import StreamT
-from faust.types.tables import CollectionT, GlobalTableT, TableManagerT, TableT
-from faust.types.topics import TopicT
-from faust.types.transports import (
+from kaspr.faust.types._env import STRICT
+from kaspr.faust.types.app import AppT, BootStrategyT, TaskArg, TracerT
+from kaspr.faust.types.assignor import LeaderAssignorT, PartitionAssignorT
+from kaspr.faust.types.codecs import CodecArg
+from kaspr.faust.types.core import HeadersArg, K, V
+from kaspr.faust.types.enums import ProcessingGuarantee
+from kaspr.faust.types.events import EventT
+from kaspr.faust.types.models import ModelArg
+from kaspr.faust.types.router import RouterT
+from kaspr.faust.types.serializers import RegistryT, SchemaT
+from kaspr.faust.types.settings import Settings as _Settings
+from kaspr.faust.types.streams import StreamT
+from kaspr.faust.types.tables import CollectionT, GlobalTableT, TableManagerT, TableT
+from kaspr.faust.types.topics import TopicT
+from kaspr.faust.types.transports import (
     ConductorT,
     ConsumerT,
     ProducerT,
     TPorTopicSet,
     TransportT,
 )
-from faust.types.tuples import (
+from kaspr.faust.types.tuples import (
     Message,
     MessageSentCallback,
     RecordMetadata,
     TP,
 )
-from faust.types.web import (
+from kaspr.faust.types.web import (
     CacheBackendT,
     HttpClientT,
     PageArg,
@@ -116,15 +116,15 @@ from faust.types.web import (
     ViewHandlerFun,
     Web,
 )
-from faust.types.windows import WindowT
+from kaspr.faust.types.windows import WindowT
 
 from ._attached import Attachments
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from faust.cli.base import AppCommand as _AppCommand
-    from faust.livecheck import LiveCheck as _LiveCheck
-    from faust.transport.consumer import Fetcher as _Fetcher
-    from faust.worker import Worker as _Worker
+    from kaspr.faust.cli.base import AppCommand as _AppCommand
+    from kaspr.faust.livecheck import LiveCheck as _LiveCheck
+    from kaspr.faust.transport.consumer import Fetcher as _Fetcher
+    from kaspr.faust.worker import Worker as _Worker
 else:
     class _AppCommand: ...  # noqa
     class _LiveCheck: ...   # noqa
@@ -173,6 +173,10 @@ SCAN_CATEGORIES: Iterable[str] = [
 SCAN_IGNORE: Iterable[Any] = [
     re.compile('test_.*').search,
     '.__main__',
+    # No decorators in Faust itself, part of the package Kaspr discovers:
+    # importing every module of it would run its command-line, and fail
+    # for the packages that are optional.
+    'kaspr.faust',
 ]
 
 E_NEED_ORIGIN = '''
@@ -187,7 +191,7 @@ If your app is defined in a module: ``project/app.py``, then the
 origin will be "project":
 
     # file: project/app.py
-    import faust
+    from kaspr import faust
 
     app = faust.App(
         id='myid',
@@ -436,7 +440,7 @@ class App(AppT, Service):
     _extra_services: List[Type[ServiceT]]
     _extra_service_instances: Optional[List[ServiceT]] = None
 
-    # See faust/app/_attached.py
+    # See kaspr/faust/app/_attached.py
     _attachments: Attachments
 
     #: Current assignment
@@ -539,7 +543,7 @@ class App(AppT, Service):
         #
         # One example is the Django fixup, responsible for Django integration
         # whenever the DJANGO_SETTINGS_MODULE environment variable is
-        # set. See faust/fixups/django.py, it's not complicated - using
+        # set. See kaspr/faust/fixups/django.py, it's not complicated - using
         # setuptools entry points you can very easily create extensions that
         # are automatically enabled by installing a PyPI package with
         # `pip install myname`.
@@ -737,7 +741,7 @@ class App(AppT, Service):
 
     def main(self) -> NoReturn:
         """Execute the :program:`faust` umbrella command using this app."""
-        from faust.cli.faust import cli
+        from kaspr.faust.cli.faust import cli
         self.finalize()
         self.worker_init()
         if self.conf.autodiscover:
@@ -772,7 +776,7 @@ class App(AppT, Service):
         channel use: :meth:`channel`.
 
         See Also:
-            :class:`faust.topics.Topic`
+            :class:`kaspr.faust.topics.Topic`
         """
         return self.conf.Topic(
             self,
@@ -809,7 +813,7 @@ class App(AppT, Service):
         of inter-process communication).
 
         See Also:
-            :class:`faust.channels.Channel`.
+            :class:`kaspr.faust.channels.Channel`.
         """
         return Channel(
             self,
@@ -1280,7 +1284,7 @@ class App(AppT, Service):
         """Decorate ``async def`` function to be used as CLI command."""
         _base: Type[_AppCommand]
         if base is None:
-            from faust.cli import base as cli_base
+            from kaspr.faust.cli import base as cli_base
             _base = cli_base.AppCommand
         else:
             _base = base
@@ -1297,7 +1301,7 @@ class App(AppT, Service):
                      value: V,
                      headers: HeadersArg,
                      message: Message) -> EventT:
-        """Create new :class:`faust.Event` object."""
+        """Create new :class:`kaspr.faust.Event` object."""
         return self.conf.Event(self, key, value, headers, message)
 
     async def start_client(self) -> None:
@@ -1385,7 +1389,7 @@ class App(AppT, Service):
                 UTC) to use as the message timestamp. Defaults to current time.
             headers: Mapping of key/value pairs, or iterable of key value
                 pairs to use as headers for the message.
-            schema: :class:`~faust.Schema` to use for serialization.
+            schema: :class:`~kaspr.faust.Schema` to use for serialization.
             key_serializer: Serializer to use (if value is not model).
                 Overrides schema if one is specified.
             value_serializer: Serializer to use (if value is not model).
@@ -1393,10 +1397,10 @@ class App(AppT, Service):
             callback: Called after the message is fully delivered to the
                 channel, but not to the consumer.
                 Signature must be unary as the
-                :class:`~faust.types.tuples.FutureMessage` future is passed
+                :class:`~kaspr.faust.types.tuples.FutureMessage` future is passed
                 to it.
 
-                The resulting :class:`faust.types.tuples.RecordMetadata`
+                The resulting :class:`kaspr.faust.types.tuples.RecordMetadata`
                 object is then available as ``fut.result()``.
         """
         chan: ChannelT
@@ -1426,7 +1430,7 @@ class App(AppT, Service):
 
     def LiveCheck(self, **kwargs: Any) -> _LiveCheck:
         """Return new LiveCheck instance testing features for this app."""
-        from faust.livecheck import LiveCheck
+        from kaspr.faust.livecheck import LiveCheck
         return LiveCheck.for_app(self, **kwargs)
 
     @stampede

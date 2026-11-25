@@ -1,6 +1,6 @@
 import pytest
-from faust.tables.objects import ChangeloggedObjectManager
-from faust.types import TP
+from kaspr.faust.tables.objects import ChangeloggedObjectManager
+from kaspr.faust.types import TP
 from mode.utils.mocks import AsyncMock, Mock, patch
 
 TP1 = TP('foo', 3)
@@ -25,7 +25,7 @@ def table():
 
 @pytest.yield_fixture()
 def current_event():
-    with patch('faust.tables.objects.current_event') as current_event:
+    with patch('kaspr.faust.tables.objects.current_event') as current_event:
         yield current_event
 
 

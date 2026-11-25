@@ -1,6 +1,6 @@
 import pytest
 from yarl import URL
-from faust.utils.urls import urllist
+from kaspr.faust.utils.urls import urllist
 
 
 def test_urllist_URL():

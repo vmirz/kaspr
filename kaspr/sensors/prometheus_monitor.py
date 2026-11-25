@@ -6,14 +6,14 @@ import re
 from typing import Pattern, Mapping, List, Optional
 
 from mode.utils.objects import cached_property
-from faust.exceptions import ImproperlyConfigured
-from faust import web
+from kaspr.faust.exceptions import ImproperlyConfigured
+from kaspr.faust import web
 
 from aiohttp.web import Response
 
-from faust.types.assignor import PartitionAssignorT
-from faust.types.transports import ConsumerT, ProducerT
-from faust.types import (
+from kaspr.faust.types.assignor import PartitionAssignorT
+from kaspr.faust.types.transports import ConsumerT, ProducerT
+from kaspr.faust.types import (
     CollectionT,
     EventT,
     Message,
@@ -24,7 +24,7 @@ from faust.types import (
 )
 
 from .kaspr import KasprMonitor
-from faust.sensors.monitor import TPOffsetMapping
+from kaspr.faust.sensors.monitor import TPOffsetMapping
 
 from kaspr.utils.functional import utc_now
 from kaspr.types import KasprAppT, KasprTableT, DispatcherT, JanitorT, TTLocation
@@ -51,8 +51,8 @@ class PrometheusMonitor(KasprMonitor):
     This sensor, records statistics using prometheus_client and expose
     them using the aiohttp server running under /metrics by default
     Usage:
-        import faust
-        from faust.sensors.prometheus import PrometheusMonitor
+        from kaspr import faust
+        from kaspr.sensors.prometheus_monitor import PrometheusMonitor
         app = faust.App('example', broker='kafka://')
         app.monitor = PrometheusMonitor(app, pattern='/metrics')
     """

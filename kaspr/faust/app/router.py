@@ -3,14 +3,14 @@ from typing import Tuple
 
 from yarl import URL
 
-from faust.exceptions import SameNode
-from faust.types.app import AppT
-from faust.types.assignor import PartitionAssignorT
-from faust.types.core import K
-from faust.types.router import HostToPartitionMap, RouterT
-from faust.types.tables import CollectionT
-from faust.types.web import Request, Response, Web
-from faust.web.exceptions import ServiceUnavailable
+from kaspr.faust.exceptions import SameNode
+from kaspr.faust.types.app import AppT
+from kaspr.faust.types.assignor import PartitionAssignorT
+from kaspr.faust.types.core import K
+from kaspr.faust.types.router import HostToPartitionMap, RouterT
+from kaspr.faust.types.tables import CollectionT
+from kaspr.faust.types.web import Request, Response, Web
+from kaspr.faust.web.exceptions import ServiceUnavailable
 
 
 class Router(RouterT):

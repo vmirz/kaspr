@@ -24,16 +24,16 @@ from mode.utils.locks import Event
 from mode.utils.times import humanize_seconds, humanize_seconds_ago
 from mode.utils.typing import Counter, Deque
 
-from faust.exceptions import ConsistencyError
-from faust.types import AppT, EventT, TP
-from faust.types.tables import CollectionT, TableManagerT
-from faust.types.transports import ConsumerT
-from faust.utils import terminal
-from faust.utils.terminal.tables import TableDataT  # List[List[str]]
-from faust.utils.tracing import finish_span, traced_from_parent_span
+from kaspr.faust.exceptions import ConsistencyError
+from kaspr.faust.types import AppT, EventT, TP
+from kaspr.faust.types.tables import CollectionT, TableManagerT
+from kaspr.faust.types.transports import ConsumerT
+from kaspr.faust.utils import terminal
+from kaspr.faust.utils.terminal.tables import TableDataT  # List[List[str]]
+from kaspr.faust.utils.tracing import finish_span, traced_from_parent_span
 
 if typing.TYPE_CHECKING:
-    from faust.app import App as _App
+    from kaspr.faust.app import App as _App
     from .manager import TableManager as _TableManager
 else:
     class _App: ...           # noqa

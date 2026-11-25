@@ -14,8 +14,8 @@ from typing import (
     no_type_check,
 )
 
-from faust.types import AppT, ModelT
-from faust.types.web import ViewDecorator, ViewHandlerFun
+from kaspr.faust.types import AppT, ModelT
+from kaspr.faust.types.web import ViewDecorator, ViewHandlerFun
 from yarl import URL
 
 from . import exceptions

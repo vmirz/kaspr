@@ -6,8 +6,8 @@ import types
 from pathlib import Path
 import click
 import pytest
-from faust.cli import AppCommand, Command, call_command
-from faust.cli.base import (
+from kaspr.faust.cli import AppCommand, Command, call_command
+from kaspr.faust.cli.base import (
     DEFAULT_LOGLEVEL,
     _Group,
     _prepare_cli,
@@ -16,7 +16,7 @@ from faust.cli.base import (
     find_app,
     option,
 )
-from faust.types._env import BLOCKING_TIMEOUT, CONSOLE_PORT
+from kaspr.faust.types._env import BLOCKING_TIMEOUT, CONSOLE_PORT
 from mode import Worker
 from mode.utils.mocks import AsyncMock, Mock, call, patch
 
@@ -34,7 +34,7 @@ class test_option:
 
 
 def test_call_command():
-    with patch('faust.cli.base.cli') as cli:
+    with patch('kaspr.faust.cli.base.cli') as cli:
         cli.side_effect = SystemExit(3)
         exitcode, stdout, stderr = call_command('foo', ['x', 'y'])
         cli.assert_called_once_with(
@@ -47,7 +47,7 @@ def test_call_command():
 
 
 def test_call_command__no_exit():
-    with patch('faust.cli.base.cli') as cli:
+    with patch('kaspr.faust.cli.base.cli') as cli:
         exitcode, stdout, stderr = call_command('foo', ['x', 'y'])
         cli.assert_called_once_with(
             args=['foo', 'x', 'y'],
@@ -61,7 +61,7 @@ def test_call_command__no_exit():
 def test_call_command__custom_ins():
     o_out = io.StringIO()
     o_err = io.StringIO()
-    with patch('faust.cli.base.cli') as cli:
+    with patch('kaspr.faust.cli.base.cli') as cli:
         exitcode, stdout, stderr = call_command(
             'foo', ['x', 'y'],
             stdout=o_out,
@@ -94,7 +94,7 @@ def test_compat_option():
 def test_find_app():
     imp = Mock(name='imp')
     symbol_by_name = Mock(name='symbol_by_name')
-    with patch('faust.cli.base.prepare_app') as prepare_app:
+    with patch('kaspr.faust.cli.base.prepare_app') as prepare_app:
         res = find_app('foo', imp=imp, symbol_by_name=symbol_by_name)
         assert res is prepare_app.return_value
         symbol_by_name.assert_called_once_with('foo', imp=imp)
@@ -106,7 +106,7 @@ def test_find_app__attribute_error():
     imp = Mock(name='imp')
     symbol_by_name = Mock(name='symbol_by_name')
     symbol_by_name.side_effect = AttributeError()
-    with patch('faust.cli.base.prepare_app') as prepare_app:
+    with patch('kaspr.faust.cli.base.prepare_app') as prepare_app:
         res = find_app('foo', imp=imp, symbol_by_name=symbol_by_name)
         assert res is prepare_app.return_value
         symbol_by_name.assert_called_once_with('foo', imp=imp)
@@ -131,7 +131,7 @@ def test_find_app__app_is_module_but_has_app():
     symbol_by_name.side_effect = AttributeError()
     imp.return_value = types.ModuleType('foo')
     imp.return_value.app = Mock(name='app')
-    with patch('faust.cli.base.prepare_app') as prepare_app:
+    with patch('kaspr.faust.cli.base.prepare_app') as prepare_app:
         find_app('foo', imp=imp, symbol_by_name=symbol_by_name)
         prepare_app.assert_called_once_with(imp.return_value.app, 'foo')
 
@@ -167,7 +167,7 @@ class test_Group:
     def test_maybe_import_app(self, argv, expected_chdir, expected_app, *,
                               group):
         with patch('os.chdir') as chdir:
-            with patch('faust.cli.base.find_app') as find_app:
+            with patch('kaspr.faust.cli.base.find_app') as find_app:
                 group._maybe_import_app(argv)
                 if expected_chdir:
                     chdir.assert_called_once_with(
@@ -216,9 +216,9 @@ def test__prepare_cli():
 
         root.side_effects = True
         with patch('os.chdir') as chdir:
-            with patch('faust.cli.base.enable_all_colors') as eac:
-                with patch('faust.utils.terminal.isatty') as isatty:
-                    with patch('faust.cli.base.disable_all_colors') as dac:
+            with patch('kaspr.faust.cli.base.enable_all_colors') as eac:
+                with patch('kaspr.faust.utils.terminal.isatty') as isatty:
+                    with patch('kaspr.faust.cli.base.disable_all_colors') as dac:
                         isatty.return_value = True
                         _prepare_cli(
                             ctx,
@@ -343,7 +343,7 @@ class test_Command:
     def test_as_service(self, *, command):
         loop = Mock()
         command.execute = Mock()
-        with patch('faust.cli.base.Service') as Service:
+        with patch('kaspr.faust.cli.base.Service') as Service:
             res = command.as_service(loop, 1, kw=2)
             assert res is Service.from_awaitable.return_value
             Service.from_awaitable.assert_called_once_with(
@@ -353,7 +353,7 @@ class test_Command:
             command.execute.assert_called_once_with(1, kw=2)
 
     def test_worker_for_service(self, *, command):
-        with patch('faust.cli.base.Worker') as Worker:
+        with patch('kaspr.faust.cli.base.Worker') as Worker:
             service = Mock(name='service')
             loop = Mock(name='loop')
             res = command.worker_for_service(service, loop)
@@ -426,7 +426,7 @@ class test_Command:
         ]
 
     def test_table(self, *, command):
-        with patch('faust.utils.terminal.table') as table:
+        with patch('kaspr.faust.utils.terminal.table') as table:
             data = [['A', 'B', 'C']]
             t = command.table(data, title='foo')
             assert t is table.return_value
@@ -450,7 +450,7 @@ class test_Command:
         assert command._table_wrap(table, 'fooawqe' * 100)
 
     def test_say(self, *, command):
-        with patch('faust.cli.base.echo') as echo:
+        with patch('kaspr.faust.cli.base.echo') as echo:
             command.quiet = True
             command.say('foo')
             echo.assert_not_called()
@@ -470,7 +470,7 @@ class test_Command:
         command.say.assert_called_once()
 
     def test_dumps(self, *, command):
-        with patch('faust.utils.json.dumps') as dumps:
+        with patch('kaspr.faust.utils.json.dumps') as dumps:
             obj = Mock(name='obj')
             assert command.dumps(obj) is dumps.return_value
             dumps.assert_called_once_with(obj)
@@ -521,7 +521,7 @@ class test_AppCommand:
         command._finalize_concrete_app.assert_called_once_with(app)
 
     def test_app_from_str(self, *, command):
-        with patch('faust.cli.base.find_app') as find_app:
+        with patch('kaspr.faust.cli.base.find_app') as find_app:
             res = command._app_from_str('foo')
             assert res is find_app.return_value
             find_app.assert_called_once_with('foo')
@@ -582,7 +582,7 @@ class test_AppCommand:
         assert command.to_model(None, 'value', 'json') == b'value'
 
     def test_import_relative_to_app(self, *, command, ctx):
-        with patch('faust.cli.base.symbol_by_name') as symbol_by_name:
+        with patch('kaspr.faust.cli.base.symbol_by_name') as symbol_by_name:
             res = command.import_relative_to_app('foo')
             assert res is symbol_by_name.return_value
             symbol_by_name.assert_called_once_with('foo')
@@ -590,7 +590,7 @@ class test_AppCommand:
     def test_import_relative_to_app__no_origin(self, *, command, ctx):
         app = ctx.find_root().app
         app.conf.origin = None
-        with patch('faust.cli.base.symbol_by_name') as symbol_by_name:
+        with patch('kaspr.faust.cli.base.symbol_by_name') as symbol_by_name:
             symbol_by_name.side_effect = ImportError()
             with pytest.raises(ImportError):
                 command.import_relative_to_app('foo')
@@ -598,7 +598,7 @@ class test_AppCommand:
     def test_import_relative_to_app__with_origin(self, *, command, ctx):
         app = ctx.find_root().app
         app.conf.origin = 'root.moo:bar'
-        with patch('faust.cli.base.symbol_by_name') as symbol_by_name:
+        with patch('kaspr.faust.cli.base.symbol_by_name') as symbol_by_name:
             symbol_by_name.side_effect = ImportError()
             with pytest.raises(ImportError):
                 command.import_relative_to_app('foo')
@@ -611,7 +611,7 @@ class test_AppCommand:
     def test_import_relative_to_app__with_origin_l1(self, *, command, ctx):
         app = ctx.find_root().app
         app.conf.origin = 'root.moo:bar'
-        with patch('faust.cli.base.symbol_by_name') as symbol_by_name:
+        with patch('kaspr.faust.cli.base.symbol_by_name') as symbol_by_name:
             symbol_by_name.side_effect = [ImportError(), ImportError(), 'x']
             assert command.import_relative_to_app('foo') == 'x'
             symbol_by_name.assert_has_calls([
@@ -623,7 +623,7 @@ class test_AppCommand:
     def test_import_relative_to_app__with_origin_l2(self, *, command, ctx):
         app = ctx.find_root().app
         app.conf.origin = 'root.moo:bar'
-        with patch('faust.cli.base.symbol_by_name') as symbol_by_name:
+        with patch('kaspr.faust.cli.base.symbol_by_name') as symbol_by_name:
             symbol_by_name.side_effect = [ImportError(), 'x']
             assert command.import_relative_to_app('foo') == 'x'
             symbol_by_name.assert_has_calls([

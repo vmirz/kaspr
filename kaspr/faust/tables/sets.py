@@ -20,10 +20,10 @@ from mode.utils.collections import ManagedUserSet
 from mode.utils.objects import cached_property
 from yarl import URL
 
-from faust.models import Record, maybe_model
-from faust.types import AgentT, AppT, EventT, StreamT, TopicT
-from faust.types.tables import GlobalTableT, KT, VT
-from faust.types.stores import StoreT
+from kaspr.faust.models import Record, maybe_model
+from kaspr.faust.types import AgentT, AppT, EventT, StreamT, TopicT
+from kaspr.faust.types.tables import GlobalTableT, KT, VT
+from kaspr.faust.types.stores import StoreT
 
 from . import wrappers
 from .objects import ChangeloggedObject, ChangeloggedObjectManager

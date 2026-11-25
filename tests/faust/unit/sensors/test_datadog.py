@@ -1,9 +1,9 @@
 import pytest
-from faust.exceptions import ImproperlyConfigured
-from faust.types import TP
+from kaspr.faust.exceptions import ImproperlyConfigured
+from kaspr.faust.types import TP
 from mode.utils.mocks import Mock, call
 
-from faust.sensors.datadog import (  # noqa
+from kaspr.faust.sensors.datadog import (  # noqa
     DatadogMonitor,
     DatadogStatsClient,
 )
@@ -14,14 +14,14 @@ TP1 = TP('foo', 3)
 @pytest.fixture()
 def dogstatsd(*, monkeypatch):
     dogstatsd = Mock(name='dogstatsd')
-    monkeypatch.setattr('faust.sensors.datadog.DogStatsd', dogstatsd)
+    monkeypatch.setattr('kaspr.faust.sensors.datadog.DogStatsd', dogstatsd)
     return dogstatsd
 
 
 @pytest.fixture()
 def statsd(*, monkeypatch):
     statsd = Mock(name='datadog')
-    monkeypatch.setattr('faust.sensors.datadog.datadog', statsd)
+    monkeypatch.setattr('kaspr.faust.sensors.datadog.datadog', statsd)
     return statsd
 
 
@@ -94,7 +94,7 @@ class test_DatadogMonitor:
         return call(name, *args, **kwargs)
 
     def test_raises_if_datadog_not_installed(self, *, monkeypatch):
-        monkeypatch.setattr('faust.sensors.datadog.datadog', None)
+        monkeypatch.setattr('kaspr.faust.sensors.datadog.datadog', None)
         with pytest.raises(ImproperlyConfigured):
             DatadogMonitor()
 

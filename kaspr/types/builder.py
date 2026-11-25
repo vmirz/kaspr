@@ -1,6 +1,6 @@
 import abc
 from typing import Dict, TYPE_CHECKING
-from faust.types import ServiceT, TopicT
+from kaspr.faust.types import ServiceT, TopicT
 from mode.utils.objects import cached_property
 from marshmallow import INCLUDE, EXCLUDE, Schema, ValidationError, fields
 

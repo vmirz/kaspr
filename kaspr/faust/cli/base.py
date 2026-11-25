@@ -39,22 +39,22 @@ from mode.utils.compat import want_bytes
 from mode.utils.imports import import_from_cwd, symbol_by_name
 from mode.worker import exiting
 
-from faust.types._env import (
+from kaspr.faust.types._env import (
     BLOCKING_TIMEOUT,
     CONSOLE_PORT,
     DATADIR,
     DEBUG,
     WORKDIR,
 )
-from faust.types import AppT, CodecArg, ModelT
-from faust.utils import json
-from faust.utils import terminal
-from faust.utils.codegen import reprcall
+from kaspr.faust.types import AppT, CodecArg, ModelT
+from kaspr.faust.utils import json
+from kaspr.faust.utils import terminal
+from kaspr.faust.utils.codegen import reprcall
 
 from . import params
 
 if typing.TYPE_CHECKING:
-    from faust.app import App as _App
+    from kaspr.faust.app import App as _App
 else:
     class _App: ...  # noqa
 
@@ -144,7 +144,7 @@ LOGLEVELS: Sequence[str] = (
 #    faust/__init__.py:119:
 #       error: Module 'faust.channels' has no attribute 'EventT'
 #   make: *** [typecheck] Error 1
-faust_version: str = symbol_by_name('faust:__version__')
+faust_version: str = symbol_by_name('kaspr.faust:__version__')
 
 
 # Worker options moved from `faust worker` to toplevel
@@ -413,9 +413,8 @@ class _Group(click.Group):
         return ctx
 
 
-# This is the thing that app.main(), ``python -m faust -A ...``,
-# and ``faust -A ..`` calls (see also faust/__main__.py, and setup.py
-# in the git repository (entry points).)
+# This is the thing that app.main() and ``python -m kaspr.faust -A ...``
+# calls (see also kaspr/faust/__main__.py).
 
 @click.group(cls=_Group)
 @_apply_options(builtin_options)
@@ -612,7 +611,7 @@ class Command(abc.ABC):
         self.run_using_worker(*args, **kwargs)
 
     def run_using_worker(self, *args: Any, **kwargs: Any) -> NoReturn:
-        """Execute command using :class:`faust.Worker`."""
+        """Execute command using :class:`kaspr.faust.Worker`."""
         args = self.args + args
         kwargs = {**self.kwargs, **kwargs}
         service = self.as_service(*args, **kwargs)
@@ -621,7 +620,7 @@ class Command(abc.ABC):
         raise worker.execute_from_commandline()
 
     def on_worker_created(self, worker: Worker) -> None:
-        """Call when creating :class:`faust.Worker` to execute this command."""
+        """Call when creating :class:`kaspr.faust.Worker` to execute this command."""
         ...
 
     def as_service(self,
@@ -633,7 +632,7 @@ class Command(abc.ABC):
 
     def worker_for_service(self,
                            service: ServiceT) -> Worker:
-        """Create :class:`faust.Worker` instance for this command."""
+        """Create :class:`kaspr.faust.Worker` instance for this command."""
         return self._Worker(
             service,
             debug=self.debug,

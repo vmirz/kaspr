@@ -1,6 +1,6 @@
 """HTTP endpoint showing statistics from the Faust monitor."""
 from typing import List, MutableMapping
-from faust import web
+from kaspr.faust import web
 
 __all__ = ['Index', 'blueprint']
 

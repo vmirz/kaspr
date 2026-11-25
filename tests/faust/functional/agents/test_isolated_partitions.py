@@ -2,8 +2,8 @@ import pytest
 from collections import Counter
 from pprint import pformat
 from typing import List, NamedTuple
-from faust.exceptions import ImproperlyConfigured
-from faust.types import EventT, StreamT
+from kaspr.faust.exceptions import ImproperlyConfigured
+from kaspr.faust.types import EventT, StreamT
 from .helpers import AgentCase
 
 

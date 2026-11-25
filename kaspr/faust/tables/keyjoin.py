@@ -5,18 +5,18 @@ from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple
 
 from mode import Service
 
-from faust.exceptions import KeyPlacementError
-from faust.streams import current_event
+from kaspr.faust.exceptions import KeyPlacementError
+from kaspr.faust.streams import current_event
 
-from faust.types import AppT, TopicT
-from faust.types.joins import (
+from kaspr.faust.types import AppT, TopicT
+from kaspr.faust.types.joins import (
     KeyJoinT,
     JoinedValue,
     SubscriptionInstruction,
 )
-from faust.types.tables import CollectionT
-from faust.types.events import EventT
-from faust.serializers import codecs
+from kaspr.faust.types.tables import CollectionT
+from kaspr.faust.types.events import EventT
+from kaspr.faust.serializers import codecs
 
 __all__ = ['KeyJoinProcessor']
 

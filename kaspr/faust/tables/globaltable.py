@@ -1,5 +1,5 @@
-from faust.tables.table import Table
-from faust.types.tables import GlobalTableT
+from kaspr.faust.tables.table import Table
+from kaspr.faust.types.tables import GlobalTableT
 
 
 class GlobalTable(Table, GlobalTableT):

@@ -1,7 +1,7 @@
 import abc
 import typing
 from typing import Optional
-from faust.types import ServiceT
+from kaspr.faust.types import ServiceT
 from kaspr.types import TTLocation
 from mode.utils.objects import cached_property
 from mode.utils.locks import Event

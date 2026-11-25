@@ -1,9 +1,9 @@
 import asyncio
 import collections.abc
 import pytest
-from faust.agents import Agent
-from faust.agents.actor import Actor, AsyncIterableActor, AwaitableActor
-from faust.types import TP
+from kaspr.faust.agents import Agent
+from kaspr.faust.agents.actor import Actor, AsyncIterableActor, AwaitableActor
+from kaspr.faust.types import TP
 from mode.utils.mocks import AsyncMock, Mock
 
 

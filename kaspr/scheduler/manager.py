@@ -7,7 +7,7 @@ from mode import Service
 from typing import Any, Set, MutableMapping, Mapping, List, Sequence, Iterator, Optional
 from mode.utils.objects import cached_property
 from mode.utils.locks import Event
-from faust.types import TP, StreamT, EventT, TopicT
+from kaspr.faust.types import TP, StreamT, EventT, TopicT
 from kaspr.types import (
     KasprAppT,
     KasprTableT,
@@ -39,8 +39,8 @@ from .utils import (
     cron_min_interval,
     due_index_key,
 )
-from faust.serializers.codecs import get_codec
-from faust.utils import terminal
+from kaspr.faust.serializers.codecs import get_codec
+from kaspr.faust.utils import terminal
 
 TableDataT = Sequence[Sequence[str]]
 

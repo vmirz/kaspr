@@ -1,28 +1,28 @@
 import re
 import collections
-import faust
-from faust.agents import Agent
-from faust.app.base import SCAN_AGENT, SCAN_PAGE, SCAN_TASK
-from faust.assignor.leader_assignor import LeaderAssignor, LeaderAssignorT
-from faust.channels import Channel, ChannelT
-from faust.cli.base import AppCommand
-from faust.exceptions import (
+from kaspr import faust
+from kaspr.faust.agents import Agent
+from kaspr.faust.app.base import SCAN_AGENT, SCAN_PAGE, SCAN_TASK
+from kaspr.faust.assignor.leader_assignor import LeaderAssignor, LeaderAssignorT
+from kaspr.faust.channels import Channel, ChannelT
+from kaspr.faust.cli.base import AppCommand
+from kaspr.faust.exceptions import (
     AlreadyConfiguredWarning,
     ConsumerNotStarted,
     ImproperlyConfigured,
     SameNode,
 )
-from faust.fixups.base import Fixup
-from faust.sensors.monitor import Monitor
-from faust.serializers import codecs
-from faust.transport.base import Transport
-from faust.transport.conductor import Conductor
-from faust.transport.consumer import Consumer, Fetcher
-from faust.types import TP
-from faust.types.models import ModelT
-from faust.types.settings import Settings
-from faust.types.tables import GlobalTableT
-from faust.types.web import ResourceOptions
+from kaspr.faust.fixups.base import Fixup
+from kaspr.faust.sensors.monitor import Monitor
+from kaspr.faust.serializers import codecs
+from kaspr.faust.transport.base import Transport
+from kaspr.faust.transport.conductor import Conductor
+from kaspr.faust.transport.consumer import Consumer, Fetcher
+from kaspr.faust.types import TP
+from kaspr.faust.types.models import ModelT
+from kaspr.faust.types.settings import Settings
+from kaspr.faust.types.tables import GlobalTableT
+from kaspr.faust.types.web import ResourceOptions
 from mode import Service
 from mode.utils.compat import want_bytes
 from mode.utils.mocks import ANY, AsyncMock, Mock, call, patch
@@ -34,7 +34,7 @@ CONFIG_DICT = {
     'broker': 'kafka://foo',
     'stream_buffer_maxsize': 1,
 }
-CONFIG_PATH = 't.unit.app.test_base.ConfigClass'
+CONFIG_PATH = 'tests.faust.unit.app.test_base.ConfigClass'
 
 TP1 = TP('foo', 0)
 TP2 = TP('bar', 1)
@@ -125,7 +125,7 @@ class test_App:
         app.conf.broker = broker_url
         if broker_consumer_url:
             app.conf.broker_consumer = broker_consumer_url
-        by_url = patching('faust.transport.by_url')
+        by_url = patching('kaspr.faust.transport.by_url')
         assert app._new_transport() is by_url.return_value.return_value
         assert app.transport is by_url.return_value.return_value
         by_url.assert_called_with(app.conf.broker_consumer[0])
@@ -143,7 +143,7 @@ class test_App:
         app.conf.broker = broker_url
         if broker_producer_url:
             app.conf.broker_producer = broker_producer_url
-        by_url = patching('faust.transport.by_url')
+        by_url = patching('kaspr.faust.transport.by_url')
         transport = app._new_producer_transport()
         assert transport is by_url.return_value.return_value
         assert app.producer_transport is by_url.return_value.return_value
@@ -446,11 +446,11 @@ class test_App:
 
     def test_discover(self, *, app):
         app.conf.autodiscover = ['a', 'b', 'c']
-        app.conf.origin = 'faust'
+        app.conf.origin = 'kaspr.faust'
         fixup1 = Mock(name='fixup1', autospec=Fixup)
         fixup1.autodiscover_modules.return_value = ['d', 'e']
         app.fixups = [fixup1]
-        with patch('faust.app.base.venusian'):
+        with patch('kaspr.faust.app.base.venusian'):
             with patch('importlib.import_module') as import_module:
                 app.discover()
 
@@ -461,7 +461,7 @@ class test_App:
                         call('c'),
                         call('d'),
                         call('e'),
-                        call('faust'),
+                        call('kaspr.faust'),
                     ],
                     any_order=True,
                 )
@@ -472,25 +472,25 @@ class test_App:
 
     def test_discover__unknown_module(self, *, app):
         app.conf.autodiscover = ['xcxz']
-        app.conf.origin = 'faust'
-        with patch('faust.app.base.venusian'):
+        app.conf.origin = 'kaspr.faust'
+        with patch('kaspr.faust.app.base.venusian'):
             with pytest.raises(ModuleNotFoundError):
                 app.discover()
 
     def test_discovery_modules__bool(self, *, app):
-        app.conf.origin = 'faust'
+        app.conf.origin = 'kaspr.faust'
         app.conf.autodiscover = True
-        assert app._discovery_modules() == ['faust']
+        assert app._discovery_modules() == ['kaspr.faust']
 
     def test_discovery_modules__callable(self, *, app):
-        app.conf.origin = 'faust'
+        app.conf.origin = 'kaspr.faust'
         app.conf.autodiscover = lambda: ['a', 'b', 'c']
-        assert app._discovery_modules() == ['a', 'b', 'c', 'faust']
+        assert app._discovery_modules() == ['a', 'b', 'c', 'kaspr.faust']
 
     def test_discovery_modules__list(self, *, app):
-        app.conf.origin = 'faust'
+        app.conf.origin = 'kaspr.faust'
         app.conf.autodiscover = ['a', 'b', 'c']
-        assert app._discovery_modules() == ['a', 'b', 'c', 'faust']
+        assert app._discovery_modules() == ['a', 'b', 'c', 'kaspr.faust']
 
     def test_discovery_modules__list_no_origin(self, *, app):
         app.conf.origin = None
@@ -498,7 +498,7 @@ class test_App:
         assert app._discovery_modules() == ['a', 'b', 'c']
 
     def test_discovery_modules__disabled(self, *, app):
-        app.conf.origin = 'faust'
+        app.conf.origin = 'kaspr.faust'
         app.conf.autodiscover = False
         assert app._discovery_modules() == []
 
@@ -509,34 +509,34 @@ class test_App:
             app._discovery_modules()
 
     def test_discover_ignore(self, *, app):
-        with patch('faust.app.base.venusian') as venusian:
-            app.conf.origin = 'faust'
+        with patch('kaspr.faust.app.base.venusian') as venusian:
+            app.conf.origin = 'kaspr.faust'
             app.conf.autodiscover = ['re', 'collections']
-            app.discover(categories=['faust.agent'], ignore=['re', 'faust'])
+            app.discover(categories=['faust.agent'], ignore=['re', 'kaspr.faust'])
 
             assert venusian.Scanner().scan.assert_has_calls([
                 call(
                     re,
                     categories=('faust.agent', ),
-                    ignore=['re', 'faust'],
+                    ignore=['re', 'kaspr.faust'],
                     onerror=app._on_autodiscovery_error,
                 ),
                 call(
                     faust,
                     categories=('faust.agent', ),
-                    ignore=['re', 'faust'],
+                    ignore=['re', 'kaspr.faust'],
                     onerror=app._on_autodiscovery_error,
                 ),
                 call(
                     collections,
                     categories=('faust.agent', ),
-                    ignore=['re', 'faust'],
+                    ignore=['re', 'kaspr.faust'],
                     onerror=app._on_autodiscovery_error,
                 ),
             ], any_order=True) is None
 
     def test__on_autodiscovery_error(self, *, app):
-        with patch('faust.app.base.logger') as logger:
+        with patch('kaspr.faust.app.base.logger') as logger:
             try:
                 raise KeyError('foo')
             except Exception as exc:
@@ -545,7 +545,7 @@ class test_App:
                     ANY, 'name', exc, exc_info=1)
 
     def test_main(self, *, app):
-        with patch('faust.cli.faust.cli') as cli:
+        with patch('kaspr.faust.cli.faust.cli') as cli:
             app.finalize = Mock(name='app.finalize')
             app.worker_init = Mock(name='app.worker_init')
             app.discover = Mock(name='app.discover')
@@ -575,7 +575,7 @@ class test_App:
         assert app.channel(maxsize=303).maxsize == 303
 
     def test_agent(self, *, app):
-        with patch('faust.app.base.venusian') as venusian:
+        with patch('kaspr.faust.app.base.venusian') as venusian:
             @app.agent()
             async def foo(stream):
                 ...
@@ -610,7 +610,7 @@ class test_App:
         app._consumer.on_task_error.assert_called_with(exc)
 
     def test_task(self, *, app):
-        with patch('faust.app.base.venusian') as venusian:
+        with patch('kaspr.faust.app.base.venusian') as venusian:
             @app.task
             async def foo():
                 ...
@@ -708,7 +708,7 @@ class test_App:
         did_execute = Mock(name='did_execute')
         app._producer = Mock(name='producer', flush=AsyncMock())
 
-        with patch('faust.app.base.cron') as cron:
+        with patch('kaspr.faust.app.base.cron') as cron:
             cron.secs_for_next.return_value = 0.1
 
             @app.crontab('* * * * *')
@@ -722,7 +722,7 @@ class test_App:
     @pytest.mark.asyncio
     async def test_crontab__on_leader_not_leader(self, *, app):
         did_execute = Mock(name='did_execute')
-        with patch('faust.app.base.cron') as cron:
+        with patch('kaspr.faust.app.base.cron') as cron:
             cron.secs_for_next.return_value = 0.1
 
             @app.crontab('* * * * *', on_leader=True)
@@ -744,7 +744,7 @@ class test_App:
     @pytest.mark.asyncio
     async def test_crontab__on_leader_is_leader(self, *, app):
         did_execute = Mock(name='did_execute')
-        with patch('faust.app.base.cron') as cron:
+        with patch('kaspr.faust.app.base.cron') as cron:
             cron.secs_for_next.return_value = 0.1
 
             @app.crontab('* * * * *', on_leader=True)
@@ -799,7 +799,7 @@ class test_App:
 
     def test_page(self, *, app):
 
-        with patch('faust.app.base.venusian') as venusian:
+        with patch('kaspr.faust.app.base.venusian') as venusian:
 
             @app.page('/foo')
             async def view(self, request):
@@ -811,7 +811,7 @@ class test_App:
 
     def test_page__with_cors_options(self, *, app):
 
-        with patch('faust.app.base.venusian') as venusian:
+        with patch('kaspr.faust.app.base.venusian') as venusian:
 
             @app.page(
                 '/foo',
@@ -1026,7 +1026,7 @@ class test_App:
         assert fetcher is app.transport.Fetcher()
 
     def test_reply_consumer(self, *, app):
-        with patch('faust.app.base.ReplyConsumer') as ReplyConsumer:
+        with patch('kaspr.faust.app.base.ReplyConsumer') as ReplyConsumer:
             reply_consumer = app._reply_consumer
             ReplyConsumer.assert_called_once_with(
                 app, beacon=app.beacon)
@@ -1067,9 +1067,9 @@ class test_AppConfiguration:
 
     def test_conf__before_finalized(self, *, monkeypatch, app):
         app.finalized = False
-        monkeypatch.setattr('faust.app.base.STRICT', False)
+        monkeypatch.setattr('kaspr.faust.app.base.STRICT', False)
         app.conf.id
-        monkeypatch.setattr('faust.app.base.STRICT', True)
+        monkeypatch.setattr('kaspr.faust.app.base.STRICT', True)
         with pytest.raises(ImproperlyConfigured):
             app.conf.id
 
@@ -1121,9 +1121,9 @@ class test_AppConfiguration:
 
     def test_load_settings_from_source__no_attribute(self, *, app):
         with pytest.raises(AttributeError):
-            app._load_settings_from_source('faust.app.base.NOTEXIST')
+            app._load_settings_from_source('kaspr.faust.app.base.NOTEXIST')
         assert app._load_settings_from_source(
-            'faust.app.base.NOTEXIST', silent=True) == {}
+            'kaspr.faust.app.base.NOTEXIST', silent=True) == {}
 
     def test_load_settings_from_source__import_error(self, *, app):
         with pytest.raises(ImportError):

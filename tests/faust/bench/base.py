@@ -4,7 +4,7 @@ import random
 import sys
 from itertools import count
 from time import monotonic
-from faust.cli import option
+from kaspr.faust.cli import option
 
 __all__ = ['Benchmark']
 

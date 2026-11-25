@@ -13,9 +13,9 @@ from typing import (
     Union,
 )
 import pytest
-from faust.models import Record
-from faust.models.typing import NodeType, TypeExpression
-from faust.types import ModelT
+from kaspr.faust.models import Record
+from kaspr.faust.models.typing import NodeType, TypeExpression
+from kaspr.faust.types import ModelT
 
 
 class X(Record, namespace='test.X'):

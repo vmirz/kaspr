@@ -40,12 +40,12 @@ CredentialsArg = Union[CredentialsT, ssl.SSLContext]
 
 def to_credentials(obj: CredentialsArg = None) -> Optional[CredentialsT]:
     if obj is not None:
-        from faust.auth import SSLCredentials  # XXX :(
+        from kaspr.faust.auth import SSLCredentials  # XXX :(
         if isinstance(obj, ssl.SSLContext):
             return SSLCredentials(obj)
         if isinstance(obj, CredentialsT):
             return obj
-        from faust.exceptions import ImproperlyConfigured
+        from kaspr.faust.exceptions import ImproperlyConfigured
         raise ImproperlyConfigured(
             f'Unknown credentials type {type(obj)}: {obj}')
     return None

@@ -1,7 +1,7 @@
 import random
 from datetime import datetime, timezone
 from itertools import count
-import faust
+from kaspr import faust
 
 
 class Withdrawal(faust.Record, isodates=True, serializer='json'):

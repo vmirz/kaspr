@@ -10,12 +10,12 @@
 
 # If you are here to read the code, we suggest you start with:
 #
-#  faust/app.py            - Faust Application
-#  faust/channels.py       - Channels for communication.
-#  faust/topics.py         - A topic is a named channel (e.g. a Kafka topic)
-#  faust/streams.py        - The stream iterates over events in a channel.
-#  faust/tables.py         - Data is stored in tables.
-#  faust/agents.py         - Agents use all of the above.
+#  kaspr/faust/app.py            - Faust Application
+#  kaspr/faust/channels.py       - Channels for communication.
+#  kaspr/faust/topics.py         - A topic is a named channel (e.g. a Kafka topic)
+#  kaspr/faust/streams.py        - The stream iterates over events in a channel.
+#  kaspr/faust/tables.py         - Data is stored in tables.
+#  kaspr/faust/agents.py         - Agents use all of the above.
 # --- ~~~~~ ~ ~  ~           ~             ~   ~                   ~
 import os
 import re
@@ -109,7 +109,7 @@ if _loop:  # pragma: no cover
     import mode.loop
     mode.loop.use(_loop)
 
-# To ensure `import faust` executes quickly, this module imports
+# To ensure `from kaspr import faust` executes quickly, this module imports
 # attributes lazily. The next section provides static type checkers
 # with information about the contents of this module.
 if typing.TYPE_CHECKING:  # pragma: no cover
@@ -191,38 +191,38 @@ __all__ = [
 from types import ModuleType  # noqa
 
 all_by_module: Mapping[str, Sequence[str]] = {
-    'faust.agents': ['Agent'],
-    'faust.app': ['App'],
-    'faust.joins': ['KeyJoin', 'ForeignKeyJoin'],
-    'faust.types.joins': ['JoinedValue'],
-    'faust.channels': ['Channel', 'ChannelT'],
-    'faust.events': ['Event', 'EventT'],
-    'faust.models': ['ModelOptions', 'Record'],
-    'faust.sensors': ['Monitor', 'Sensor'],
-    'faust.serializers': ['Codec', 'Schema'],
-    'faust.streams': [
+    'kaspr.faust.agents': ['Agent'],
+    'kaspr.faust.app': ['App'],
+    'kaspr.faust.joins': ['KeyJoin', 'ForeignKeyJoin'],
+    'kaspr.faust.types.joins': ['JoinedValue'],
+    'kaspr.faust.channels': ['Channel', 'ChannelT'],
+    'kaspr.faust.events': ['Event', 'EventT'],
+    'kaspr.faust.models': ['ModelOptions', 'Record'],
+    'kaspr.faust.sensors': ['Monitor', 'Sensor'],
+    'kaspr.faust.serializers': ['Codec', 'Schema'],
+    'kaspr.faust.streams': [
         'Stream',
         'StreamT',
         'current_event',
     ],
-    'faust.tables.globaltable': ['GlobalTable'],
-    'faust.tables.sets': ['SetTable', 'SetGlobalTable'],
-    'faust.tables.table': ['Table'],
-    'faust.topics': ['Topic', 'TopicT'],
-    'faust.auth': [
+    'kaspr.faust.tables.globaltable': ['GlobalTable'],
+    'kaspr.faust.tables.sets': ['SetTable', 'SetGlobalTable'],
+    'kaspr.faust.tables.table': ['Table'],
+    'kaspr.faust.topics': ['Topic', 'TopicT'],
+    'kaspr.faust.auth': [
         'GSSAPICredentials',
         'SASLCredentials',
         'SSLCredentials',
     ],
-    'faust.types.settings': ['Settings'],
-    'faust.windows': [
+    'kaspr.faust.types.settings': ['Settings'],
+    'kaspr.faust.windows': [
         'HoppingWindow',
         'TumblingWindow',
         'SlidingWindow',
         'Window',
     ],
-    'faust.worker': ['Worker'],
-    'faust.utils': ['uuid'],
+    'kaspr.faust.worker': ['Worker'],
+    'kaspr.faust.utils': ['uuid'],
     'mode.services': ['Service', 'ServiceT'],
 }
 
@@ -282,6 +282,10 @@ new_module.__dict__.update({
     '__homepage__': __homepage__,
     '__docformat__': __docformat__,
     '__package__': __package__,
+    # `python -m kaspr.faust` finds the package already imported, by kaspr,
+    # and reads these from it.
+    '__spec__': __spec__,
+    '__loader__': __loader__,
     'version_info_t': version_info_t,
     'version_info': version_info,
     'VERSION': VERSION,

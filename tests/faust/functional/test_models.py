@@ -3,10 +3,10 @@ from datetime import datetime
 from decimal import Decimal
 from typing import ClassVar, Dict, List, Mapping, Optional, Set, Tuple
 from dateutil.parser import parse as parse_date
-import faust
-from faust.exceptions import SecurityError, ValidationError
-from faust.models import maybe_model
-from faust.models.fields import (
+from kaspr import faust
+from kaspr.faust.exceptions import SecurityError, ValidationError
+from kaspr.faust.models import maybe_model
+from kaspr.faust.models.fields import (
     BytesField,
     DatetimeField,
     DecimalField,
@@ -16,14 +16,14 @@ from faust.models.fields import (
     StringField,
 )
 from mode.utils.logging import get_logger
-from faust.models.tags import (
+from kaspr.faust.models.tags import (
     Secret,
     Sensitive,
     _FrameLocal,
     allow_protected_vars,
 )
-from faust.types import ModelT
-from faust.utils import json
+from kaspr.faust.types import ModelT
+from kaspr.faust.utils import json
 import pytest
 
 logger = get_logger(__name__)

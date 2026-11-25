@@ -1,9 +1,9 @@
-import faust
+from kaspr import faust
 from datetime import datetime
 from kaspr.utils.functional import utc_now
 from typing import Optional, Iterable
-from faust.app import BootStrategy
-from faust.types import ServiceT
+from kaspr.faust.app import BootStrategy
+from kaspr.faust.types import ServiceT
 from mode.utils.objects import cached_property
 from mode import SyncSignal
 from kaspr.types import CustomSettings, KasprAppT, MessageSchedulerT, AppBuilderT

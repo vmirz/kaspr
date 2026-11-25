@@ -2,7 +2,7 @@
 import asyncio
 import random
 from typing import Any
-from faust.types import CodecArg, K, RecordMetadata, V
+from kaspr.faust.types import CodecArg, K, RecordMetadata, V
 from .base import AppCommand, argument, option
 
 __all__ = ['send']

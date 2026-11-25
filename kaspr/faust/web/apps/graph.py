@@ -1,6 +1,6 @@
 """Web endpoint showing graph of running :pypi:`mode` services."""
 import io
-from faust import web
+from kaspr.faust import web
 
 __all__ = ['Graph', 'blueprint']
 

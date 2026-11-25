@@ -3,12 +3,12 @@ from typing import Union
 import pytest
 from mode.utils.compat import want_bytes
 from mode.utils.mocks import AsyncMock, Mock, call
-from faust.livecheck import LiveCheck
-from faust.livecheck.app import LiveCheckSensor
-from faust.livecheck.exceptions import TestFailed
-from faust.livecheck.locals import current_test_stack
-from faust.livecheck.models import SignalEvent, TestExecution, TestReport
-from faust.livecheck.signals import BaseSignal
+from kaspr.faust.livecheck import LiveCheck
+from kaspr.faust.livecheck.app import LiveCheckSensor
+from kaspr.faust.livecheck.exceptions import TestFailed
+from kaspr.faust.livecheck.locals import current_test_stack
+from kaspr.faust.livecheck.models import SignalEvent, TestExecution, TestReport
+from kaspr.faust.livecheck.signals import BaseSignal
 
 
 class test_LiveCheckSensor:

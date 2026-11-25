@@ -28,8 +28,8 @@ from mode import Seconds, Service, want_seconds
 from mode.utils.times import humanize_seconds
 from yarl import URL
 
-from faust.utils import uuid
-from faust.utils.functional import deque_pushpopmax
+from kaspr.faust.utils import uuid
+from kaspr.faust.utils.functional import deque_pushpopmax
 
 from .exceptions import ServiceDown, SuiteFailed, SuiteStalled
 from .locals import current_execution_stack, current_test_stack

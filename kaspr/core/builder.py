@@ -3,7 +3,7 @@
 import yaml
 from typing import Dict, List
 from pathlib import Path
-from faust.exceptions import ImproperlyConfigured
+from kaspr.faust.exceptions import ImproperlyConfigured
 from kaspr.types import KasprAppT, AppBuilderT
 from kaspr.types.models import AppSpec, AgentSpec, WebViewSpec, TableSpec, TaskSpec
 from kaspr.types.models.join import JoinSpec

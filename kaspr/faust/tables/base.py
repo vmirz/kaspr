@@ -27,11 +27,11 @@ from typing import (
 from mode import Seconds, Service
 from yarl import URL
 
-from faust import stores
-from faust import joins
-from faust.exceptions import PartitionsMismatch
-from faust.streams import current_event
-from faust.types import (
+from kaspr.faust import stores
+from kaspr.faust import joins
+from kaspr.faust.exceptions import PartitionsMismatch
+from kaspr.faust.streams import current_event
+from kaspr.faust.types import (
     AppT,
     CodecArg,
     EventT,
@@ -44,17 +44,17 @@ from faust.types import (
     TopicT,
     MessageSentCallback,    
 )
-from faust.types.models import ModelArg, ModelT
-from faust.types.stores import StoreT
-from faust.types.streams import JoinableT, StreamT
-from faust.types.tables import (
+from kaspr.faust.types.models import ModelArg, ModelT
+from kaspr.faust.types.stores import StoreT
+from kaspr.faust.types.streams import JoinableT, StreamT
+from kaspr.faust.types.tables import (
     ChangelogEventCallback,
     CollectionT,
     RecoverCallback,
     RelativeHandler,
     WindowCloseCallback,
 )
-from faust.types.windows import WindowRange, WindowT
+from kaspr.faust.types.windows import WindowRange, WindowT
 
 __all__ = ['Collection']
 

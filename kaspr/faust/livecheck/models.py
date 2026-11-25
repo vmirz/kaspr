@@ -7,8 +7,8 @@ from mode.utils.compat import want_str
 from mode.utils.objects import cached_property
 from mode.utils.text import abbr
 
-from faust import Record
-from faust.utils.iso8601 import parse as parse_iso8601
+from kaspr.faust import Record
+from kaspr.faust.utils.iso8601 import parse as parse_iso8601
 
 __all__ = ['State', 'SignalEvent', 'TestExecution', 'TestReport']
 
@@ -37,8 +37,8 @@ class State(Enum):
 OK_STATES = frozenset({State.INIT, State.PASS, State.SKIP})
 
 
-class SignalEvent(Record):
-    """Signal sent to test (see :class:`faust.livecheck.signals.Signal`)."""
+class SignalEvent(Record, namespace='faust.livecheck.models.SignalEvent'):
+    """Signal sent to test (see :class:`kaspr.faust.livecheck.signals.Signal`)."""
 
     signal_name: str
     case_name: str
@@ -46,7 +46,8 @@ class SignalEvent(Record):
     value: Any
 
 
-class TestExecution(Record, isodates=True):
+class TestExecution(Record, isodates=True,
+                    namespace='faust.livecheck.models.TestExecution'):
     """Requested test execution."""
 
     id: str
@@ -129,7 +130,7 @@ class TestExecution(Record, isodates=True):
         return self.case_name.split('.')[-1]
 
 
-class TestReport(Record):
+class TestReport(Record, namespace='faust.livecheck.models.TestReport'):
     """Report after test execution."""
 
     case_name: str

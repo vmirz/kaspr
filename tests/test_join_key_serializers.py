@@ -2,7 +2,7 @@ import logging
 from types import SimpleNamespace
 
 import pytest
-from faust.exceptions import ImproperlyConfigured
+from kaspr.faust.exceptions import ImproperlyConfigured
 
 from kaspr.core.builder import AppBuilder
 from kaspr.types.models.agent.agent import AgentSpec

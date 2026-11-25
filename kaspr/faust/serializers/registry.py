@@ -7,9 +7,9 @@ from typing import Any, Optional, Tuple, Type, cast
 from mode.utils.compat import want_bytes, want_str
 from mode.utils.objects import cached_property
 
-from faust.exceptions import KeyDecodeError, ValueDecodeError
-from faust.types import K, ModelArg, ModelT, V
-from faust.types.serializers import RegistryT
+from kaspr.faust.exceptions import KeyDecodeError, ValueDecodeError
+from kaspr.faust.types import K, ModelArg, ModelT, V
+from kaspr.faust.types.serializers import RegistryT
 
 from .codecs import CodecArg, dumps, loads
 
@@ -178,6 +178,6 @@ class Registry(RegistryT):
 
     @cached_property
     def Model(self) -> Type[ModelT]:
-        """Return the :class:`faust.Model` class used by this serializer."""
-        from faust.models.base import Model
+        """Return the :class:`kaspr.faust.Model` class used by this serializer."""
+        from kaspr.faust.models.base import Model
         return Model

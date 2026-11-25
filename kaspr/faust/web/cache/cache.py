@@ -19,7 +19,7 @@ from mode.utils.compat import want_bytes
 from mode.utils.times import Seconds, want_seconds
 from mode.utils.logging import get_logger
 
-from faust.types.web import (
+from kaspr.faust.types.web import (
     CacheBackendT,
     CacheT,
     Request,

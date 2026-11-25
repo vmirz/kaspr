@@ -3,7 +3,7 @@ from collections import Counter
 from itertools import cycle
 from pprint import pformat
 from typing import NamedTuple
-from faust.types import EventT, StreamT
+from kaspr.faust.types import EventT, StreamT
 from .helpers import AgentCase
 
 

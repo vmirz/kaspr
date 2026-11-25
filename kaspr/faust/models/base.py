@@ -46,9 +46,9 @@ from typing import (
 
 from mode.utils.objects import canoname
 
-from faust.exceptions import ValidationError
-from faust.serializers.codecs import CodecArg, dumps, loads
-from faust.types.models import (
+from kaspr.faust.exceptions import ValidationError
+from kaspr.faust.serializers.codecs import CodecArg, dumps, loads
+from kaspr.faust.types.models import (
     CoercionMapping,
     FieldDescriptorT,
     FieldMap,

@@ -25,8 +25,8 @@ from mode.utils.compat import want_str
 from mode.utils.imports import SymbolArg, symbol_by_name
 from yarl import URL
 
-from faust.types import AppT
-from faust.types.web import BlueprintT, ResourceOptions, View
+from kaspr.faust.types import AppT
+from kaspr.faust.types.web import BlueprintT, ResourceOptions, View
 
 __all__ = [
     'DEFAULT_BLUEPRINTS',
@@ -42,17 +42,17 @@ _BPArg = SymbolArg[BlueprintT]
 _BPList = Iterable[Tuple[str, _BPArg]]
 
 DEFAULT_BLUEPRINTS: _BPList = [
-    ('/router', 'faust.web.apps.router:blueprint'),
-    ('/table', 'faust.web.apps.tables.blueprint'),
+    ('/router', 'kaspr.faust.web.apps.router:blueprint'),
+    ('/table', 'kaspr.faust.web.apps.tables.blueprint'),
 ]
 
 PRODUCTION_BLUEPRINTS: _BPList = [
-    ('', 'faust.web.apps.production_index:blueprint'),
+    ('', 'kaspr.faust.web.apps.production_index:blueprint'),
 ]
 
 DEBUG_BLUEPRINTS: _BPList = [
-    ('/graph', 'faust.web.apps.graph:blueprint'),
-    ('', 'faust.web.apps.stats:blueprint'),
+    ('/graph', 'kaspr.faust.web.apps.graph:blueprint'),
+    ('', 'kaspr.faust.web.apps.stats:blueprint'),
 ]
 
 CONTENT_SEPARATOR: bytes = b'\r\n\r\n'

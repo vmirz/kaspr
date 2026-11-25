@@ -45,16 +45,16 @@ from mode.utils.objects import (
     qualname,
 )
 from typing import Counter
-from faust.types.models import (
+from kaspr.faust.types.models import (
     CoercionHandler,
     CoercionMapping,
     IsInstanceArgT,
     ModelT,
 )
-from faust.utils import codegen
-from faust.utils.functional import translate
-from faust.utils.iso8601 import parse as parse_iso8601
-from faust.utils.json import str_to_decimal
+from kaspr.faust.utils import codegen
+from kaspr.faust.utils.functional import translate
+from kaspr.faust.utils.iso8601 import parse as parse_iso8601
+from kaspr.faust.utils.json import str_to_decimal
 
 if TYPE_CHECKING:  # pragma: no cover
     from typing_extensions import Final

@@ -228,7 +228,7 @@ class Channel(ChannelT[T]):
                   eager_partitioning: bool = False) -> FutureMessage:
         """Produce message by adding to buffer.
 
-        This method is only supported by :class:`~faust.Topic`.
+        This method is only supported by :class:`~kaspr.faust.Topic`.
 
         Raises:
             NotImplementedError: always for in-memory channel.
@@ -306,7 +306,7 @@ class Channel(ChannelT[T]):
         to actually publish the message on the channel
         after being buffered up or similar.
 
-        It takes a :class:`~faust.types.FutureMessage` object,
+        It takes a :class:`~kaspr.faust.types.FutureMessage` object,
         which contains all the information required to send
         the message, and acts as a promise that is resolved
         once the message has been fully transmitted.
@@ -360,7 +360,7 @@ class Channel(ChannelT[T]):
             headers: OpenHeadersArg = None) -> Tuple[Any, OpenHeadersArg]:
         """Prepare key before it is sent to this channel.
 
-        :class:`~faust.Topic` uses this to implement serialization of keys
+        :class:`~kaspr.faust.Topic` uses this to implement serialization of keys
         sent to the channel.
         """
         return key, headers
@@ -373,14 +373,14 @@ class Channel(ChannelT[T]):
             headers: OpenHeadersArg = None) -> Tuple[Any, OpenHeadersArg]:
         """Prepare value before it is sent to this channel.
 
-        :class:`~faust.Topic` uses this to implement serialization of values
+        :class:`~kaspr.faust.Topic` uses this to implement serialization of values
         sent to the channel.
         """
         return value, headers
 
     async def decode(self, message: Message, *,
                      propagate: bool = False) -> EventT[T]:
-        """Decode :class:`~faust.types.Message` into :class:`~faust.Event`."""
+        """Decode :class:`~kaspr.faust.types.Message` into :class:`~kaspr.faust.Event`."""
         return self._create_event(
             message.key, message.value, message.headers, message=message)
 
@@ -419,7 +419,7 @@ class Channel(ChannelT[T]):
             await subscriber.queue.put(value)
 
     async def get(self, *, timeout: Seconds = None) -> EventT[T]:
-        """Get the next :class:`~faust.Event` received on this channel."""
+        """Get the next :class:`~kaspr.faust.Event` received on this channel."""
         timeout_: float = want_seconds(timeout)
         if timeout_:
             return await asyncio.wait_for(self.queue.get(), timeout=timeout_)
@@ -483,7 +483,7 @@ class Channel(ChannelT[T]):
     def derive(self, **kwargs: Any) -> ChannelT[T]:
         """Derive new channel from this channel, using new configuration.
 
-        See :class:`faust.Topic.derive`.
+        See :class:`kaspr.faust.Topic.derive`.
 
         For local channels this will simply return the same channel.
         """

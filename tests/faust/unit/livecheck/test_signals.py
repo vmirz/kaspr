@@ -1,9 +1,9 @@
 import asyncio
 import pytest
-from faust.livecheck.exceptions import TestTimeout
-from faust.livecheck.locals import current_execution_stack, current_test_stack
-from faust.livecheck.models import SignalEvent
-from faust.livecheck.signals import BaseSignal, Signal
+from kaspr.faust.livecheck.exceptions import TestTimeout
+from kaspr.faust.livecheck.locals import current_execution_stack, current_test_stack
+from kaspr.faust.livecheck.models import SignalEvent
+from kaspr.faust.livecheck.signals import BaseSignal, Signal
 from mode.utils.mocks import AsyncMock, Mock, patch
 
 
@@ -168,7 +168,7 @@ class test_Signal:
             raise KeyError()
         signal._get_current_value.side_effect = on_get_value
 
-        with patch('faust.livecheck.signals.monotonic') as monotonic:
+        with patch('kaspr.faust.livecheck.signals.monotonic') as monotonic:
             monotonic.return_value = 111.1
             signal._wait_for_resolved = AsyncMock()
 
@@ -193,7 +193,7 @@ class test_Signal:
             raise KeyError()
         signal._get_current_value.side_effect = on_get_value
 
-        with patch('faust.livecheck.signals.monotonic') as monotonic:
+        with patch('kaspr.faust.livecheck.signals.monotonic') as monotonic:
             monotonic.return_value = 111.1
             signal._wait_for_resolved = AsyncMock()
 
@@ -211,7 +211,7 @@ class test_Signal:
         can_return = [False]
         signal._get_current_value = Mock(side_effect=KeyError())
 
-        with patch('faust.livecheck.signals.monotonic') as monotonic:
+        with patch('kaspr.faust.livecheck.signals.monotonic') as monotonic:
             monotonic.return_value = 111.1
             signal._wait_for_resolved = AsyncMock()
 
@@ -228,7 +228,7 @@ class test_Signal:
     async def test__wait_for_message_by_key__app_stopped(self, *, signal):
         signal._get_current_value = Mock(side_effect=KeyError())
 
-        with patch('faust.livecheck.signals.monotonic') as monotonic:
+        with patch('kaspr.faust.livecheck.signals.monotonic') as monotonic:
             monotonic.return_value = 111.1
             app = signal.case.app
             signal._wait_for_resolved = AsyncMock()

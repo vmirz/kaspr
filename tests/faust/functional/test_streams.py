@@ -1,10 +1,10 @@
 import asyncio
 from copy import copy
 
-import faust
+from kaspr import faust
 import pytest
-from faust.exceptions import ImproperlyConfigured
-from faust.streams import maybe_forward
+from kaspr.faust.exceptions import ImproperlyConfigured
+from kaspr.faust.streams import maybe_forward
 from mode import label
 from mode.utils.aiter import aiter, anext
 from mode.utils.mocks import AsyncMock, Mock

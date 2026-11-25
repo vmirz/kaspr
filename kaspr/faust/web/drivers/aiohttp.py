@@ -23,10 +23,10 @@ from aiohttp.web import (
 )
 from aiohttp.payload import Payload
 from aiohttp_cors import CorsConfig, ResourceOptions
-from faust.types import AppT
-from faust.utils import json as _json
-from faust.web import base
-from faust.types.web import ResourceOptions as _ResourceOptions
+from kaspr.faust.types import AppT
+from kaspr.faust.utils import json as _json
+from kaspr.faust.web import base
+from kaspr.faust.types.web import ResourceOptions as _ResourceOptions
 from mode import Service
 from mode.threads import ServiceThread
 

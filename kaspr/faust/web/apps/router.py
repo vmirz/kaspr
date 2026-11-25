@@ -1,6 +1,6 @@
 """HTTP endpoint showing partition routing destinations."""
-from faust import web
-from faust.web.exceptions import ServiceUnavailable
+from kaspr.faust import web
+from kaspr.faust.web.exceptions import ServiceUnavailable
 
 __all__ = ['TableList', 'TableDetail', 'TableKeyDetail', 'blueprint']
 

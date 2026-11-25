@@ -4,11 +4,11 @@ from typing import Any, ClassVar, Type
 
 from mode import Seconds
 
-from faust import windows
-from faust.types.tables import KT, TableT, VT, WindowWrapperT
-from faust.types.windows import WindowT
-from faust.types.tuples import MessageSentCallback
-from faust.utils.terminal.tables import dict_as_ansitable
+from kaspr.faust import windows
+from kaspr.faust.types.tables import KT, TableT, VT, WindowWrapperT
+from kaspr.faust.types.windows import WindowT
+from kaspr.faust.types.tuples import MessageSentCallback
+from kaspr.faust.utils.terminal.tables import dict_as_ansitable
 
 from . import wrappers
 from .base import Collection

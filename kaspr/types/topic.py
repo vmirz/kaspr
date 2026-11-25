@@ -1,4 +1,4 @@
-from faust.types.topics import TopicT
+from kaspr.faust.types.topics import TopicT
 
 
 class KasprTopicT(TopicT):

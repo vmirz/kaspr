@@ -4,13 +4,13 @@ from typing import Any, Dict, Iterator, Mapping, Optional, Set
 
 from mode import Service
 
-from faust import web
-from faust.types import AppT, CollectionT, EventT, StreamT
-from faust.types.assignor import PartitionAssignorT
-from faust.types.tuples import Message, PendingMessage, RecordMetadata, TP
-from faust.types.sensors import SensorDelegateT, SensorT
-from faust.types.topics import TopicT
-from faust.types.transports import ConsumerT, ProducerT
+from kaspr.faust import web
+from kaspr.faust.types import AppT, CollectionT, EventT, StreamT
+from kaspr.faust.types.assignor import PartitionAssignorT
+from kaspr.faust.types.tuples import Message, PendingMessage, RecordMetadata, TP
+from kaspr.faust.types.sensors import SensorDelegateT, SensorT
+from kaspr.faust.types.topics import TopicT
+from kaspr.faust.types.transports import ConsumerT, ProducerT
 
 __all__ = ['Sensor', 'SensorDelegate']
 

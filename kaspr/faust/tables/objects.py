@@ -19,11 +19,11 @@ from typing import (
 
 from mode import Service
 
-from faust.stores.base import Store
-from faust.streams import current_event
-from faust.types import EventT, TP
-from faust.types.stores import StoreT
-from faust.types.tables import CollectionT
+from kaspr.faust.stores.base import Store
+from kaspr.faust.streams import current_event
+from kaspr.faust.types import EventT, TP
+from kaspr.faust.types.stores import StoreT
+from kaspr.faust.types.tables import CollectionT
 
 from .table import Table
 

@@ -6,9 +6,9 @@ from typing import Any, Dict, Optional, Pattern, cast
 
 from mode.utils.objects import cached_property
 
-from faust import web
-from faust.exceptions import ImproperlyConfigured
-from faust.types import (
+from kaspr.faust import web
+from kaspr.faust.exceptions import ImproperlyConfigured
+from kaspr.faust.types import (
     AppT,
     CollectionT,
     EventT,
@@ -18,8 +18,8 @@ from faust.types import (
     StreamT,
     TP,
 )
-from faust.types.assignor import PartitionAssignorT
-from faust.types.transports import ConsumerT, ProducerT
+from kaspr.faust.types.assignor import PartitionAssignorT
+from kaspr.faust.types.transports import ConsumerT, ProducerT
 
 from .monitor import Monitor, TPOffsetMapping
 

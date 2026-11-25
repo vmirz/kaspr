@@ -4,7 +4,7 @@ import typing
 from types import TracebackType
 from typing import Any, Awaitable, Optional, Type, Union, cast
 
-from faust.types import (
+from kaspr.faust.types import (
     AppT,
     ChannelT,
     CodecArg,
@@ -97,7 +97,7 @@ class Event(EventT):
 
             .. sourcecode:: python
 
-                from faust import current_event
+                from kaspr.faust import current_event
 
                 @app.agent(topic)
                 async def process(stream):

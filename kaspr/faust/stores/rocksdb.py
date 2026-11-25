@@ -30,10 +30,10 @@ from typing import (
 from mode.utils.collections import LRUCache
 from yarl import URL
 
-from faust.exceptions import ImproperlyConfigured
-from faust.streams import current_event
-from faust.types import TP, AppT, CollectionT, EventT
-from faust.utils import platforms
+from kaspr.faust.exceptions import ImproperlyConfigured
+from kaspr.faust.streams import current_event
+from kaspr.faust.types import TP, AppT, CollectionT, EventT
+from kaspr.faust.utils import platforms
 
 from . import base
 
@@ -465,7 +465,7 @@ class Store(base.SerializedStore):
         """Write batch of changelog events to local RocksDB storage.
 
         Arguments:
-            batch: Iterable of changelog events (:class:`faust.Event`)
+            batch: Iterable of changelog events (:class:`kaspr.faust.Event`)
             to_key: A callable you can use to deserialize the key
                 of a changelog event.
             to_value: A callable you can use to deserialize the value

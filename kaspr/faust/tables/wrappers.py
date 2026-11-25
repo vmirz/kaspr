@@ -20,10 +20,10 @@ from typing import (
 from mode import Seconds
 from mode.utils.typing import NoReturn
 
-from faust.exceptions import ImproperlyConfigured
-from faust.streams import current_event
-from faust.types import EventT, FieldDescriptorT
-from faust.types.tables import (
+from kaspr.faust.exceptions import ImproperlyConfigured
+from kaspr.faust.streams import current_event
+from kaspr.faust.types import EventT, FieldDescriptorT
+from kaspr.faust.types.tables import (
     KT,
     RecoverCallback,
     RelativeArg,
@@ -35,7 +35,7 @@ from faust.types.tables import (
     WindowedItemsViewT,
     WindowedValuesViewT,
 )
-from faust.utils.terminal.tables import dict_as_ansitable
+from kaspr.faust.utils.terminal.tables import dict_as_ansitable
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     from .table import Table as _Table

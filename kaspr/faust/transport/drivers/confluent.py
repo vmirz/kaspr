@@ -24,17 +24,17 @@ from mode.utils.futures import notify
 from mode.utils.times import Seconds, want_seconds
 from yarl import URL
 
-from faust.exceptions import ConsumerNotStarted, ProducerSendError
-from faust.transport import base
-from faust.transport.consumer import (
+from kaspr.faust.exceptions import ConsumerNotStarted, ProducerSendError
+from kaspr.faust.transport import base
+from kaspr.faust.transport.consumer import (
     ConsumerThread,
     RecordMap,
     ThreadDelegateConsumer,
     ensure_TP,
     ensure_TPset,
 )
-from faust.types import AppT, ConsumerMessage, HeadersArg, RecordMetadata, TP
-from faust.types.transports import ConsumerT, ProducerT
+from kaspr.faust.types import AppT, ConsumerMessage, HeadersArg, RecordMetadata, TP
+from kaspr.faust.types.transports import ConsumerT, ProducerT
 
 import confluent_kafka
 from confluent_kafka import TopicPartition as _TopicPartition

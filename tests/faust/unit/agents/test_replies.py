@@ -1,7 +1,7 @@
 import asyncio
 import pytest
-from faust.agents.models import ReqRepResponse
-from faust.agents.replies import (
+from kaspr.faust.agents.models import ReqRepResponse
+from kaspr.faust.agents.replies import (
     BarrierState,
     ReplyConsumer,
     ReplyPromise,

@@ -1,4 +1,4 @@
-import faust
+from kaspr import faust
 import pytest
 
 

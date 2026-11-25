@@ -14,7 +14,7 @@ from weakref import WeakSet
 
 from mode import Service
 
-from faust.types import AppT, ChannelT, TopicT
+from kaspr.faust.types import AppT, ChannelT, TopicT
 from .models import ReqRepResponse
 
 __all__ = ['ReplyPromise', 'BarrierState', 'ReplyConsumer']

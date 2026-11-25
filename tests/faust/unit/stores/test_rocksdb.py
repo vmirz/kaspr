@@ -1,10 +1,10 @@
 from pathlib import Path
 from typing import List, Mapping, Tuple
 import pytest
-from faust.exceptions import ImproperlyConfigured
-from faust.stores import rocksdb
-from faust.stores.rocksdb import RocksDBOptions, Store
-from faust.types import TP
+from kaspr.faust.exceptions import ImproperlyConfigured
+from kaspr.faust.stores import rocksdb
+from kaspr.faust.stores.rocksdb import RocksDBOptions, Store
+from kaspr.faust.types import TP
 from mode.utils.mocks import AsyncMock, Mock, call, patch
 from yarl import URL
 
@@ -57,7 +57,7 @@ class test_RocksDBOptions:
         assert opts.bloom_filter_size == rocksdb.DEFAULT_BLOOM_FILTER_SIZE
 
     def test_open(self):
-        with patch('faust.stores.rocksdb.rocksdb', Mock()) as rocks:
+        with patch('kaspr.faust.stores.rocksdb.rocksdb', Mock()) as rocks:
             opts = RocksDBOptions()
             db = opts.open(Path('foo.db'), read_only=True)
             rocks.DB.assert_called_once_with(
@@ -66,7 +66,7 @@ class test_RocksDBOptions:
 
     def test_as_options__python_rocksdb_block_cache(self):
         cache = Mock(name='cache')
-        with patch('faust.stores.rocksdb.rocksdb') as rocks:
+        with patch('kaspr.faust.stores.rocksdb.rocksdb') as rocks:
             RocksDBOptions(use_rocksdict=False, block_cache=cache).as_options()
 
             _, kwargs = rocks.BlockBasedTableFactory.call_args
@@ -75,7 +75,7 @@ class test_RocksDBOptions:
                 rocksdb.DEFAULT_BLOCK_CACHE_COMPRESSED_SIZE)
 
     def test_as_options__python_rocksdb_block_cache_per_db_by_default(self):
-        with patch('faust.stores.rocksdb.rocksdb') as rocks:
+        with patch('kaspr.faust.stores.rocksdb.rocksdb') as rocks:
             RocksDBOptions(
                 use_rocksdict=False, block_cache_size=1234).as_options()
 
@@ -94,12 +94,12 @@ class test_Store:
 
     @pytest.yield_fixture()
     def rocks(self):
-        with patch('faust.stores.rocksdb.rocksdb') as rocks:
+        with patch('kaspr.faust.stores.rocksdb.rocksdb') as rocks:
             yield rocks
 
     @pytest.yield_fixture()
     def no_rocks(self):
-        with patch('faust.stores.rocksdb.rocksdb', None) as rocks:
+        with patch('kaspr.faust.stores.rocksdb.rocksdb', None) as rocks:
             yield rocks
 
     @pytest.fixture()
@@ -155,7 +155,7 @@ class test_Store:
 
     @pytest.mark.asyncio
     async def test_need_active_standby_for(self, *, store, db_for_partition):
-        with patch('faust.stores.rocksdb.rocksdb.errors.RocksIOError',
+        with patch('kaspr.faust.stores.rocksdb.rocksdb.errors.RocksIOError',
                    KeyError):
             db_for_partition.side_effect = KeyError('lock acquired')
             assert not await store.need_active_standby_for(TP1)
@@ -163,7 +163,7 @@ class test_Store:
     @pytest.mark.asyncio
     async def test_need_active_standby_for__raises(
             self, *, store, db_for_partition):
-        with patch('faust.stores.rocksdb.rocksdb.errors.RocksIOError',
+        with patch('kaspr.faust.stores.rocksdb.rocksdb.errors.RocksIOError',
                    KeyError):
             db_for_partition.side_effect = KeyError('oh no')
             with pytest.raises(KeyError):
@@ -172,7 +172,7 @@ class test_Store:
     @pytest.mark.asyncio
     async def test_need_active_standby_for__active(
             self, *, store, db_for_partition):
-        with patch('faust.stores.rocksdb.rocksdb.errors.RocksIOError',
+        with patch('kaspr.faust.stores.rocksdb.rocksdb.errors.RocksIOError',
                    KeyError):
             assert await store.need_active_standby_for(TP1)
 
@@ -231,7 +231,7 @@ class test_Store:
 
     @pytest.yield_fixture()
     def current_event(self):
-        with patch('faust.stores.rocksdb.current_event') as current_event:
+        with patch('kaspr.faust.stores.rocksdb.current_event') as current_event:
             yield current_event.return_value
 
     def test__set(self, *, store, db_for_partition, current_event):
@@ -381,7 +381,7 @@ class test_Store:
 
     @pytest.mark.asyncio
     async def test_open_db_for_partition(self, *, store, db_for_partition):
-        with patch('faust.stores.rocksdb.rocksdb.errors.RocksIOError',
+        with patch('kaspr.faust.stores.rocksdb.rocksdb.errors.RocksIOError',
                    KeyError):
             assert (await store._try_open_db_for_partition(3) is
                     db_for_partition.return_value)
@@ -390,7 +390,7 @@ class test_Store:
     async def test_open_db_for_partition_max_retries(
             self, *, store, db_for_partition):
         store.sleep = AsyncMock(name='sleep')
-        with patch('faust.stores.rocksdb.rocksdb.errors.RocksIOError',
+        with patch('kaspr.faust.stores.rocksdb.rocksdb.errors.RocksIOError',
                    KeyError):
             db_for_partition.side_effect = KeyError('lock already')
             with pytest.raises(KeyError):
@@ -400,7 +400,7 @@ class test_Store:
     @pytest.mark.asyncio
     async def test_open_db_for_partition__raises_unexpected_error(
             self, *, store, db_for_partition):
-        with patch('faust.stores.rocksdb.rocksdb.errors.RocksIOError',
+        with patch('kaspr.faust.stores.rocksdb.rocksdb.errors.RocksIOError',
                    KeyError):
             db_for_partition.side_effect = RuntimeError()
             with pytest.raises(RuntimeError):
@@ -409,7 +409,7 @@ class test_Store:
     @pytest.mark.asyncio
     async def test_open_db_for_partition_retries_recovers(
             self, *, store, db_for_partition):
-        with patch('faust.stores.rocksdb.rocksdb.errors.RocksIOError',
+        with patch('kaspr.faust.stores.rocksdb.rocksdb.errors.RocksIOError',
                    KeyError):
 
             def on_call(partition):

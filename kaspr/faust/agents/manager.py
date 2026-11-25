@@ -11,9 +11,9 @@ from collections import OrderedDict
 from mode.utils.collections import ManagedUserDict
 from mode.utils.locks import Event
 
-from faust.types import AgentManagerT, AgentT, AppT
-from faust.types.tuples import TP, tp_set_to_map
-from faust.utils.tracing import traced_from_parent_span
+from kaspr.faust.types import AgentManagerT, AgentT, AppT
+from kaspr.faust.types.tuples import TP, tp_set_to_map
+from kaspr.faust.utils.tracing import traced_from_parent_span
 
 TRACEBACK_HEADER = '''
 =======================================

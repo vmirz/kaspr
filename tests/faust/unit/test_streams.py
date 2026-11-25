@@ -1,13 +1,13 @@
 import asyncio
 from collections import defaultdict
-import faust
+from kaspr import faust
 import pytest
-from faust import joins
-from faust.exceptions import Skip
+from kaspr.faust import joins
+from kaspr.faust.exceptions import Skip
 from contextlib import ExitStack
 from mode.utils.mocks import AsyncMock, Mock, patch
 from sortedcontainers import SortedSet
-from t.helpers import new_event
+from tests.faust.helpers import new_event
 
 
 class Model(faust.Record):
@@ -66,7 +66,7 @@ class test_Stream:
         assert stream.through(Mock()) is stream
 
     def test__set_current_event(self, *, stream):
-        with patch('faust.streams._current_event') as ce:
+        with patch('kaspr.faust.streams._current_event') as ce:
             stream._set_current_event(None)
             assert stream.current_event is None
             ce.set.assert_called_once_with(None)

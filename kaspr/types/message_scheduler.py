@@ -1,6 +1,6 @@
 import abc
 import typing
-from faust.types import ServiceT, TopicT
+from kaspr.faust.types import ServiceT, TopicT
 from mode.utils.objects import cached_property
 from mode.utils.locks import Event
 from .table import KasprTableT

@@ -1,5 +1,5 @@
 import logging
-from faust.utils.terminal.spinners import Spinner, SpinnerHandler
+from kaspr.faust.utils.terminal.spinners import Spinner, SpinnerHandler
 from mode.utils.mocks import Mock, call, patch
 
 

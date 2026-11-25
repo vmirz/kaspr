@@ -1,11 +1,11 @@
 import pytest
-from faust import web
-from faust import Event, Stream, Table, Topic
-from faust.assignor import PartitionAssignor
-from faust.sensors import Sensor
-from faust.transport.consumer import Consumer
-from faust.transport.producer import Producer
-from faust.types import Message, TP
+from kaspr.faust import web
+from kaspr.faust import Event, Stream, Table, Topic
+from kaspr.faust.assignor import PartitionAssignor
+from kaspr.faust.sensors import Sensor
+from kaspr.faust.transport.consumer import Consumer
+from kaspr.faust.transport.producer import Producer
+from kaspr.faust.types import Message, TP
 from mode.utils.mocks import Mock
 
 TP1 = TP('foo', 0)

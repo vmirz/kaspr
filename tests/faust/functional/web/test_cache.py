@@ -2,11 +2,11 @@ from itertools import count
 
 import aredis
 import pytest
-import faust
-from faust.exceptions import ImproperlyConfigured
-from faust.web import Blueprint, View
-from faust.web.cache import backends
-from faust.web.cache.backends import redis
+from kaspr import faust
+from kaspr.faust.exceptions import ImproperlyConfigured
+from kaspr.faust.web import Blueprint, View
+from kaspr.faust.web.cache import backends
+from kaspr.faust.web.cache.backends import redis
 from mode.utils.mocks import Mock
 
 DEFAULT_TIMEOUT = 361.363
@@ -268,7 +268,7 @@ async def test_redis__using_starting_(app, mocked_redis):
 
 @pytest.fixture()
 def no_aredis(monkeypatch):
-    monkeypatch.setattr('faust.web.cache.backends.redis.aredis', None)
+    monkeypatch.setattr('kaspr.faust.web.cache.backends.redis.aredis', None)
 
 
 @pytest.mark.asyncio

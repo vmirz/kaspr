@@ -1,5 +1,5 @@
 import socket
-import faust
+from kaspr import faust
 from . import states
 from .models import Error, Status
 
@@ -82,5 +82,5 @@ def get_reporting_app() -> DashboardApp:
     return create_app(
         'f-stress-systemcheck',
         base=DashboardApp,
-        origin='t.stress.reports',
+        origin='tests.faust.stress.reports',
     )

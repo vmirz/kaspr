@@ -1,7 +1,7 @@
 # failfast_assignor.py
 import os
 import asyncio
-from faust.assignor import PartitionAssignor as BaseAssignor
+from kaspr.faust.assignor import PartitionAssignor as BaseAssignor
 
 EXIT_CODE = 42  # any non-zero
 

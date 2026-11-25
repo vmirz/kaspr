@@ -1,10 +1,10 @@
 import typing
 from decimal import Decimal
 
-import faust
+from kaspr import faust
 import pytest
-from faust.exceptions import KeyDecodeError, ValueDecodeError
-from faust.utils import json
+from kaspr.faust.exceptions import KeyDecodeError, ValueDecodeError
+from kaspr.faust.utils import json
 from mode.utils.mocks import Mock
 
 

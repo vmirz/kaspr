@@ -19,9 +19,9 @@ from mypy_extensions import Arg, KwArg, VarArg
 from yarl import URL
 
 if typing.TYPE_CHECKING:
-    from faust.types.app import AppT as _AppT
-    from faust.web.base import Request, Response, Web
-    from faust.web.views import View
+    from kaspr.faust.types.app import AppT as _AppT
+    from kaspr.faust.web.base import Request, Response, Web
+    from kaspr.faust.web.views import View
 else:
     class _AppT: ...          # noqa
     class Request: ...        # noqa

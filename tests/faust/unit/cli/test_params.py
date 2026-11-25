@@ -1,7 +1,7 @@
 import click.exceptions
 import pytest
 from yarl import URL
-from faust.cli.params import CaseInsensitiveChoice, TCPPort, URLParam
+from kaspr.faust.cli.params import CaseInsensitiveChoice, TCPPort, URLParam
 
 
 def test_CaseInsensitiveChoice():

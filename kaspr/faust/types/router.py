@@ -1,4 +1,4 @@
-"""Types for module :mod:`faust.router`."""
+"""Types for module :mod:`kaspr.faust.router`."""
 import abc
 import typing
 

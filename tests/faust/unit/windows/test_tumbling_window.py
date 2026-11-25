@@ -1,4 +1,4 @@
-from faust.windows import TumblingWindow
+from kaspr.faust.windows import TumblingWindow
 
 
 class test_TumblingWindow:

@@ -1,6 +1,6 @@
-import faust
+from kaspr import faust
 import pytest
-from faust import web
+from kaspr.faust import web
 
 blueprint = web.Blueprint('test_views')
 

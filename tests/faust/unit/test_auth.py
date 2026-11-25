@@ -1,7 +1,7 @@
 import ssl
 import pytest
-from faust.auth import GSSAPICredentials, SASLCredentials, SSLCredentials
-from faust.types.auth import AuthProtocol, SASLMechanism
+from kaspr.faust.auth import GSSAPICredentials, SASLCredentials, SSLCredentials
+from kaspr.faust.types.auth import AuthProtocol, SASLMechanism
 from mode.utils.mocks import Mock, patch
 
 
@@ -85,7 +85,7 @@ class test_GSSAPICredentials:
 class test_SSLCredentials:
 
     def test_constructor(self):
-        with patch('faust.auth.ssl.create_default_context') as cdc:
+        with patch('kaspr.faust.auth.ssl.create_default_context') as cdc:
             c = SSLCredentials(
                 purpose=ssl.Purpose.SERVER_AUTH,
                 cafile='/foo/bar/ca.file',

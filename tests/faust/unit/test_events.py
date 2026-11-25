@@ -1,6 +1,6 @@
 import pytest
 from mode.utils.mocks import AsyncMock, Mock
-from faust import Event
+from kaspr.faust import Event
 
 
 class test_Event:

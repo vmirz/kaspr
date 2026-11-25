@@ -56,10 +56,10 @@ from .web import (
 from .windows import WindowT
 
 if typing.TYPE_CHECKING:
-    from faust.cli.base import AppCommand as _AppCommand
-    from faust.livecheck.app import LiveCheck as _LiveCheck
-    from faust.sensors.monitor import Monitor as _Monitor
-    from faust.worker import Worker as _Worker
+    from kaspr.faust.cli.base import AppCommand as _AppCommand
+    from kaspr.faust.livecheck.app import LiveCheck as _LiveCheck
+    from kaspr.faust.sensors.monitor import Monitor as _Monitor
+    from kaspr.faust.worker import Worker as _Worker
     from .events import EventT as _EventT
     from .models import ModelArg as _ModelArg
     from .serializers import SchemaT as _SchemaT
@@ -142,7 +142,7 @@ class AppT(ServiceT):
     """Abstract type for the Faust application.
 
     See Also:
-        :class:`faust.App`.
+        :class:`kaspr.faust.App`.
     """
     Settings: ClassVar[Type[_Settings]]
 
@@ -164,7 +164,7 @@ class AppT(ServiceT):
     unassigned: bool = False
 
     #: Set to true when app is executing within a worker instance.
-    # This flag is set in faust/worker.py
+    # This flag is set in kaspr/faust/worker.py
     in_worker: bool = False
 
     on_configured: SyncSignal[_Settings] = SyncSignal()

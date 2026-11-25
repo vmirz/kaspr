@@ -1,6 +1,6 @@
 import pytz
 from freezegun import freeze_time
-from faust.utils.cron import secs_for_next
+from kaspr.faust.utils.cron import secs_for_next
 
 SECS_IN_HOUR = 60 * 60
 

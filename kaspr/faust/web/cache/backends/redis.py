@@ -9,8 +9,8 @@ from mode.utils.compat import want_bytes
 from mode.utils.objects import cached_property
 from yarl import URL
 
-from faust.exceptions import ImproperlyConfigured
-from faust.types import AppT
+from kaspr.faust.exceptions import ImproperlyConfigured
+from kaspr.faust.types import AppT
 from . import base
 
 try:

@@ -14,13 +14,13 @@ from typing import (
 
 from mode.utils.objects import Unordered, cached_property
 
-from faust.streams import current_event
-from faust.types import AppT, ChannelT, CodecArg, RecordMetadata, SchemaT, TP
-from faust.types.core import HeadersArg, K, V
-from faust.types.tuples import FutureMessage, Message, MessageSentCallback
+from kaspr.faust.streams import current_event
+from kaspr.faust.types import AppT, ChannelT, CodecArg, RecordMetadata, SchemaT, TP
+from kaspr.faust.types.core import HeadersArg, K, V
+from kaspr.faust.types.tuples import FutureMessage, Message, MessageSentCallback
 
 if typing.TYPE_CHECKING:
-    from faust.events import Event as _Event
+    from kaspr.faust.events import Event as _Event
 else:
     class _Event: ...       # noqa
 

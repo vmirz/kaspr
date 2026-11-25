@@ -1,10 +1,10 @@
 import datetime
-import faust
+from kaspr import faust
 import pytest
 
-from faust.events import Event
-from faust.types import Message
-from faust.tables.wrappers import WindowSet, WindowWrapper
+from kaspr.faust.events import Event
+from kaspr.faust.types import Message
+from kaspr.faust.tables.wrappers import WindowSet, WindowWrapper
 from mode.utils.mocks import Mock, patch
 
 
@@ -59,19 +59,19 @@ class test_Table:
             value_type=value_type,
             **kwargs)
 
-    @patch('faust.tables.wrappers.current_event', return_value=event())
+    @patch('kaspr.faust.tables.wrappers.current_event', return_value=event())
     def test_using_window(self, patch_current, *, table):
         with_wrapper = table.using_window(WINDOW1)
         self.assert_wrapper(with_wrapper, table, WINDOW1)
         self.assert_current(with_wrapper, patch_current)
 
-    @patch('faust.tables.wrappers.current_event', return_value=event())
+    @patch('kaspr.faust.tables.wrappers.current_event', return_value=event())
     def test_hopping(self, patch_current, *, table):
         with_wrapper = table.hopping(10, 2, 3600)
         self.assert_wrapper(with_wrapper, table)
         self.assert_current(with_wrapper, patch_current)
 
-    @patch('faust.tables.wrappers.current_event', return_value=event())
+    @patch('kaspr.faust.tables.wrappers.current_event', return_value=event())
     def test_tumbling(self, patch_current, *, table):
         with_wrapper = table.tumbling(10, 3600)
         self.assert_wrapper(with_wrapper, table)
@@ -115,7 +115,7 @@ class test_Table:
         assert table._get_key('foo') == 3
 
     def test_set_key(self, *, table):
-        with patch('faust.tables.base.current_event') as current_event:
+        with patch('kaspr.faust.tables.base.current_event') as current_event:
             event = current_event.return_value
             partition = event.message.partition
             table.send_changelog = Mock(name='send_changelog')
@@ -125,7 +125,7 @@ class test_Table:
             assert table['foo'] == 'val'
 
     def test_del_key(self, *, table):
-        with patch('faust.tables.base.current_event') as current_event:
+        with patch('kaspr.faust.tables.base.current_event') as current_event:
             event = current_event.return_value
             partition = event.message.partition
             table.send_changelog = Mock(name='send_changelog')
@@ -142,13 +142,13 @@ class test_Table:
         assert table.as_ansitable(sort=False)
 
     def test_on_key_set__no_event(self, *, table):
-        with patch('faust.tables.base.current_event') as ce:
+        with patch('kaspr.faust.tables.base.current_event') as ce:
             ce.return_value = None
             with pytest.raises(TypeError):
                 table.on_key_set('k', 'v')
 
     def test_on_key_del__no_event(self, *, table):
-        with patch('faust.tables.base.current_event') as ce:
+        with patch('kaspr.faust.tables.base.current_event') as ce:
             ce.return_value = None
             with pytest.raises(TypeError):
                 table.on_key_del('k')
@@ -156,7 +156,7 @@ class test_Table:
     def test_register_on_key_set_fires_on_set(self, *, table):
         cb = Mock(name='on_key_set_cb')
         table.register_on_key_set(cb)
-        with patch('faust.tables.base.current_event') as ce:
+        with patch('kaspr.faust.tables.base.current_event') as ce:
             ce.return_value = event()
             table.send_changelog = Mock(name='send_changelog')
             table.on_key_set('k', 'v')
@@ -166,7 +166,7 @@ class test_Table:
         cb = Mock(name='on_key_set_cb')
         table.register_on_key_set(cb)
         table.unregister_on_key_set(cb)
-        with patch('faust.tables.base.current_event') as ce:
+        with patch('kaspr.faust.tables.base.current_event') as ce:
             ce.return_value = event()
             table.send_changelog = Mock(name='send_changelog')
             table.on_key_set('k', 'v')
@@ -180,7 +180,7 @@ class test_Table:
     def test_register_on_key_del_fires_on_del(self, *, table):
         cb = Mock(name='on_key_del_cb')
         table.register_on_key_del(cb)
-        with patch('faust.tables.base.current_event') as ce:
+        with patch('kaspr.faust.tables.base.current_event') as ce:
             ce.return_value = event()
             table.send_changelog = Mock(name='send_changelog')
             table.data['k'] = 'v'
@@ -191,7 +191,7 @@ class test_Table:
         cb = Mock(name='on_key_del_cb')
         table.register_on_key_del(cb)
         table.unregister_on_key_del(cb)
-        with patch('faust.tables.base.current_event') as ce:
+        with patch('kaspr.faust.tables.base.current_event') as ce:
             ce.return_value = event()
             table.send_changelog = Mock(name='send_changelog')
             table.data['k'] = 'v'
@@ -201,7 +201,7 @@ class test_Table:
     def test_on_key_set_callback_exception_logged(self, *, table):
         cb = Mock(name='bad_cb', side_effect=RuntimeError('boom'))
         table.register_on_key_set(cb)
-        with patch('faust.tables.base.current_event') as ce:
+        with patch('kaspr.faust.tables.base.current_event') as ce:
             ce.return_value = event()
             table.send_changelog = Mock(name='send_changelog')
             # Should not raise despite callback exception
@@ -214,7 +214,7 @@ class test_Table:
         good_cb = Mock(name='good_cb')
         table.register_on_key_set(bad_cb)
         table.register_on_key_set(good_cb)
-        with patch('faust.tables.base.current_event') as ce:
+        with patch('kaspr.faust.tables.base.current_event') as ce:
             ce.return_value = event()
             table.send_changelog = Mock(name='send_changelog')
             table.on_key_set('k', 'v')

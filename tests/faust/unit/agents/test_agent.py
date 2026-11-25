@@ -1,20 +1,20 @@
 import asyncio
 
-import faust
+from kaspr import faust
 import pytest
-from faust import App, Channel, Record
-from faust.agents.actor import Actor
+from kaspr.faust import App, Channel, Record
+from kaspr.faust.agents.actor import Actor
 
-from faust.agents.models import (
+from kaspr.faust.agents.models import (
     ModelReqRepRequest,
     ModelReqRepResponse,
     ReqRepRequest,
     ReqRepResponse,
 )
-from faust.agents.replies import ReplyConsumer
-from faust.events import Event
-from faust.exceptions import ImproperlyConfigured
-from faust.types import Message, TP
+from kaspr.faust.agents.replies import ReplyConsumer
+from kaspr.faust.events import Event
+from kaspr.faust.exceptions import ImproperlyConfigured
+from kaspr.faust.types import Message, TP
 from mode import SupervisorStrategy, label
 from mode.utils.aiter import aiter
 from mode.utils.futures import done_future
@@ -696,7 +696,7 @@ class test_Agent:
     def test_create_req(self, *, agent):
         agent.use_reply_headers = False
         agent._get_strtopic = Mock(name='_get_strtopic')
-        with patch('faust.agents.agent.uuid4') as uuid4:
+        with patch('kaspr.faust.agents.agent.uuid4') as uuid4:
             uuid4.return_value = 'vvv'
             reqrep = agent._create_req(
                 key=b'key', value=b'value',
@@ -712,7 +712,7 @@ class test_Agent:
     def test_create_req__use_reply_headers(self, *, agent):
         agent.use_reply_headers = True
         agent._get_strtopic = Mock(name='_get_strtopic')
-        with patch('faust.agents.agent.uuid4') as uuid4:
+        with patch('kaspr.faust.agents.agent.uuid4') as uuid4:
             uuid4.return_value = 'vvv'
             value, h = agent._create_req(
                 key=b'key', value=b'value',
@@ -728,7 +728,7 @@ class test_Agent:
     def test_create_req__model(self, *, agent):
         agent.use_reply_headers = False
         agent._get_strtopic = Mock(name='_get_strtopic')
-        with patch('faust.agents.agent.uuid4') as uuid4:
+        with patch('kaspr.faust.agents.agent.uuid4') as uuid4:
             uuid4.return_value = 'vvv'
             value = Word('foo')
             reqrep = agent._create_req(

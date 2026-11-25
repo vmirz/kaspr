@@ -1,6 +1,6 @@
-import faust
+from kaspr import faust
 import pytest
-from faust.tables.sets import (
+from kaspr.faust.tables.sets import (
     ChangeloggedSet,
     ChangeloggedSetManager,
     OPERATION_ADD,

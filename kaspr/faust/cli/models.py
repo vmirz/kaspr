@@ -1,8 +1,8 @@
 """Program ``faust models`` used to list models available."""
 from operator import attrgetter
 from typing import Any, Callable, Sequence, Type, cast
-from faust.models import registry
-from faust.types import ModelT
+from kaspr.faust.models import registry
+from kaspr.faust.types import ModelT
 from .base import AppCommand, option
 
 __all__ = ['models']

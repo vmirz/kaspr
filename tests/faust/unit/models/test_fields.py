@@ -1,9 +1,9 @@
 from decimal import Decimal
 import pytest
 from mode.utils.mocks import Mock
-from faust import Record
-from faust.exceptions import ValidationError
-from faust.models.fields import (
+from kaspr.faust import Record
+from kaspr.faust.exceptions import ValidationError
+from kaspr.faust.models.fields import (
     BooleanField,
     BytesField,
     DecimalField,

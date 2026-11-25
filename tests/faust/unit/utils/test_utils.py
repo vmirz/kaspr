@@ -1,4 +1,4 @@
-from faust.utils import uuid
+from kaspr.faust.utils import uuid
 
 
 def test_uuid():

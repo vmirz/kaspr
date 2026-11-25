@@ -1,8 +1,8 @@
 import copy
 from collections import Counter
 from typing import MutableMapping
-from faust.assignor.client_assignment import CopartitionedAssignment
-from faust.assignor.copartitioned_assignor import CopartitionedAssignor
+from kaspr.faust.assignor.client_assignment import CopartitionedAssignment
+from kaspr.faust.assignor.copartitioned_assignor import CopartitionedAssignor
 from hypothesis import assume, given, settings
 from hypothesis.strategies import integers
 

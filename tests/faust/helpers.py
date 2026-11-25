@@ -1,6 +1,6 @@
 from time import time
-from faust.events import Event
-from faust.types.tuples import Message
+from kaspr.faust.events import Event
+from kaspr.faust.types.tuples import Message
 
 __all__ = ['message', 'new_event']
 

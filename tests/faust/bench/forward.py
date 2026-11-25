@@ -1,7 +1,7 @@
 import sys
-import faust
+from kaspr import faust
 sys.path.insert(0, '.')
-from t.bench.base import Benchmark  # noqa
+from tests.faust.bench.base import Benchmark  # noqa
 
 app = faust.App('bench-forward')
 topic = app.topic(

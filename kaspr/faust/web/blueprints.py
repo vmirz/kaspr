@@ -4,7 +4,7 @@ They are lazy and need to be registered to an app to be activated:
 
 .. sourcecode:: python
 
-    from faust import web
+    from kaspr.faust import web
 
     blueprint = web.Blueprint('users')
     cache = blueprint.cache(timeout=300.0)
@@ -56,8 +56,8 @@ from typing import List, Mapping, NamedTuple, Optional, Type, Union
 
 from mode.utils.times import Seconds
 
-from faust.types import AppT
-from faust.types.web import (
+from kaspr.faust.types import AppT
+from kaspr.faust.types.web import (
     BlueprintT,
     CacheBackendT,
     CacheT,

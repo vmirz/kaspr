@@ -1,5 +1,5 @@
 from aiokafka.structs import TopicPartition
-from faust.types import TP
+from kaspr.faust.types import TP
 
 
 def test_TP_TopicPartition_hashability():

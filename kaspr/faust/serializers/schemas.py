@@ -1,14 +1,14 @@
 import typing
 from contextlib import suppress
 from typing import Any, Awaitable, Callable, Optional, Tuple, cast
-from faust.exceptions import KeyDecodeError, ValueDecodeError
-from faust.types.app import AppT
-from faust.types.core import K, OpenHeadersArg, V
-from faust.types.codecs import CodecArg
-from faust.types.events import EventT
-from faust.types.models import ModelArg
-from faust.types.serializers import KT, SchemaT, VT
-from faust.types.tuples import Message
+from kaspr.faust.exceptions import KeyDecodeError, ValueDecodeError
+from kaspr.faust.types.app import AppT
+from kaspr.faust.types.core import K, OpenHeadersArg, V
+from kaspr.faust.types.codecs import CodecArg
+from kaspr.faust.types.events import EventT
+from kaspr.faust.types.models import ModelArg
+from kaspr.faust.types.serializers import KT, SchemaT, VT
+from kaspr.faust.types.tuples import Message
 
 __all__ = ['Schema']
 

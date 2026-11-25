@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime, timezone
-from faust.utils._iso8601_python import InvalidTZ, parse, parse_tz
+from kaspr.faust.utils._iso8601_python import InvalidTZ, parse, parse_tz
 
 
 def test_python():
