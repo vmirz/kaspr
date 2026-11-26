@@ -31,7 +31,7 @@ class test_RocksDBOptions__rocksdict:
             db.close()
 
     def options(self, **kwargs):
-        return RocksDBOptions(use_rocksdict=True, **kwargs)
+        return RocksDBOptions(**kwargs)
 
     def open(self, path, **kwargs):
         db = self.options(**kwargs).open(path)

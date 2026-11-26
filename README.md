@@ -26,7 +26,7 @@ python -m pytest
 ```
 
 - Faust and mode are part of the package: import them as `kaspr.faust` and `kaspr.mode`. `kaspr/__init__.py` holds the one version, which a change to any of them bumps.
-- The engine uses these packages where they are installed: `aiodns>=1.1`, `aiomonitor>=0.4.4`, `charset-normalizer>=3.0`, `ciso8601`, `confluent-kafka>=2.0`, `datadog`, `orjson>=3.0`, `python-rocksdb>=0.6.7`, `redis>=4.0`, `setproctitle>=1.1`, `statsd~=3.3.0`, `uvloop>=0.8.1`.
+- The engine uses these packages where they are installed: `aiodns>=1.1`, `aiomonitor>=0.4.4`, `charset-normalizer>=3.0`, `ciso8601`, `confluent-kafka>=2.0`, `datadog`, `orjson>=3.0`, `redis>=4.0`, `setproctitle>=1.1`, `statsd~=3.3.0`, `uvloop>=0.8.1`.
 
 ## License
 

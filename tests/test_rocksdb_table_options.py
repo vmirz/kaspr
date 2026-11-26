@@ -223,7 +223,7 @@ def test_tables_share_the_block_cache_in_rocksdb(conf, tmp_path):
     dbs = []
     try:
         for table in ("orders", "items"):
-            options = faust_rocksdb.RocksDBOptions(use_rocksdict=True, **rocksdb_table_options(conf))
+            options = faust_rocksdb.RocksDBOptions(**rocksdb_table_options(conf))
             dbs.append(options.open(tmp_path / f"{table}-0.db"))
 
         for db in dbs:
