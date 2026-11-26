@@ -95,6 +95,27 @@ class test_Store:
         with pytest.raises(ImproperlyConfigured):
             Store('rocksdb://', app, table)
 
+    def test_driver__rocksdict_by_default(self, *, store):
+        assert store.driver == 'rocksdict'
+
+    @pytest.mark.parametrize('how', ['option', 'argument'])
+    def test_driver__rocksdict(self, *, app, rocks, table, how):
+        if how == 'option':
+            store = Store('rocksdb://', app, table,
+                          options={'driver': 'rocksdict'})
+        else:
+            store = Store('rocksdb://', app, table, driver='rocksdict')
+        assert store.driver == 'rocksdict'
+        # not an option of the database
+        assert 'driver' not in store.options
+
+    @pytest.mark.parametrize('driver', ['other', 'leveldb'])
+    def test_driver__unsupported(self, *, app, rocks, table, driver):
+        with pytest.raises(ImproperlyConfigured, match=driver):
+            Store('rocksdb://', app, table, options={'driver': driver})
+        with pytest.raises(ImproperlyConfigured, match=driver):
+            Store('rocksdb://', app, table, driver=driver)
+
     def test_url_without_path_adds_table_name(self, *, store):
         assert store.url == URL('rocksdb:table1')
 

@@ -56,15 +56,16 @@ class test_Store__rocksdict:
 
 @pytest.mark.skipif(
     rocksdb.rocksdict is None, reason='rocksdict not installed')
-def test_store__options_of_other_drivers_are_ignored(*, app, tmp_path, monkeypatch):
-    """Tables that still name a driver, or ask to be read only, open as before,
-    and the store writes nothing but the database."""
+def test_store__driver_and_read_only_options(*, app, tmp_path, monkeypatch):
+    """A table naming its driver, or asking to be read only, which rocksdict
+    does not do, opens as before, and the store writes nothing but the database."""
     table = Mock(name='table')
     table.name = 'table1'
     monkeypatch.setattr(Store, 'path', property(lambda self: tmp_path))
     store = Store('rocksdb://', app, table, options={
         'driver': 'rocksdict', 'read_only': True, 'block_cache_size': 8 << 20})
 
+    assert store.driver == 'rocksdict'
     assert store.read_only
     assert store.rocksdb_options.block_cache_size == 8 << 20
     db = store._db_for_partition(0)

@@ -49,6 +49,9 @@ DEFAULT_SET_CACHE_INDEX_AND_FILTER_BLOCKS = False
 DEFAULT_PREFIX_EXTRACTOR_ENABLED = False
 DEFAULT_PREFIX_MAX_LENGTH = 12
 ESTIMATE_NUM_KEYS_PROPERTY = 'rocksdb.estimate-num-keys'
+#: The RocksDB bindings a store can run on, by the name its ``driver`` option takes.
+DRIVERS = ('rocksdict',)
+DEFAULT_DRIVER = 'rocksdict'
 #: rocksdict raises a plain Exception when RocksDB fails, as when another
 #: process holds the lock of a database: only the message tells them apart.
 ERRORS_ROCKS_IO_ERROR = Exception
@@ -191,7 +194,11 @@ class RocksDBOptions:
 class Store(base.SerializedStore):
     """RocksDB table storage.
 
-    Runs on :pypi:`rocksdict`, whose wheels carry RocksDB itself.
+    The ``driver`` option names the RocksDB binding the store runs on:
+    ``rocksdict``, the default and the only one, whose wheels carry RocksDB
+    itself::
+
+        app.Table(..., options={'driver': 'rocksdict'})
     """
 
     offset_key = b"__faust\0offset__"
@@ -216,6 +223,7 @@ class Store(base.SerializedStore):
         key_index_size: Optional[int] = None,
         options: Optional[Mapping[str, Any]] = None,
         read_only: Optional[bool] = False,
+        driver: Optional[str] = None,
         **kwargs: Any,
     ) -> None:
         if rocksdict is None:
@@ -234,6 +242,12 @@ class Store(base.SerializedStore):
         self.options = options or {}
         # Accepted, but rocksdict opens every database for reading and writing.
         self.read_only = self.options.pop("read_only", read_only)
+        self.driver = self.options.pop("driver", driver) or DEFAULT_DRIVER
+        if self.driver not in DRIVERS:
+            raise ImproperlyConfigured(
+                f"RocksDB driver {self.driver!r} is not supported:"
+                f" use {' or '.join(map(repr, DRIVERS))}"
+            )
         self.rocksdb_options = RocksDBOptions(**self.options)
         if key_index_size is None:
             key_index_size = app.conf.table_key_index_size
