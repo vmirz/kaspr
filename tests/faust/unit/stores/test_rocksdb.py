@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import List, Mapping, Tuple
 import pytest
 from kaspr.faust.exceptions import ImproperlyConfigured
@@ -56,33 +55,6 @@ class test_RocksDBOptions:
                 rocksdb.DEFAULT_BLOCK_CACHE_COMPRESSED_SIZE)
         assert opts.bloom_filter_size == rocksdb.DEFAULT_BLOOM_FILTER_SIZE
 
-    def test_open(self):
-        with patch('kaspr.faust.stores.rocksdb.rocksdb', Mock()) as rocks:
-            opts = RocksDBOptions(use_rocksdict=False)
-            db = opts.open(Path('foo.db'), read_only=True)
-            rocks.DB.assert_called_once_with(
-                'foo.db', opts.as_options(), read_only=True)
-            assert db is rocks.DB()
-
-    def test_as_options__python_rocksdb_block_cache(self):
-        cache = Mock(name='cache')
-        with patch('kaspr.faust.stores.rocksdb.rocksdb') as rocks:
-            RocksDBOptions(use_rocksdict=False, block_cache=cache).as_options()
-
-            _, kwargs = rocks.BlockBasedTableFactory.call_args
-            assert kwargs['block_cache'] is cache
-            rocks.LRUCache.assert_called_once_with(
-                rocksdb.DEFAULT_BLOCK_CACHE_COMPRESSED_SIZE)
-
-    def test_as_options__python_rocksdb_block_cache_per_db_by_default(self):
-        with patch('kaspr.faust.stores.rocksdb.rocksdb') as rocks:
-            RocksDBOptions(
-                use_rocksdict=False, block_cache_size=1234).as_options()
-
-            _, kwargs = rocks.BlockBasedTableFactory.call_args
-            assert kwargs['block_cache'] is rocks.LRUCache.return_value
-            rocks.LRUCache.assert_any_call(1234)
-
 
 class test_Store:
 
@@ -94,18 +66,17 @@ class test_Store:
 
     @pytest.yield_fixture()
     def rocks(self):
-        with patch('kaspr.faust.stores.rocksdb.rocksdb') as rocks:
+        with patch('kaspr.faust.stores.rocksdb.rocksdict') as rocks:
             yield rocks
 
     @pytest.yield_fixture()
     def no_rocks(self):
-        with patch('kaspr.faust.stores.rocksdb.rocksdb', None) as rocks:
-            with patch('kaspr.faust.stores.rocksdb.rocksdict', None):
-                yield rocks
+        with patch('kaspr.faust.stores.rocksdb.rocksdict', None) as rocks:
+            yield rocks
 
     @pytest.fixture()
     def store(self, *, app, rocks, table):
-        return Store('rocksdb://', app, table, driver='python-rocksdb')
+        return Store('rocksdb://', app, table)
 
     @pytest.fixture()
     def db_for_partition(self, *, store):
@@ -123,6 +94,27 @@ class test_Store:
     def test_no_rocksdb(self, *, app, table, no_rocks):
         with pytest.raises(ImproperlyConfigured):
             Store('rocksdb://', app, table)
+
+    def test_driver__rocksdict_by_default(self, *, store):
+        assert store.driver == 'rocksdict'
+
+    @pytest.mark.parametrize('how', ['option', 'argument'])
+    def test_driver__rocksdict(self, *, app, rocks, table, how):
+        if how == 'option':
+            store = Store('rocksdb://', app, table,
+                          options={'driver': 'rocksdict'})
+        else:
+            store = Store('rocksdb://', app, table, driver='rocksdict')
+        assert store.driver == 'rocksdict'
+        # not an option of the database
+        assert 'driver' not in store.options
+
+    @pytest.mark.parametrize('driver', ['other', 'leveldb'])
+    def test_driver__unsupported(self, *, app, rocks, table, driver):
+        with pytest.raises(ImproperlyConfigured, match=driver):
+            Store('rocksdb://', app, table, options={'driver': driver})
+        with pytest.raises(ImproperlyConfigured, match=driver):
+            Store('rocksdb://', app, table, driver=driver)
 
     def test_url_without_path_adds_table_name(self, *, store):
         assert store.url == URL('rocksdb:table1')
@@ -156,7 +148,7 @@ class test_Store:
 
     @pytest.mark.asyncio
     async def test_need_active_standby_for(self, *, store, db_for_partition):
-        with patch('kaspr.faust.stores.rocksdb.rocksdb.errors.RocksIOError',
+        with patch('kaspr.faust.stores.rocksdb.ERRORS_ROCKS_IO_ERROR',
                    KeyError):
             db_for_partition.side_effect = KeyError('lock acquired')
             assert not await store.need_active_standby_for(TP1)
@@ -164,7 +156,7 @@ class test_Store:
     @pytest.mark.asyncio
     async def test_need_active_standby_for__raises(
             self, *, store, db_for_partition):
-        with patch('kaspr.faust.stores.rocksdb.rocksdb.errors.RocksIOError',
+        with patch('kaspr.faust.stores.rocksdb.ERRORS_ROCKS_IO_ERROR',
                    KeyError):
             db_for_partition.side_effect = KeyError('oh no')
             with pytest.raises(KeyError):
@@ -173,7 +165,7 @@ class test_Store:
     @pytest.mark.asyncio
     async def test_need_active_standby_for__active(
             self, *, store, db_for_partition):
-        with patch('kaspr.faust.stores.rocksdb.rocksdb.errors.RocksIOError',
+        with patch('kaspr.faust.stores.rocksdb.ERRORS_ROCKS_IO_ERROR',
                    KeyError):
             assert await store.need_active_standby_for(TP1)
 
@@ -257,7 +249,7 @@ class test_Store:
     def test_open_for_partition(self, *, store):
         open = store.rocksdb_options.open = Mock(name='options.open')
         assert store._open_for_partition(1) is open.return_value
-        open.assert_called_once_with(store.partition_path(1), read_only=False)
+        open.assert_called_once_with(store.partition_path(1))
 
     def test__get__missing(self, *, store):
         store._get_bucket_for_key = Mock(name='get_bucket_for_key')
@@ -277,10 +269,10 @@ class test_Store:
         store._get_bucket_for_key = Mock(name='get_bucket_for_key')
         store._get_bucket_for_key.return_value = (db, None)
 
-        db.key_may_exist.return_value = [False]
+        db.key_may_exist.return_value = False
         assert store._get(b'key') is None
 
-        db.key_may_exist.return_value = [True]
+        db.key_may_exist.return_value = True
         db.get.return_value = None
         assert store._get(b'key') is None
 
@@ -291,10 +283,10 @@ class test_Store:
         store._key_index[b'key'] = 30
         db = store._dbs[30] = Mock(name='db-p30')
 
-        db.key_may_exist.return_value = [False]
+        db.key_may_exist.return_value = False
         assert store._get_bucket_for_key(b'key') is None
 
-        db.key_may_exist.return_value = [True]
+        db.key_may_exist.return_value = True
         db.get.return_value = None
         assert store._get_bucket_for_key(b'key') is None
 
@@ -306,7 +298,7 @@ class test_Store:
 
     def new_db(self, name, exists=False):
         db = Mock(name=name)
-        db.key_may_exist.return_value = [exists]
+        db.key_may_exist.return_value = exists
         db.get.return_value = name
         return db
 
@@ -382,7 +374,7 @@ class test_Store:
 
     @pytest.mark.asyncio
     async def test_open_db_for_partition(self, *, store, db_for_partition):
-        with patch('kaspr.faust.stores.rocksdb.rocksdb.errors.RocksIOError',
+        with patch('kaspr.faust.stores.rocksdb.ERRORS_ROCKS_IO_ERROR',
                    KeyError):
             assert (await store._try_open_db_for_partition(3) is
                     db_for_partition.return_value)
@@ -399,7 +391,7 @@ class test_Store:
     @pytest.mark.asyncio
     async def test_open_db_for_partition__raises_unexpected_error(
             self, *, store, db_for_partition):
-        with patch('kaspr.faust.stores.rocksdb.rocksdb.errors.RocksIOError',
+        with patch('kaspr.faust.stores.rocksdb.ERRORS_ROCKS_IO_ERROR',
                    KeyError):
             db_for_partition.side_effect = RuntimeError()
             with pytest.raises(RuntimeError):
@@ -408,7 +400,7 @@ class test_Store:
     @pytest.mark.asyncio
     async def test_open_db_for_partition_retries_recovers(
             self, *, store, db_for_partition):
-        with patch('kaspr.faust.stores.rocksdb.rocksdb.errors.RocksIOError',
+        with patch('kaspr.faust.stores.rocksdb.ERRORS_ROCKS_IO_ERROR',
                    KeyError):
 
             def on_call(partition):
@@ -478,66 +470,49 @@ class test_Store:
         store._dbs_for_actives = Mock(return_value=dbs)
         assert store._size() == 5
 
-    def _db_with_estimate(self, name, estimate, *, use_rocksdict):
+    def _db_with_estimate(self, name, estimate):
         db = self.new_db(name)
-        if use_rocksdict:
-            db.property_int_value.return_value = estimate
-        else:
-            db.get_property.return_value = (
-                None if estimate is None else str(estimate).encode())
+        db.property_int_value.return_value = estimate
         return db
 
-    @pytest.mark.parametrize('use_rocksdict', [True, False])
-    def test_size_estimate(self, *, store, use_rocksdict):
-        store.use_rocksdict = use_rocksdict
+    def test_size_estimate(self, *, store):
         # the estimate of each db includes the persisted offset entry
         dbs = [
-            self._db_with_estimate('db1', 4, use_rocksdict=use_rocksdict),
-            self._db_with_estimate('db2', 3, use_rocksdict=use_rocksdict),
+            self._db_with_estimate('db1', 4),
+            self._db_with_estimate('db2', 3),
         ]
         store._dbs_for_actives = Mock(return_value=dbs)
 
         assert store.size_estimate() == 5
 
         for db in dbs:
-            if use_rocksdict:
-                db.property_int_value.assert_called_once_with(
-                    'rocksdb.estimate-num-keys')
-            else:
-                db.get_property.assert_called_once_with(
-                    b'rocksdb.estimate-num-keys')
+            db.property_int_value.assert_called_once_with(
+                'rocksdb.estimate-num-keys')
 
-    @pytest.mark.parametrize('use_rocksdict', [True, False])
     @pytest.mark.parametrize('estimate', [None, 0, 1])
-    def test_size_estimate__empty_or_unavailable(
-            self, *, store, use_rocksdict, estimate):
-        store.use_rocksdict = use_rocksdict
+    def test_size_estimate__empty_or_unavailable(self, *, store, estimate):
         store._dbs_for_actives = Mock(return_value=[
-            self._db_with_estimate(
-                'db1', estimate, use_rocksdict=use_rocksdict),
+            self._db_with_estimate('db1', estimate),
         ])
         assert store.size_estimate() == 0
 
     def test_size_estimate__does_not_scan_keys(self, *, store):
-        store.use_rocksdict = True
-        db = self._db_with_estimate('db1', 10, use_rocksdict=True)
+        db = self._db_with_estimate('db1', 10)
         store._dbs_for_actives = Mock(return_value=[db])
 
         assert store.size_estimate() == 9
 
         db.keys.assert_not_called()
         db.iter.assert_not_called()
-        db.iterkeys.assert_not_called()
 
     def test_size_estimate__only_active_partitions(self, *, store, table):
-        store.use_rocksdict = True
         table.changelog_topic_name = 'clog'
         table.is_global = False
         store.app.assignor.assigned_actives = Mock(
             return_value={TP('clog', 1)})
         store._dbs = {
-            0: self._db_with_estimate('db0', 100, use_rocksdict=True),
-            1: self._db_with_estimate('db1', 11, use_rocksdict=True),
+            0: self._db_with_estimate('db0', 100),
+            1: self._db_with_estimate('db1', 11),
         }
 
         assert store.size_estimate() == 10
@@ -568,8 +543,7 @@ class test_Store:
         ]
 
         for db in dbs:
-            db.iterkeys.assert_called_once_with()
-            db.iterkeys().seek_to_first.assert_called_once_with()
+            db.keys.assert_called_once_with()
 
     def _setup_keys(self, **dbs: Mapping[str, List[bytes]]):
         return [
@@ -579,7 +553,7 @@ class test_Store:
 
     def _setup_keys_db(self, name: str, values: List[bytes]):
         db = self.new_db(name)
-        db.iterkeys.return_value = MockIterator.from_values(values)
+        db.keys.return_value = MockIterator.from_values(values)
         return db
 
     def test__itervalues(self, *, store):
@@ -605,8 +579,7 @@ class test_Store:
         ]
 
         for db in dbs:
-            db.iteritems.assert_called_once_with()
-            db.iteritems().seek_to_first.assert_called_once_with()
+            db.items.assert_called_once_with()
 
     def _setup_items(self, **dbs: Mapping[str, List[Tuple[bytes, bytes]]]):
         return [
@@ -616,7 +589,7 @@ class test_Store:
 
     def _setup_items_db(self, name: str, values: List[Tuple[bytes, bytes]]):
         db = self.new_db(name)
-        db.iteritems.return_value = MockIterator.from_values(values)
+        db.items.return_value = MockIterator.from_values(values)
         return db
 
     def test__iteritems(self, *, store):
@@ -642,8 +615,7 @@ class test_Store:
         ]
 
         for db in dbs:
-            db.iteritems.assert_called_once_with()
-            db.iteritems().seek_to_first.assert_called_once_with()
+            db.items.assert_called_once_with()
 
     def test_clear(self, *, store):
         with pytest.raises(NotImplementedError):

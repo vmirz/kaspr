@@ -255,7 +255,7 @@ The processor pipeline (`AgentProcessorSpec.prepare_processor()`) is the heart o
 **Path:** `kaspr/faust/`, tests in `tests/faust/`  
 **Package:** `kaspr.faust`. Robinhood's Faust, in the fork released as `twm-faust` until 1.18.0  
 **Python:** ≥ 3.10  
-**Key Dependencies:** `aiokafka`, `aiohttp`, `rocksdict` (optional), `croniter`
+**Key Dependencies:** `aiokafka`, `aiohttp`, `rocksdict`, `croniter`
 
 #### Architecture & Key Concepts
 
